@@ -18,6 +18,7 @@ import multiprocessing
 import pandas as pd
 from collections import defaultdict
 import time
+import re
 
 
 def create_proj_samples(samples_each_step, id_2_proj):
@@ -61,7 +62,7 @@ def is_cxx_src(path):
     return False
 
 
-def check_multi_line_comments(diff_parsed, src):
+def rm_multi_line_comments(diff_parsed, src):
     # get ranges of multi line comments
     multi_line_comments = []
 
@@ -93,28 +94,83 @@ def check_multi_line_comments(diff_parsed, src):
     return diff_filter
 
 
-def is_nontrivial_change(file):
-    # remove multi-line comments from diffs
-    diffs = check_multi_line_comments(file.diff_parsed['added'])
-    diffs += check_multi_line_comments(file.diff_parsed['deleted'])
-
-    # non trivial changes are those that are not spacing or single-line comments
-    for diff in diffs:
+def rm_single_line_comments(diff_parsed):
+    diff_filtered = []
+    for diff in diff_parsed:
         line = diff[1].strip()
-        if not (line.startswith("//") 
-                or (line.startswith("/*") and line.endswith("*/")) 
-                or line == ""):
-            return True
+        if not line.startswith("//") and not (line.startswith("/*") and line.endswith("*/")):
+            diff_filtered.append(diff)
+    return diff_filtered
+
+
+def rm_empty_lines(diff_parsed):
+    diff_filtered = []
+    for diff in diff_parsed:
+        line = diff[1].strip()
+        if not line == '':
+            diff_filtered.append(diff)
+    return diff_filtered
+
+
+def clean_diff(diff_parsed):
+    diff_filtered = []
+
+    for diff in diff_parsed:
+        line = diff[1]        
+    
+        # remove // comments (only at end of a line)
+        start_comment = line.find("//")
+        if start_comment != -1:
+            line = line[:start_comment]
+
+        # remove /* */ comments (can be within a line)
+        start_comment = line.find("/*")
+        end_comment = line.find("*/")
+        while start_comment != -1 and end_comment != -1:
+            line = line[:start_comment] + line[end_comment+2:]
+            start_comment = line.find("/*")
+            end_comment = line.find("*/")
         
-    return False
+        # remove content inside a string "a string"
+        pattern = r'(?<!\\)"'
+        matches = [match.start() for match in re.finditer(pattern, line)]
+        if len(matches) % 2 == 0:  # if odd something went wrong
+            for i in range(len(matches), 0, -2):
+                start_string = matches[i]
+                end_string = matches[i+1]
+                line = line[:start_string] + line[end_string+1:]
+
+        # removing spacing
+
+
+
+        diff_filtered.append((diff[0], line))
+    
+    return diff_filtered
 
 
 def diff_rm_trivial_changes(diff_parsed_og, src_before, src_after):
     diff_parsed = {}
 
     # remove multi-line comments from diffs
-    diff_parsed['added'] = check_multi_line_comments(diff_parsed_og['added'], src_after)
-    diff_parsed['deleted'] = check_multi_line_comments(diff_parsed_og['deleted'], src_before)
+    diff_parsed['added'] = rm_multi_line_comments(diff_parsed_og['added'], src_after)
+    diff_parsed['deleted'] = rm_multi_line_comments(diff_parsed_og['deleted'], src_before)
+
+    # remove single-line comments from diffs
+    diff_parsed['added'] = rm_single_line_comments(diff_parsed['added'])
+    diff_parsed['deleted'] = rm_single_line_comments(diff_parsed['deleted'])
+
+    # remove empty lines from diffs
+    diff_parsed['added'] = rm_empty_lines(diff_parsed['added'])
+    diff_parsed['deleted'] = rm_empty_lines(diff_parsed['deleted'])
+
+    # # remove end of line comments from diff content
+    # diff_mod = {}
+    # diff_mod['added'] = clean_diff(diff_parsed['added'])
+    # diff_mod['deleted'] = clean_diff(diff_parsed['deleted'])
+
+    # remove lines same in both after cleaning
+
 
     return diff_parsed
 
@@ -278,8 +334,8 @@ def main(save_path, parallel=True, rerun=True):
         if meta_path.stem in samples:
             samples[meta_path.stem]['meta_path'] = meta_path
 
-    # REMOVE LATER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    samples = {'24553': samples['24553']}
+    # # REMOVE LATER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # samples = {'38052': samples['38052']}
 
     # if rerun is False, then get cached results
     if rerun is False:
