@@ -131,7 +131,7 @@ def clean_diff(diff_parsed):
             start_comment = line.find("/*")
             end_comment = line.find("*/")
         
-        # remove content inside a string "a string"
+        # remove content inside a string, e.g. "a \" string"
         pattern = r'(?<!\\)"'
         matches = [match.start() for match in re.finditer(pattern, line)]
         if len(matches) % 2 == 0:  # if odd something went wrong
@@ -140,12 +140,39 @@ def clean_diff(diff_parsed):
                 end_string = matches[i+1]
                 line = line[:start_string] + line[end_string+1:]
 
-        # removing spacing
-
-
+        # make spacing consistent
+        line = line.strip()
+        line = line.replace('\t', ' ')
+        while '  ' in line:
+            line = line.replace('  ', ' ')
 
         diff_filtered.append((diff[0], line))
     
+    return diff_filtered
+
+
+def remove_no_change_lines(diff_parsed, diff_mod):
+    # make added and deleted lines match by transforming added lines
+    # added line = line num + (prev deleted) - (prev added)
+
+    # find match, if line numbers agree too, then remove from both
+    remove = {'added': [], 'deleted': []}
+    for num_prev_added, added in enumerate(diff_mod['added']):
+        added_content = added[1]
+        for num_prev_deleted, deleted in enumerate(diff_mod['deleted']):
+            deleted_content = deleted[1]
+
+            if added_content == deleted_content:
+                added_line_trans = added[0] + num_prev_deleted - num_prev_added
+
+                if added_line_trans == deleted[0]:
+                    remove['added'].append(added[0])
+                    remove['deleted'].append(deleted[0])
+
+    diff_filtered = {}
+    diff_filtered['added'] = [diff for diff in diff_parsed['added'] if diff[0] not in remove['added']]
+    diff_filtered['deleted'] = [diff for diff in diff_parsed['deleted'] if diff[0] not in remove['deleted']]
+
     return diff_filtered
 
 
@@ -164,13 +191,13 @@ def diff_rm_trivial_changes(diff_parsed_og, src_before, src_after):
     diff_parsed['added'] = rm_empty_lines(diff_parsed['added'])
     diff_parsed['deleted'] = rm_empty_lines(diff_parsed['deleted'])
 
-    # # remove end of line comments from diff content
-    # diff_mod = {}
-    # diff_mod['added'] = clean_diff(diff_parsed['added'])
-    # diff_mod['deleted'] = clean_diff(diff_parsed['deleted'])
+    # remove end of line comments from diff content
+    diff_mod = {}
+    diff_mod['added'] = clean_diff(diff_parsed['added'])
+    diff_mod['deleted'] = clean_diff(diff_parsed['deleted'])
 
     # remove lines same in both after cleaning
-
+    diff_parsed = remove_no_change_lines(diff_parsed, diff_mod)
 
     return diff_parsed
 
@@ -333,9 +360,6 @@ def main(save_path, parallel=True, rerun=True):
     for meta_path in meta_paths:
         if meta_path.stem in samples:
             samples[meta_path.stem]['meta_path'] = meta_path
-
-    # # REMOVE LATER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # samples = {'38052': samples['38052']}
 
     # if rerun is False, then get cached results
     if rerun is False:
