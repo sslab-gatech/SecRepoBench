@@ -57,7 +57,7 @@ def is_cxx_src(path):
     for f in ["fuzz", "test"]:
         if f in path:
             return False
-    if any(ext == path.split(".")[-1] for ext in ["c", "cc", "cpp", "cxx", "h", "hh", "hpp"]):
+    if any(ext == path.split(".")[-1] for ext in ["c", "cc", "cpp", "cxx", "h", "hh", "hpp", "hxx"]):
         return True
     return False
 
