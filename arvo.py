@@ -12,6 +12,8 @@ import pickle
 from datetime import datetime
 import time
 import random
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import multiprocessing
 
 from projects import * 
 
@@ -71,9 +73,7 @@ def setup(local_id, project_name, patch_path, diff, vul_content, sec_content, ro
     vul_dir = directory / "patches" / "vul.txt"
     sec_dir = directory / "patches" / "sec.txt"
     err_dir = directory / "patches" / "err.txt"
-
-    local_id = "35422" if local_id == "35407" else local_id
-    #local_id = "39343" if local_id == "39329" else local_id
+    diff_dir = directory / "diff.txt"
 
     proc = subprocess.run(["docker", "pull", f"n132/arvo:{local_id}-fix"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if proc.returncode != 0:
@@ -101,10 +101,13 @@ def setup(local_id, project_name, patch_path, diff, vul_content, sec_content, ro
     vul_dir.open("w").write(vul_content)
     sec_dir.open("w").write(sec_content)
     #err_dir.open("w").write(err_content)
+    with open(diff_dir, 'w') as f:
+        json.dump(diff, f, indent=4)
+
     
     subprocess.run(["chmod", "-R",  "777", str(directory.absolute())])
     return True
-    
+
 def get_targets(local_id, filter_patches, root="./"):
 
     directory = Path(root) / str(local_id)
@@ -332,7 +335,7 @@ def get_remaining(targets, completed):
     return [target for target in targets if (target[0], target[1], target[2]) not in completed]
 
 def main():
-    cases_fname = "cases.json"
+    cases_fname = "filter_logs_all/cases.json"
 
     # Define the set of predefined actions
     actions = ['load', 'setup', 'eval']
@@ -367,13 +370,35 @@ def main():
             except ValueError:
                 parser.error('Targets must be integers or "all".')
 
+        # # remove later !!!
+        # with open('filter_logs_all/ids_top40_compilable_testable.csv', 'r') as f:
+        #     targets = f.readlines()
+        # targets = targets[1:]
+        # targets = [t.replace('\n', '') for t in targets]
+        # targets = [id for id in data if data[id]['project_name'] == 'opensc']
+
         if args.action == "setup":
-            with alive_bar(len(targets)) as bar:
-                for local_id in targets:
-                    local_id = str(local_id)
-                    if not setup(local_id, data[local_id]["project_name"], data[local_id]["changed_file"], data[local_id]["diff"], data[local_id]["source_code_before"], data[local_id]["source_code"], root=root):
-                        print(f"{local_id} failed")
-                    bar()
+
+            num_workers = max(1, multiprocessing.cpu_count() // 2)  # Half the available CPUs
+
+            with ProcessPoolExecutor(max_workers=num_workers) as executor:
+                future_to_stem = {
+                    executor.submit(setup, local_id, data[local_id]["project_name"], data[local_id]["changed_file"], data[local_id]["diff"], data[local_id]["source_code_before"], data[local_id]["source_code"], root=root): local_id
+                    for local_id in targets
+                }
+
+                with alive_bar(len(future_to_stem)) as bar:
+                    for future in as_completed(future_to_stem):
+                        local_id = future_to_stem[future]
+
+                        try:
+                            result = future.result()
+                            if result is not True:
+                                print(f'error in processing {local_id}; result is {result}')
+                        except Exception as e:
+                            print(f'error in processing {local_id}; exception: {e}')
+
+                        bar()
 
         if args.action == "eval":
             int_targets = targets
