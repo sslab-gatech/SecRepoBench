@@ -61,7 +61,8 @@ def find_closest_func_dec(func, funcs_decs):
             min_dist = dist
             min_func_dec = func_dec
 
-    return [min_func_dec]
+    if min_dist < 6:  # +/- 3 lines from start and end
+        return [min_func_dec]
 
 
 def insert_after_open_bracket(mod_func, source_code_lines):
@@ -79,20 +80,9 @@ def insert_after_open_bracket(mod_func, source_code_lines):
     return line_number, indent
 
 
-def main(id):
-    print(f"Processing {id}")
-    cases_file = f'filter_logs_all/cases.json'
-    source_file = f'/data/cmd-oss-fuzz-bench/{id}/patches/vul.txt'
-    destination_file = f'/data/cmd-oss-fuzz-bench/{id}/patches/vul_print.txt'
-
+def insert_print(id, file_name, diff, source_code):
     # Get the modified file name from cases file
     id = str(id)
-    with open(cases_file, 'r') as f:
-        cases = json.load(f)
-    file_name = cases[id]['changed_file']
-    if file_name is None:
-        print(f"Could not find file name in cases file for id {id}")
-        return
 
     # Determine the language based on file extension
     ext = get_file_extension(file_name)
@@ -106,24 +96,15 @@ def main(id):
         return
 
     # Read the modified source code -- use regex for \n to ignore special characters like FF \x0c
-    with open(source_file, 'r') as f:
-        source_code = f.read()
-        source_code_lines = re.split(r'\n', source_code)
+    source_code_lines = re.split(r'\n', source_code)
 
     # Find the function containing the first modified line
-    diff = cases[id]['diff']
-    mod_lines = [d[0] for d in diff['deleted']] + [d[0] for d in diff['added']]
+    mod_lines = [d[0] for d in diff['added']] + [d[0] for d in diff['deleted']]
     file_lizard_src = lizard.analyze_file.analyze_source_code(file_name, source_code)
     for func in file_lizard_src.function_list:
         for line_num in mod_lines:
             if func.start_line <= line_num <= func.end_line:
                 mod_func = func
-
-    # changed_function = cases[id]['changed_function']
-    # file_lizard_src = lizard.analyze_file.analyze_source_code(file_name, source_code)
-    # func_mangled_names = [make_mangled_name(func.name, func.full_parameters) for func in file_lizard_src.function_list]
-    # func_i = func_mangled_names.index(changed_function)
-    # func = file_lizard_src.function_list[func_i]
 
     # Parse the source code with Tree-sitter
     parser = Parser()
@@ -139,15 +120,19 @@ def main(id):
         line_number, indent = insert_after_open_bracket(mod_func, source_code_lines)
     elif len(funcs_decs) > 1:
         funcs_decs = find_closest_func_dec(mod_func, funcs_decs)
-        # find line after first declaration or after first child
-        if len(funcs_decs[0][1]) > 0:
-            node = funcs_decs[0][1][-1]
-            line_number = node.end_point[0] + 1
-            indent = " " * (len(source_code_lines[line_number - 1]) - len(source_code_lines[line_number - 1].lstrip()))
-        else:  # no var declarations in this function
-            node = funcs_decs[0][0].children[0]  # this is the '{'
-            line_number = node.end_point[0] + 1
-            indent = " " * (len(source_code_lines[line_number]) - len(source_code_lines[line_number].lstrip()))
+        if funcs_decs is not None:
+            # find line after first declaration or after first child
+            if len(funcs_decs[0][1]) > 0:
+                node = funcs_decs[0][1][-1]
+                line_number = node.end_point[0] + 1
+                indent = " " * (len(source_code_lines[line_number - 1]) - len(source_code_lines[line_number - 1].lstrip()))
+            else:  # no var declarations in this function
+                node = funcs_decs[0][0].children[0]  # this is the '{'
+                line_number = node.end_point[0] + 1
+                indent = " " * (len(source_code_lines[line_number]) - len(source_code_lines[line_number].lstrip()))
+        else:
+            print(f"Tree sitter failed to find function for {id}, inserting after open bracket")
+            line_number, indent = insert_after_open_bracket(mod_func, source_code_lines)
     else: 
         # find line after first declaration or after first child
         if len(funcs_decs[0][1]) > 0:
@@ -162,19 +147,18 @@ def main(id):
     # insert print statement
     source_code_lines.insert(line_number, f'{indent}printf("This is a test for CodeGuard+\\n");')
 
-    print(f'\n***************** ID {id} *************************')
-    for ln in source_code_lines[line_number-5:line_number+5]:
-        print(ln)
-    print('\n\n')
+    # print(f'\n***************** ID {id} *************************')
+    # for ln in source_code_lines[line_number-5:line_number+5]:
+    #     print(ln)
+    # print('\n\n')
     
     # Replace the function in the source code
     modified_source_code = '\n'.join(source_code_lines)
-    with open(destination_file, 'w') as f:
-        f.write(modified_source_code)
+    return modified_source_code
 
 if __name__ == '__main__':
-    with open('filter_logs_all/testable_ids.txt', 'r') as f:
+    with open('ids_skia_top40.csv', 'r') as f:
         ids = f.read().splitlines()
     # ids = sorted([int(id) for id in ids])
-    for id in ids:
-        main(id)
+    for id in ids[1:]:
+        insert_print(id)
