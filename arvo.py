@@ -100,8 +100,7 @@ def setup(local_id, project_name, patch_path, diff, vul_content, sec_content, fi
     # write testcase, unittest bash scripts
     scripts_content_sec = (
         f"#!/bin/bash\n"
-        f"docker build {directory.absolute()} -t oss-fuzz-bench:{local_id}-$1\n"
-        f"docker run --rm oss-fuzz-bench:{local_id}-$1 /bin/sh -c \" \n"
+        f"docker run --rm n132/arvo:{local_id}-fix /bin/sh -c \" \n"
         # revert to fixing commit and stash changes as necessary
         f"  GIT_DIR=\\$(find /src -type d -iname '{project_name}' | head -n 1)\n"
         "  git -C \\$GIT_DIR config --global user.email \\\"cdilgren@umd.edu\\\"\n"
@@ -119,8 +118,7 @@ def setup(local_id, project_name, patch_path, diff, vul_content, sec_content, fi
 
     scripts_content_vul = (
         f"#!/bin/bash\n"
-        f"docker build {directory.absolute()} -t oss-fuzz-bench:{local_id}-$1\n"
-        f"docker run --rm oss-fuzz-bench:{local_id}-$1 /bin/sh -c \" \n"
+        f"docker run --rm n132/arvo:{local_id}-fix /bin/sh -c \" \n"
         # revert to one before fixing commit and stash changes as necessary
         f"  GIT_DIR=\\$(find /src -type d -iname '{project_name}' | head -n 1)\n"
         "  git -C \\$GIT_DIR config --global user.email \\\"cdilgren@umd.edu\\\"\n"
@@ -136,10 +134,11 @@ def setup(local_id, project_name, patch_path, diff, vul_content, sec_content, fi
         "  fi\n"
     )
 
+    sec_print_image_name = f"oss-fuzz-bench:{local_id}-fix"
     scripts_content_sec_print = (
         f"#!/bin/bash\n"
-        f"docker build {directory.absolute()} -t oss-fuzz-bench:{local_id}-$1\n"
-        f"docker run --rm oss-fuzz-bench:{local_id}-$1 /bin/sh -c \" \n"
+        f"docker build {directory.absolute()} -t {sec_print_image_name}\n"
+        f"docker run --rm {sec_print_image_name} /bin/sh -c \" \n"
         # revert to one before fixing commit, stash changes as necessary, and move in the vul file with inserted print statement
         f"  GIT_DIR=\\$(find /src -type d -iname '{project_name}' | head -n 1)\n"
         "  git -C \\$GIT_DIR config --global user.email \\\"cdilgren@umd.edu\\\"\n"
@@ -162,6 +161,8 @@ def setup(local_id, project_name, patch_path, diff, vul_content, sec_content, fi
 
     unittest_content_sec = scripts_content_sec + "  " + (unittest_commands[project_name.lower()] if project_name in unittest_commands else "  echo 'NO UNIT TESTS'") + "\""
     unittest_content_sec_print = scripts_content_sec_print + "  " + (unittest_commands[project_name.lower()] if project_name in unittest_commands else "  echo 'NO UNIT TESTS'") + "\""
+
+    unittest_content_sec_print += f"\ndocker rmi {sec_print_image_name}"
 
     dockerfile_content = (
         f"FROM n132/arvo:{local_id}-fix\n"
@@ -528,6 +529,9 @@ def main():
 
             # Process all targets, including cached ones
             report = {}
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format the current date and time
+            new_report_file = Path(args.output) / f"report_{timestamp}.json"
+
             with alive_bar(len(targets)) as bar:
                 for target in targets:
                     local_id, patch, test_type, _ = target
@@ -549,10 +553,8 @@ def main():
                         write_output(output, root=args.output)
 
                     bar()
-
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")  # Format the current date and time
-            new_report_file = Path(args.output) / f"report_{timestamp}.json"
-            json.dump(report, new_report_file.open("w"), indent=4)
+            
+                    json.dump(report, new_report_file.open("w"), indent=4)
 
             print_report(report)
 
