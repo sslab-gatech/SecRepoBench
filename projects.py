@@ -30,11 +30,7 @@ unittest_commands = {
         make install && \
         make check",
     "zstd":"make check ",
-    "ndpi":"arvo compile ; \
-        ls json-c || ( cd ndpi && ./configure && make ) ; \
-        rm ndpi/tests/pcap/fuzz-* ; \
-        rm -rf ndpi/fuzz/ ; \
-        make -C ndpi/tests check",
+    "ndpi": "apt-get update && apt-get install -y libpcap-dev libjson-c-dev && arvo compile && cd ndpi && ./configure --enable-fuzztargets && make && rm -f tests/pcap/fuzz-* && rm -rf fuzz/ && make -C tests check && cp fuzz/fuzz_ndpi_reader /out/ && cp fuzz/fuzz_process_packet /out/",
     "imagemagick":"./configure && make check",
     #"mupdf":"",
     #"leptonica":"arvo compile && make check",
