@@ -115,7 +115,12 @@ unittest_commands = {
     "spice-usbredir": "arvo compile && cd build && meson test",
     "wpantund": "arvo compile && make check",
     "flatbuffers": "cd flatbuffers && cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS='-pthread' && make  && make test   ",
-    "gdal": "cd gdal && ./autogen.sh && ./configure && make  && make install && cd ../autotest/cpp && make  && ./gdal_unit_test ",
+    "gdal": "apt-get update && apt-get install -y build-essential cmake libsqlite3-dev libz-dev libcurl4-openssl-dev libpng-dev libjpeg-dev libgeos-dev libproj-dev libxerces-c-dev libssl-dev git clang-14 && \
+        git clone https://github.com/OSGeo/gdal.git && \
+        cd gdal && mkdir -p build && cd build && \
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 && \
+        make -j$(nproc) && make install && ldconfig && \
+        cd ../autotest/cpp && make && ./gdal_unit_test",
     "skia": "apt-get update && apt-get install -y libfontconfig1-dev && python3 tools/git-sync-deps && bin/gn gen out/Debug && ninja -C out/Debug dm && out/Debug/dm -v --src tests",
     "libredwg": "cd libredwg && ./autogen.sh && ./configure && make  && yes | ./unit_testing_all.sh",
     # "poppler": "apt-get update && apt-get install -y libfontconfig1-dev libjpeg-dev libopenjp2-7-dev && \
