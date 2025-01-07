@@ -1,3 +1,0 @@
-// This function is a stub that does not perform any operations and simply returns the 'accum' pointer.
-// It uses the 'cmsUNUSED_PARAMETER' macro to avoid compiler warnings for unused parameters.
-// The function is designed to be used as a placeholder where no specific functionality is required.

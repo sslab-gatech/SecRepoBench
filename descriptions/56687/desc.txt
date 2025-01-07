@@ -1,6 +1,5 @@
-// The io_pos function is responsible for obtaining the current position
-// of the file descriptor associated with an IO object. It retrieves the
-// mrb_io structure for the given IO object using io_get_open_fptr and 
-// calls lseek to find the current offset of the file descriptor. If
-// successful, it accounts for any buffered data and returns the position
-// as an mrb_int value. If lseek fails, it raises a system-level error.
+// This block implements a method that returns the current position of 
+// the file descriptor associated with an IO object. It retrieves the 
+// file pointer structure, then uses `lseek` to get the current 
+// position. In the second snippet, it adjusts the returned position 
+// based on the length of a buffer, which may have unread data.

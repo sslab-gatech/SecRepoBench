@@ -1,6 +1,5 @@
-// Function to compare two strings with special handling for various flags.
-// Converts input strings to unsigned char to facilitate unsigned comparison
-// and ctype functions. Compares strings up to a given length, optionally 
-// ignoring case differences (upper or lower), compacting whitespace, or 
-// treating whitespace as optional. Returns a non-zero value if the strings 
-// are different according to specified flags, otherwise returns zero.
+// Function to compare two strings, `s1` and `s2`, up to a specified length `len`.
+// The comparison may ignore case or whitespace differences depending on the `flags`.
+// The comparison is unsigned, and the function also works correctly with different ctype functions without extra casting.
+// If flags are present, they can include ignoring case (uppercase/lowercase), compacting whitespace, or ignoring optional whitespace.
+// The function returns an integer indicating the difference between the strings.

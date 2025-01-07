@@ -1,6 +1,5 @@
-// Assigns the given source data to the storage, setting the number of elements to `count`.
-// Ensures `count` is non-negative. If `count` is greater than the current reserved space
-// or storage is not large enough to accommodate the new data, it reallocates storage to
-// fit the new data size. Copies the data from `src` into the storage if `count` is greater
-// than zero and `src` is not null. The resulting storage will contain `count` elements
-// of the specified size, and the storage is resized accordingly.
+// Assigns new data to the storage from the source pointer `src` for a specified number of 
+// elements `count` each of size `sizeOfT`. Ensures that the storage is resized accordingly. 
+// If `count` is greater than zero, it updates the storage, either reallocating to fit the new 
+// size or shrinking to fit exactly, depending on the implementation. Uses assertions to 
+// validate input and performs memory copy if the source is not null.

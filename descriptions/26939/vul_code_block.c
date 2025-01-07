@@ -1,5 +1,4 @@
-tatic MagickBooleanType IsProfileCorrupt(const char *name,StringInfo *profile)
-{
+
   register unsigned char
     *p;
 

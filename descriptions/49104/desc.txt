@@ -1,5 +1,5 @@
-// This function, `MatchesMagic`, checks if a given `magic` byte sequence
-// matches the `magic_info` pattern. It asserts the offset is non-negative
-// and adjusts for any leading spaces if `skip_spaces` is true. It compares
-// the specified length of the `magic` sequence with the pattern defined
-// in `magic_info`. If they match, it returns true; otherwise, false.
+// This function determines if the given magic string matches a pattern 
+// described by a MagicInfo structure. It compares the magic string 
+// against the expected magic sequence starting at a specified offset.
+// If `skip_spaces` is true, leading whitespace characters are ignored 
+// before the comparison. It returns true if the magic pattern matches.
