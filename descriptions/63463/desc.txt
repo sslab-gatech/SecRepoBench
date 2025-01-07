@@ -1,7 +1,8 @@
-// This part checks the size of an entity in a DWG file and ensures it matches the expected size. 
-// For versions pre-R_2_0, entities do not contain size information, so no size check is performed. 
-// For versions later than R_2_0, a check is performed to ensure that the entity's size matches the 
-// data's expected length. If a discrepancy is found, it logs an error and, if necessary, reads any 
-// extra unknown data as a bit field. In versions from R_11 onwards, the code also validates the 
-// CRC16 checksum at the end of the entity's data. If the CRC check fails, it marks an error. 
-// Memory is allocated for unknown remaining data if present, and this data is logged for inspection.
+// This block of code handles the post-processing of objects in a DWG file format,
+// ensuring data consistency and handling extra data and CRC checks.
+// For objects in pre-R11 versions, it checks if the object size matches the expected size.
+// If there is a discrepancy, it calculates the offset of unknown data and stores it.
+// For objects in later versions, it also handles the CRC16 check, adjusting the byte position
+// as needed and logging any errors or discrepancies. If any additional data exists beyond the
+// expected size, it is read and stored as unknown data, and CRC checks are performed to validate
+// the integrity of the data block. If the object size is invalid, it is adjusted and an error is logged.

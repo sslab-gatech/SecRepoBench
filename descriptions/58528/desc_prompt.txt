@@ -321,7 +321,7 @@ int ff_hevc_slice_rpl(HEVCContext *s)
 
     uint8_t nb_list = sh->slice_type == HEVC_SLICE_B ? 2 : 1;
     uint8_t list_idx;
-    int candidate_list_index, j, ret;
+    int i, j, ret;
 
     ret = init_slice_rpl(s);
     if (ret < 0)
@@ -345,23 +345,21 @@ int ff_hevc_slice_rpl(HEVCContext *s)
                               LT_CURR };
 
         /* concatenate the candidate lists for the current frame */
-        while (rpl_tmp.nb_refs < sh->nb_refs[list_idx]) {
-            // <MASK>
-        }
+        while (rpl_tmp.nb_refs < sh->nb_refs[list_idx]) {// <MASK>}
 
         /* reorder the references if necessary */
         if (sh->rpl_modification_flag[list_idx]) {
-            for (candidate_list_index = 0; candidate_list_index < sh->nb_refs[list_idx]; candidate_list_index++) {
-                int idx = sh->list_entry_lx[list_idx][candidate_list_index];
+            for (i = 0; i < sh->nb_refs[list_idx]; i++) {
+                int idx = sh->list_entry_lx[list_idx][i];
 
                 if (idx >= rpl_tmp.nb_refs) {
                     av_log(s->avctx, AV_LOG_ERROR, "Invalid reference index.\n");
                     return AVERROR_INVALIDDATA;
                 }
 
-                rpl->list[candidate_list_index]       = rpl_tmp.list[idx];
-                rpl->ref[candidate_list_index]        = rpl_tmp.ref[idx];
-                rpl->isLongTerm[candidate_list_index] = rpl_tmp.isLongTerm[idx];
+                rpl->list[i]       = rpl_tmp.list[idx];
+                rpl->ref[i]        = rpl_tmp.ref[idx];
+                rpl->isLongTerm[i] = rpl_tmp.isLongTerm[idx];
                 rpl->nb_refs++;
             }
         } else {
@@ -555,15 +553,17 @@ int ff_hevc_frame_nb_refs(const HEVCContext *s)
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-            for (candidate_list_index = 0; candidate_list_index < FF_ARRAY_ELEMS(cand_lists); candidate_list_index++) {
-                RefPicList *rps = &s->rps[cand_lists[candidate_list_index]];
+
+            for (i = 0; i < FF_ARRAY_ELEMS(cand_lists); i++) {
+                RefPicList *rps = &s->rps[cand_lists[i]];
                 for (j = 0; j < rps->nb_refs && rpl_tmp.nb_refs < HEVC_MAX_REFS; j++) {
                     rpl_tmp.list[rpl_tmp.nb_refs]       = rps->list[j];
                     rpl_tmp.ref[rpl_tmp.nb_refs]        = rps->ref[j];
-                    rpl_tmp.isLongTerm[rpl_tmp.nb_refs] = candidate_list_index == 2;
+                    rpl_tmp.isLongTerm[rpl_tmp.nb_refs] = i == 2;
                     rpl_tmp.nb_refs++;
                 }
             }
@@ -574,15 +574,17 @@ Snippet 1:
                 rpl_tmp.isLongTerm[rpl_tmp.nb_refs]     = 1;
                 rpl_tmp.nb_refs++;
             }
-```
+        ```
+
 Snippet 2:
 ```
-            for (candidate_list_index = 0; candidate_list_index < FF_ARRAY_ELEMS(cand_lists); candidate_list_index++) {
-                RefPicList *rps = &s->rps[cand_lists[candidate_list_index]];
+
+            for (i = 0; i < FF_ARRAY_ELEMS(cand_lists); i++) {
+                RefPicList *rps = &s->rps[cand_lists[i]];
                 for (j = 0; j < rps->nb_refs && rpl_tmp.nb_refs < HEVC_MAX_REFS; j++) {
                     rpl_tmp.list[rpl_tmp.nb_refs]       = rps->list[j];
                     rpl_tmp.ref[rpl_tmp.nb_refs]        = rps->ref[j];
-                    rpl_tmp.isLongTerm[rpl_tmp.nb_refs] = candidate_list_index == 2;
+                    rpl_tmp.isLongTerm[rpl_tmp.nb_refs] = i == 2;
                     rpl_tmp.nb_refs++;
                 }
             }
@@ -593,4 +595,4 @@ Snippet 2:
                 rpl_tmp.isLongTerm[rpl_tmp.nb_refs]     = 1;
                 rpl_tmp.nb_refs++;
             }
-```
+        ```

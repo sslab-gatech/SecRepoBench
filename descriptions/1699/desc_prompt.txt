@@ -712,10 +712,8 @@ static int read_filter_params(MLPDecodeContext *m, GetBitContext *gbp,
 
 /** Read parameters for primitive matrices. */
 
-static int read_matrix_params(MLPDecodeContext *decode_context, unsigned int substr, GetBitContext *gbp)
-{
-    // <MASK>
-}
+static int read_matrix_params(MLPDecodeContext *m, unsigned int substr, GetBitContext *gbp)
+{// <MASK>}
 
 /** Read channel parameters. */
 
@@ -1269,24 +1267,26 @@ AVCodec ff_truehd_decoder = {
 #endif /* CONFIG_TRUEHD_DECODER */
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-    SubStream *s = &decode_context->substream[substr];
+
+    SubStream *s = &m->substream[substr];
     unsigned int mat, ch;
-    const int max_primitive_matrices = decode_context->avctx->codec_id == AV_CODEC_ID_MLP
+    const int max_primitive_matrices = m->avctx->codec_id == AV_CODEC_ID_MLP
                                      ? MAX_MATRICES_MLP
                                      : MAX_MATRICES_TRUEHD;
 
-    if (decode_context->matrix_changed++ > 1) {
-        av_log(decode_context->avctx, AV_LOG_ERROR, "Matrices may change only once per access unit.\n");
+    if (m->matrix_changed++ > 1) {
+        av_log(m->avctx, AV_LOG_ERROR, "Matrices may change only once per access unit.\n");
         return AVERROR_INVALIDDATA;
     }
 
     s->num_primitive_matrices = get_bits(gbp, 4);
 
     if (s->num_primitive_matrices > max_primitive_matrices) {
-        av_log(decode_context->avctx, AV_LOG_ERROR,
+        av_log(m->avctx, AV_LOG_ERROR,
                "Number of primitive matrices cannot be greater than %d.\n",
                max_primitive_matrices);
         return AVERROR_INVALIDDATA;
@@ -1299,13 +1299,13 @@ Snippet 1:
         s->lsb_bypass   [mat] = get_bits1(gbp);
 
         if (s->matrix_out_ch[mat] > s->max_matrix_channel) {
-            av_log(decode_context->avctx, AV_LOG_ERROR,
+            av_log(m->avctx, AV_LOG_ERROR,
                     "Invalid channel %d specified as output from matrix.\n",
                     s->matrix_out_ch[mat]);
             return AVERROR_INVALIDDATA;
         }
         if (frac_bits > 14) {
-            av_log(decode_context->avctx, AV_LOG_ERROR,
+            av_log(m->avctx, AV_LOG_ERROR,
                     "Too many fractional bits specified.\n");
             return AVERROR_INVALIDDATA;
         }
@@ -1330,23 +1330,25 @@ Snippet 1:
 
     return 0;
 ```
+
 Snippet 2:
 ```
-    SubStream *s = &decode_context->substream[substr];
+
+    SubStream *s = &m->substream[substr];
     unsigned int mat, ch;
-    const int max_primitive_matrices = decode_context->avctx->codec_id == AV_CODEC_ID_MLP
+    const int max_primitive_matrices = m->avctx->codec_id == AV_CODEC_ID_MLP
                                      ? MAX_MATRICES_MLP
                                      : MAX_MATRICES_TRUEHD;
 
-    if (decode_context->matrix_changed++ > 1) {
-        av_log(decode_context->avctx, AV_LOG_ERROR, "Matrices may change only once per access unit.\n");
+    if (m->matrix_changed++ > 1) {
+        av_log(m->avctx, AV_LOG_ERROR, "Matrices may change only once per access unit.\n");
         return AVERROR_INVALIDDATA;
     }
 
     s->num_primitive_matrices = get_bits(gbp, 4);
 
     if (s->num_primitive_matrices > max_primitive_matrices) {
-        av_log(decode_context->avctx, AV_LOG_ERROR,
+        av_log(m->avctx, AV_LOG_ERROR,
                "Number of primitive matrices cannot be greater than %d.\n",
                max_primitive_matrices);
         s->num_primitive_matrices = 0;
@@ -1360,13 +1362,13 @@ Snippet 2:
         s->lsb_bypass   [mat] = get_bits1(gbp);
 
         if (s->matrix_out_ch[mat] > s->max_matrix_channel) {
-            av_log(decode_context->avctx, AV_LOG_ERROR,
+            av_log(m->avctx, AV_LOG_ERROR,
                     "Invalid channel %d specified as output from matrix.\n",
                     s->matrix_out_ch[mat]);
             return AVERROR_INVALIDDATA;
         }
         if (frac_bits > 14) {
-            av_log(decode_context->avctx, AV_LOG_ERROR,
+            av_log(m->avctx, AV_LOG_ERROR,
                     "Too many fractional bits specified.\n");
             return AVERROR_INVALIDDATA;
         }

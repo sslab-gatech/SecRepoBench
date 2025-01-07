@@ -1,0 +1,4 @@
+// Compare the absolute values of two multi-precision integers x and y.
+// Return 1 if |y| > |x|, -1 if |y| < |x|, and 0 if they are equal.
+// Compare based on size first, and then compare digits from the most significant to the least significant.
+// If both integers have the same size and digits, they are considered equal.

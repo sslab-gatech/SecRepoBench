@@ -1,0 +1,4 @@
+// This function checks for compatibility between two tag descriptors by comparing their
+// properties. It returns TRUE if both descriptors have the same number of supported types,
+// the same element count, and if all supported types match at corresponding positions.
+// If any of these conditions are not met, it returns FALSE.

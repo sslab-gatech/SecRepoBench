@@ -1,0 +1,15 @@
+// This code handles motion compensation for different types of motion vectors
+// in low resolution. It iterates over several cases based on the motion vector
+// type (MV_TYPE_16X16, MV_TYPE_8X8, MV_TYPE_FIELD, MV_TYPE_16X8, MV_TYPE_DMV).
+// - For MV_TYPE_16X16, it applies motion compensation using a single motion vector
+//   for the entire macroblock.
+// - For MV_TYPE_8X8, it applies motion compensation to four 8x8 blocks separately,
+//   accumulating motion vectors for chroma compensation if needed.
+// - For MV_TYPE_FIELD, it manages motion compensation for field pictures, handling
+//   top and bottom fields independently and checking reference picture availability.
+// - For MV_TYPE_16X8, it processes two 16x8 partitions of a macroblock, each with
+//   its own motion vector, updating destination pointers after each half.
+// - For MV_TYPE_DMV, it performs dual-prime motion compensation, handling both
+//   frame and field picture structures, with potential field averaging.
+// The motion vectors and reference pictures are used in functions like
+// `mpeg_motion_lowres` and `hpel_motion_lowres` for performing the compensation.

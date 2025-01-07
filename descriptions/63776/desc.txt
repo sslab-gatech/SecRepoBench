@@ -1,7 +1,5 @@
-// This part checks and adjusts the object size and byte position for DWG entities.
-// For versions before R11, it verifies if the object size exceeds the data size limit,
-// and adjusts the size if necessary. It also copies unknown data if there is a size mismatch.
-// For later versions, it performs similar checks, but also verifies CRC values.
-// If the object size exceeds the allowable data size, it logs an error and recalculates the size.
-// Unknown data is copied in both cases if the calculated offset is greater than the current byte position.
-// Finally, the data byte position is adjusted based on the object's size and starting position.
+// This code block handles the size validation and unknown data extraction for DWG objects in pre-R13 and later versions.
+// For pre-R11 versions, the code checks if the object's size is valid and within the bounds of the data, adjusting it if necessary.
+// It extracts any unknown remaining data if the object size doesn't match the current data position and logs errors if issues are found.
+// For later versions, additional CRC checks are performed to ensure data integrity, and adjustments are made to account for any size discrepancies.
+// If the object's address and size don't align with the data position, the code calculates the offset for any trailing unknown data and allocates memory to store it, logging appropriate messages.

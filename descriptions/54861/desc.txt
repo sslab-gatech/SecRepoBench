@@ -1,0 +1,3 @@
+// Ensure width is at least 32 pixels when the codec is SVQ3, due to specific
+// alignment requirements. The masked code block adjusts the width for SVQ3 
+// codec in video processing, ensuring compatibility with its alignment needs.

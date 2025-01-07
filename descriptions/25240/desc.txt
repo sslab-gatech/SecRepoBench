@@ -1,11 +1,20 @@
-// The following part is responsible for parsing material properties 
-// from an OBJ file format in the ObjFileMtlImporter class. It reads 
-// through a buffer and identifies various material attributes based on 
-// prefix characters. These characters determine the type of material 
-// property being parsed, such as ambient, diffuse, or specular colors 
-// ('K' followed by 'a', 'd', or 's'), transmission attributes ('T'), 
-// alpha values ('d'), and others including textures ('m', 'b', 'r'), 
-// illumination models ('i'), and anisotropy ('a'). For each recognized 
-// property, the respective method like getColorRGBA or getFloatValue is 
-// called to extract and set the value to the current material structure 
-// within the model. Unrecognized lines in the data are skipped.
+// The masked code block implements a switch-case structure within the `load` method 
+// of the `ObjFileMtlImporter` class. This code is responsible for parsing through 
+// lines of a material file, identified by the current iterator `m_DataIt`. Based 
+// on the character encountered at the start of each line, the code executes 
+// different functionality:
+// 
+// - 'k' or 'K': Handles parsing of ambient, diffuse, specular, and emissive colors.
+// - 'T': Parses transmission color and alpha values.
+// - 'd': Handles alpha values and displacement maps.
+// - 'N' or 'n': Parses specular exponent, index of refraction, and new materials.
+// - 'P': Parses parameters related to roughness, metallic, sheen, and clearcoat properties.
+// - 'm', 'b', 'r': Handles texture maps for materials.
+// - 'i': Parses the illumination model.
+// - 'a': Parses anisotropy values.
+// 
+// For each case, it processes the material attributes using helper functions like 
+// `getColorRGBA`, `getFloatValue`, `getTexture`, `createMaterial`, and updates 
+// `m_DataIt` to move to the next line. Additionally, it ensures that each material 
+// attribute is appropriately assigned to the current material being processed in 
+// the model.

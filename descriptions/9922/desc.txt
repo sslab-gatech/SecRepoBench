@@ -1,0 +1,5 @@
+// Inside the json_parse_string function, handle escape sequences in JSON strings.
+// After encountering a backslash, check for valid escape characters ("\", "/", "b", "f",
+// "n", "r", "t", "u"). For the "u" escape sequence, ensure that the following four
+// characters are valid hexadecimal digits. If the end of the input is reached before
+// completing the escape sequence, exit the parsing process.

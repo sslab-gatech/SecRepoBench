@@ -175,9 +175,7 @@ alac_decode (ALAC_DECODER *p, struct BitBuffer * bits, int32_t * sampleBuffer, u
 	*outNumSamples = numSamples ;
 
 	while (status == ALAC_noErr)
-	{
-		// <MASK>
-	}
+	{// <MASK>}
 
 NoMoreChannels:
 

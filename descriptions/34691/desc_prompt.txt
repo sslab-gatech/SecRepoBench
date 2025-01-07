@@ -581,10 +581,8 @@ mrb_ary_shift(mrb_state *mrb, mrb_value self)
 }
 
 static mrb_value
-mrb_ary_shift_m(mrb_state *mrb, mrb_value array)
-{
-  // <MASK>
-}
+mrb_ary_shift_m(mrb_state *mrb, mrb_value self)
+{// <MASK>}
 
 /* self = [1,2,3]
    item = 0
@@ -1338,16 +1336,18 @@ mrb_init_array(mrb_state *mrb)
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-  struct RArray *a = mrb_ary_ptr(array);
+
+  struct RArray *a = mrb_ary_ptr(self);
   mrb_int len = ARY_LEN(a);
   mrb_int n;
   mrb_value val;
 
   if (mrb_get_args(mrb, "|i", &n) == 0) {
-    return mrb_ary_shift(mrb, array);
+    return mrb_ary_shift(mrb, self);
   };
   ary_modify_check(mrb, a);
   if (len == 0 || n == 0) return mrb_ary_new(mrb);
@@ -1378,15 +1378,17 @@ Snippet 1:
   }
   return val;
 ```
+
 Snippet 2:
 ```
-  struct RArray *a = mrb_ary_ptr(array);
+
+  struct RArray *a = mrb_ary_ptr(self);
   mrb_int len = ARY_LEN(a);
   mrb_int n;
   mrb_value val;
 
   if (mrb_get_args(mrb, "|i", &n) == 0) {
-    return mrb_ary_shift(mrb, array);
+    return mrb_ary_shift(mrb, self);
   };
   ary_modify_check(mrb, a);
   if (len == 0 || n == 0) return mrb_ary_new(mrb);

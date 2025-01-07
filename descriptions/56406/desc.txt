@@ -1,0 +1,6 @@
+// This function retrieves the access time (atime) of a file associated with 
+// the `self` object, which represents an instance of a file in the context 
+// of the mruby environment. It obtains the file descriptor using `mrb_io_fileno` 
+// and then retrieves the file status information using `mrb_fstat`. If the 
+// operation is successful, it returns the access time as an `mrb_int_value`. 
+// If there is an error in fetching the file status, it returns `mrb_nil_value`.

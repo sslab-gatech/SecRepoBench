@@ -1500,9 +1500,7 @@ cmsBool IsTypeSupported(cmsTagDescriptor* TagDescriptor, cmsTagTypeSignature Typ
 
 // That's the main read function
 void* CMSEXPORT cmsReadTag(cmsHPROFILE hProfile, cmsTagSignature sig)
-{
-    // <MASK>
-}
+{// <MASK>}
 
 
 // Get true type of data

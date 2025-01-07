@@ -508,9 +508,9 @@ static GFINLINE void mp3_dmx_update_cts(GF_MP3DmxCtx *ctx)
 	}
 }
 
-GF_Err mp3_dmx_process(GF_Filter *audio_filter)
+GF_Err mp3_dmx_process(GF_Filter *filter)
 {
-	GF_MP3DmxCtx *ctx = gf_filter_get_udta(audio_filter);
+	GF_MP3DmxCtx *ctx = gf_filter_get_udta(filter);
 	GF_FilterPacket *pck, *dst_pck;
 	Bool is_eos;
 	u8 *data, *output;
@@ -524,7 +524,7 @@ restart:
 
 	//always reparse duration
 	if (!ctx->duration.num)
-		mp3_dmx_check_dur(audio_filter, ctx);
+		mp3_dmx_check_dur(filter, ctx);
 
 	if (ctx->opid && !ctx->is_playing)
 		return GF_OK;
@@ -591,9 +591,7 @@ restart:
 		ctx->resume_from = 0;
 	}
 
-	while (remain) {
-		// <MASK>
-	}
+	while (remain) {// <MASK>}
 
 	if (!pck) {
 		ctx->mp3_buffer_size = 0;
@@ -786,9 +784,11 @@ const GF_FilterRegister *rfmp3_register(GF_FilterSession *session)
 #endif // #if !defined(GPAC_DISABLE_AV_PARSERS) && !defined(GPAC_DISABLE_RFMP3)
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
 		u8 *sync;
 		Bool skip_id3v1=GF_FALSE;
 		u32 bytes_skipped=0, size, nb_samp, bytes_to_drop=0;
@@ -824,7 +824,7 @@ Snippet 1:
 			ctx->id3_buffer_size += bytes_to_drop;
 
 			if (!ctx->tag_size && ctx->opid) {
-				mp3_dmx_flush_id3(audio_filter, ctx);
+				mp3_dmx_flush_id3(filter, ctx);
 			}
 			goto drop_byte;
 
@@ -859,7 +859,7 @@ Snippet 1:
 			break;
 		}
 		//ready to send packet
-		mp3_dmx_check_pid(audio_filter, ctx);
+		mp3_dmx_check_pid(filter, ctx);
 
 		if (!ctx->is_playing) {
 			ctx->resume_from = (u32) (sync - ctx->mp3_buffer + 1);
@@ -939,9 +939,11 @@ drop_byte:
 		}
 		if (ctx->byte_offset != GF_FILTER_NO_BO)
 			ctx->byte_offset += bytes_to_drop;
-```
+	```
+
 Snippet 2:
 ```
+
 		u8 *sync;
 		Bool skip_id3v1=GF_FALSE;
 		u32 bytes_skipped=0, size, nb_samp, bytes_to_drop=0;
@@ -977,7 +979,7 @@ Snippet 2:
 			ctx->id3_buffer_size += bytes_to_drop;
 
 			if (!ctx->tag_size && ctx->opid) {
-				mp3_dmx_flush_id3(audio_filter, ctx);
+				mp3_dmx_flush_id3(filter, ctx);
 			}
 			goto drop_byte;
 
@@ -1012,7 +1014,7 @@ Snippet 2:
 			break;
 		}
 		//ready to send packet
-		mp3_dmx_check_pid(audio_filter, ctx);
+		mp3_dmx_check_pid(filter, ctx);
 
 		if (!ctx->is_playing) {
 			ctx->resume_from = (u32) (sync - ctx->mp3_buffer + 1);
@@ -1092,4 +1094,4 @@ drop_byte:
 		}
 		if (ctx->byte_offset != GF_FILTER_NO_BO)
 			ctx->byte_offset += bytes_to_drop;
-```
+	```

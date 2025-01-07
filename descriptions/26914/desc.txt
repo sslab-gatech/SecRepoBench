@@ -1,0 +1,5 @@
+// Implement the LocaleLowercase function which converts a given character to its lowercase form.
+// First, check if the character is EOF, and return it directly if true.
+// If MAGICKCORE_LOCALE_SUPPORT is defined and a C locale is available, use tolower_l() with c_locale to convert the character.
+// Otherwise, use the standard tolower() function to perform the conversion.
+// The function should ensure that the character is within valid unsigned char range before conversion.

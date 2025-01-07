@@ -497,9 +497,7 @@ static int read_major_sync(MLPDecodeContext *m, GetBitContext *gb)
 
 static int read_restart_header(MLPDecodeContext *m, GetBitContext *gbp,
                                const uint8_t *buf, unsigned int substr)
-{
-    // <MASK>
-}
+{// <MASK>}
 
 /** Read parameters for one of the prediction filters. */
 

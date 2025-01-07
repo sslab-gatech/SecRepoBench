@@ -816,10 +816,8 @@ wavlike_write_bext_chunk (SF_PRIVATE *psf)
 } /* wavlike_write_bext_chunk */
 
 int
-wavlike_read_cart_chunk (SF_PRIVATE *psf, uint32_t chunk_size)
-{
-	// <MASK>
-} /* wavlike_read_cart_chunk */
+wavlike_read_cart_chunk (SF_PRIVATE *psf, uint32_t chunksize)
+{// <MASK>} /* wavlike_read_cart_chunk */
 
 int
 wavlike_write_cart_chunk (SF_PRIVATE *psf)
@@ -1289,31 +1287,32 @@ wavlike_write_custom_chunks (SF_PRIVATE * psf)
 } /* wavlike_write_custom_chunks */
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-{	SF_CART_INFO_16K *c ;
+	SF_CART_INFO_16K *c ;
 	uint32_t bytes = 0 ;
 	int k ;
 
-	if (chunk_size < WAV_CART_MIN_CHUNK_SIZE)
-	{	psf_log_printf (psf, "cart : %u (should be >= %d)\n", chunk_size, WAV_CART_MIN_CHUNK_SIZE) ;
-		psf_binheader_readf (psf, "j", chunk_size) ;
+	if (chunksize < WAV_CART_MIN_CHUNK_SIZE)
+	{	psf_log_printf (psf, "cart : %u (should be >= %d)\n", chunksize, WAV_CART_MIN_CHUNK_SIZE) ;
+		psf_binheader_readf (psf, "j", chunksize) ;
 		return 0 ;
 		} ;
-	if (chunk_size > WAV_CART_MAX_CHUNK_SIZE)
-	{	psf_log_printf (psf, "cart : %u (should be < %d)\n", chunk_size, WAV_CART_MAX_CHUNK_SIZE) ;
-		psf_binheader_readf (psf, "j", chunk_size) ;
-		return 0 ;
-		} ;
-
-	if (chunk_size >= sizeof (SF_CART_INFO_16K))
-	{	psf_log_printf (psf, "cart : %u too big to be handled\n", chunk_size) ;
-		psf_binheader_readf (psf, "j", chunk_size) ;
+	if (chunksize > WAV_CART_MAX_CHUNK_SIZE)
+	{	psf_log_printf (psf, "cart : %u (should be < %d)\n", chunksize, WAV_CART_MAX_CHUNK_SIZE) ;
+		psf_binheader_readf (psf, "j", chunksize) ;
 		return 0 ;
 		} ;
 
-	psf_log_printf (psf, "cart : %u\n", chunk_size) ;
+	if (chunksize >= sizeof (SF_CART_INFO_16K))
+	{	psf_log_printf (psf, "cart : %u too big to be handled\n", chunksize) ;
+		psf_binheader_readf (psf, "j", chunksize) ;
+		return 0 ;
+		} ;
+
+	psf_log_printf (psf, "cart : %u\n", chunksize) ;
 
 	if (psf->cart_16k)
 	{	psf_log_printf (psf, "  Found more than one cart chunk, using last one.\n") ;
@@ -1350,28 +1349,29 @@ Snippet 1:
 	bytes += psf_binheader_readf (psf, "b", c->reserved, sizeof (c->reserved)) ;
 	bytes += psf_binheader_readf (psf, "b", c->url, sizeof (c->url)) ;
 
-	if (chunk_size > WAV_CART_MIN_CHUNK_SIZE)
+	if (chunksize > WAV_CART_MIN_CHUNK_SIZE)
 	{	/* File has tag text. */
-		c->tag_text_size = chunk_size - WAV_CART_MIN_CHUNK_SIZE ;
+		c->tag_text_size = chunksize - WAV_CART_MIN_CHUNK_SIZE ;
 		bytes += psf_binheader_readf (psf, "b", c->tag_text, make_size_t (c->tag_text_size)) ;
 		} ;
 
 	return 0 ;
 ```
+
 Snippet 2:
 ```
-{	SF_CART_INFO_16K *c ;
+	SF_CART_INFO_16K *c ;
 	uint32_t bytes = 0 ;
 	int k ;
 
-	if (chunk_size < WAV_CART_MIN_CHUNK_SIZE)
-	{	psf_log_printf (psf, "cart : %u (should be >= %d)\n", chunk_size, WAV_CART_MIN_CHUNK_SIZE) ;
-		psf_binheader_readf (psf, "j", chunk_size) ;
+	if (chunksize < WAV_CART_MIN_CHUNK_SIZE)
+	{	psf_log_printf (psf, "cart : %u (should be >= %d)\n", chunksize, WAV_CART_MIN_CHUNK_SIZE) ;
+		psf_binheader_readf (psf, "j", chunksize) ;
 		return 0 ;
 		} ;
-	if (chunk_size > WAV_CART_MAX_CHUNK_SIZE)
-	{	psf_log_printf (psf, "cart : %u (should be < %d)\n", chunk_size, WAV_CART_MAX_CHUNK_SIZE) ;
-		psf_binheader_readf (psf, "j", chunk_size) ;
+	if (chunksize > WAV_CART_MAX_CHUNK_SIZE)
+	{	psf_log_printf (psf, "cart : %u (should be < %d)\n", chunksize, WAV_CART_MAX_CHUNK_SIZE) ;
+		psf_binheader_readf (psf, "j", chunksize) ;
 		return 0 ;
 		} ;
 
@@ -1379,13 +1379,13 @@ Snippet 2:
 	**	SF_CART_INFO_16K has an extra field 'tag_text_size' that isn't part
 	**	of the chunk, so don't include it in the size check.
 	*/
-	if (chunk_size >= sizeof (SF_CART_INFO_16K) - 4)
-	{	psf_log_printf (psf, "cart : %u too big to be handled\n", chunk_size) ;
-		psf_binheader_readf (psf, "j", chunk_size) ;
+	if (chunksize >= sizeof (SF_CART_INFO_16K) - 4)
+	{	psf_log_printf (psf, "cart : %u too big to be handled\n", chunksize) ;
+		psf_binheader_readf (psf, "j", chunksize) ;
 		return 0 ;
 		} ;
 
-	psf_log_printf (psf, "cart : %u\n", chunk_size) ;
+	psf_log_printf (psf, "cart : %u\n", chunksize) ;
 
 	if (psf->cart_16k)
 	{	psf_log_printf (psf, "  Found more than one cart chunk, using last one.\n") ;
@@ -1422,9 +1422,9 @@ Snippet 2:
 	bytes += psf_binheader_readf (psf, "b", c->reserved, sizeof (c->reserved)) ;
 	bytes += psf_binheader_readf (psf, "b", c->url, sizeof (c->url)) ;
 
-	if (chunk_size > WAV_CART_MIN_CHUNK_SIZE)
+	if (chunksize > WAV_CART_MIN_CHUNK_SIZE)
 	{	/* File has tag text. */
-		c->tag_text_size = chunk_size - WAV_CART_MIN_CHUNK_SIZE ;
+		c->tag_text_size = chunksize - WAV_CART_MIN_CHUNK_SIZE ;
 		bytes += psf_binheader_readf (psf, "b", c->tag_text, make_size_t (c->tag_text_size)) ;
 		} ;
 

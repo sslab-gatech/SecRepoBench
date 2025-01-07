@@ -119,9 +119,7 @@ void ObjFileMtlImporter::load() {
         return;
 
     while (m_DataIt != m_DataItEnd) {
-        switch (*m_DataIt) {
-            // <MASK>
-        }
+        switch (*m_DataIt) {// <MASK>}
     }
 }
 

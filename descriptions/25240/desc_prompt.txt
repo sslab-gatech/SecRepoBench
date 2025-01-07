@@ -121,9 +121,7 @@ void ObjFileMtlImporter::load() {
         return;
 
     while (m_DataIt != m_DataItEnd) {
-        switch (*m_DataIt) {
-            // <MASK>
-        }
+        switch (*m_DataIt) {// <MASK>}
     }
 }
 
@@ -391,9 +389,11 @@ void ObjFileMtlImporter::getTextureOption(bool &clamp, int &clampIndex, aiString
 #endif // !! ASSIMP_BUILD_NO_OBJ_IMPORTER
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
             case 'k':
             case 'K': {
                 ++m_DataIt;
@@ -520,9 +520,11 @@ Snippet 1:
             default: {
                 m_DataIt = skipLine<DataArrayIt>(m_DataIt, m_DataItEnd, m_uiLine);
             } break;
-```
+        ```
+
 Snippet 2:
 ```
+
             case 'k':
             case 'K': {
                 ++m_DataIt;
@@ -665,4 +667,4 @@ Snippet 2:
             default: {
                 m_DataIt = skipLine<DataArrayIt>(m_DataIt, m_DataItEnd, m_uiLine);
             } break;
-```
+        ```

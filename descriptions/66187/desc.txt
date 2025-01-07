@@ -1,0 +1,5 @@
+// Check for UTF-8 multi-byte characters in a line of text.
+// For 3-byte UTF-8 characters, ensure there is enough space in the conversion buffer and input line before processing.
+// For 4-byte UTF-8 characters, similarly ensure sufficient space before processing.
+// If there is not enough space, break the loop to prevent buffer overflow.
+// If the character is not a multi-byte UTF-8 character, increment the input index and continue.

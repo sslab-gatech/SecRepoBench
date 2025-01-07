@@ -1,0 +1,7 @@
+// Ensures that all objects in the mruby garbage collector (GC) are reset to
+// the young generation state. If the GC is in the 'full' state, it first
+// completes any ongoing garbage collection cycle. It then prepares a sweep
+// phase to clean up dead objects and resets the color of all live objects,
+// including old objects, to white. This process effectively clears the gray 
+// object lists, ensuring that generational marking starts fresh in subsequent
+// cycles.

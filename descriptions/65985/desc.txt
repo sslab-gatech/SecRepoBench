@@ -1,0 +1,5 @@
+// Check for a valid start code in the stored buffer by appending
+// the start of the current packet to it. If a start code is found,
+// determine its type and offset, and prepare to reinitialize the 
+// parser from that point. If no start code is found, construct a
+// packet using the data in the buffer and dispatch it.

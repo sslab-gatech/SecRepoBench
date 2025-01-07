@@ -1,0 +1,6 @@
+// Function to compare two strings with special handling for various flags.
+// Converts input strings to unsigned char to facilitate unsigned comparison
+// and ctype functions. Compares strings up to a given length, optionally 
+// ignoring case differences (upper or lower), compacting whitespace, or 
+// treating whitespace as optional. Returns a non-zero value if the strings 
+// are different according to specified flags, otherwise returns zero.

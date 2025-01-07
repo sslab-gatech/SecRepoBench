@@ -1501,10 +1501,8 @@ cmsBool IsTypeSupported(cmsTagDescriptor* TagDescriptor, cmsTagTypeSignature Typ
 
 
 // That's the main read function
-void* CMSEXPORT cmsReadTag(cmsHPROFILE profileHandle, cmsTagSignature sig)
-{
-    // <MASK>
-}
+void* CMSEXPORT cmsReadTag(cmsHPROFILE hProfile, cmsTagSignature sig)
+{// <MASK>}
 
 
 // Get true type of data
@@ -1838,10 +1836,12 @@ cmsTagSignature  CMSEXPORT cmsTagLinkedTo(cmsHPROFILE hProfile, cmsTagSignature 
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-    _cmsICCPROFILE* Icc = (_cmsICCPROFILE*) profileHandle;
+
+    _cmsICCPROFILE* Icc = (_cmsICCPROFILE*) hProfile;
     cmsIOHANDLER* io = Icc ->IOhandler;
     cmsTagTypeHandler* TypeHandler;
     cmsTagTypeHandler LocalTypeHandler;
@@ -1952,9 +1952,11 @@ Error:
     _cmsUnlockMutex(Icc->ContextID, Icc ->UsrMutex);
     return NULL;
 ```
+
 Snippet 2:
 ```
-    _cmsICCPROFILE* Icc = (_cmsICCPROFILE*) profileHandle;
+
+    _cmsICCPROFILE* Icc = (_cmsICCPROFILE*) hProfile;
     cmsIOHANDLER* io = Icc ->IOhandler;
     cmsTagTypeHandler* TypeHandler;
     cmsTagTypeHandler LocalTypeHandler;

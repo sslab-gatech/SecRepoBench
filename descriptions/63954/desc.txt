@@ -1,5 +1,6 @@
-// This function retrieves data from an IT8 table based on the provided row and column indices.
-// It first obtains the current table and retrieves the number of samples (columns) and patches (rows).
-// It checks if the specified row (nSet) and column (nField) indices are within valid bounds.
-// If the indices are valid and data is present, it returns a pointer to the requested data.
-// Otherwise, it returns NULL.
+// This function retrieves data from a specific position in the IT8 data table.
+// It takes in the set index `nSet` and field index `nField` as parameters.
+// First, it checks if the indices are within the valid range for patches and samples.
+// If the indices are out of bounds or if the data array is not initialized, it returns NULL.
+// If the indices are valid and the data is present, it returns a pointer to the data
+// at the specified set and field position in the table.

@@ -1037,9 +1037,7 @@ retry:
       case 'e':
       case 'E':
       case 'a':
-      case 'A': {
-        // <MASK>
-      }
+      case 'A': {// <MASK>}
       break;
 #endif
     }

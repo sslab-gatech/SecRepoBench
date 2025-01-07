@@ -431,18 +431,18 @@ ulshift(mrb_state *mrb, mpz_t *c1, mpz_t *a, size_t n)
 /* internal routine to compute x/y and x%y ignoring signs */
 /* qq = xx/yy; rr = xx%yy */
 static void
-udiv(mrb_state *mrb, mpz_t *qq, mpz_t *remainder, mpz_t *xx, mpz_t *yy)
+udiv(mrb_state *mrb, mpz_t *qq, mpz_t *rr, mpz_t *xx, mpz_t *yy)
 {
   /* simple cases */
   int cmp = ucmp(xx, yy);
   if (cmp == 0) {
     mpz_set_int(mrb, qq, 1);
-    zero(remainder);
+    zero(rr);
     return;
   }
   else if (cmp < 0) {
     zero(qq);
-    mpz_set(mrb, remainder, xx);
+    mpz_set(mrb, rr, xx);
     return;
   }
 
@@ -463,7 +463,7 @@ udiv(mrb_state *mrb, mpz_t *qq, mpz_t *remainder, mpz_t *xx, mpz_t *yy)
   mp_dbl_limb z = y.p[yd-1];
   // <MASK>
   x.sz = yy->sz;
-  urshift(mrb, remainder, &x, ns);
+  urshift(mrb, rr, &x, ns);
   trim(&q);
   mpz_move(mrb, qq, &q);
   mpz_clear(mrb, &x);
@@ -1478,10 +1478,11 @@ mrb_bint_hash(mrb_state *mrb, mrb_value x)
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-  for (size_t j=xd-yd;; j--) {
+for (size_t j=xd-yd;; j--) {
     mp_dbl_limb_signed b=0;
     mp_dbl_limb qhat;
 
@@ -1509,11 +1510,11 @@ Snippet 1:
     }
     q.p[j] = (mp_limb)qhat;
     if (j == 0) break;
-  }
-```
+  }```
+
 Snippet 2:
 ```
-  if (xd>=yd) {
+if (xd>=yd) {
     for (size_t j=xd-yd;; j--) {
       mp_dbl_limb_signed b=0;
       mp_dbl_limb qhat;
@@ -1543,5 +1544,4 @@ Snippet 2:
       q.p[j] = (mp_limb)qhat;
       if (j == 0) break;
     }
-  }
-```
+  }```

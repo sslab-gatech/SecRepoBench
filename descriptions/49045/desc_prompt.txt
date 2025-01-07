@@ -1802,10 +1802,8 @@ mrb_integer_to_str(mrb_state *mrb, mrb_value x, mrb_int base)
  *
  */
 static mrb_value
-int_to_s(mrb_state *mrb, mrb_value int_value)
-{
-  // <MASK>
-}
+int_to_s(mrb_state *mrb, mrb_value self)
+{// <MASK>}
 
 /* compare two numbers: (1:0:-1; -2 for error) */
 static mrb_int
@@ -2074,23 +2072,27 @@ mrb_init_numeric(mrb_state *mrb)
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
   mrb_int base = 10;
 
   mrb_get_args(mrb, "|i", &base);
 #ifdef MRB_USE_BIGINT
-  if (mrb_bigint_p(int_value)) {
-    return mrb_bint_to_s(mrb, int_value, base);
+  if (mrb_bigint_p(self)) {
+    return mrb_bint_to_s(mrb, self, base);
   }
 #endif
-  return mrb_integer_to_str(mrb, int_value, base);
+  return mrb_integer_to_str(mrb, self, base);
 ```
+
 Snippet 2:
 ```
+
   mrb_int base = 10;
 
   mrb_get_args(mrb, "|i", &base);
-  return mrb_integer_to_str(mrb, int_value, base);
+  return mrb_integer_to_str(mrb, self, base);
 ```

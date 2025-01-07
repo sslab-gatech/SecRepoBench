@@ -343,7 +343,7 @@ static void mpgviddmx_enqueue_or_dispatch(GF_MPGVidDmxCtx *ctx, GF_FilterPacket 
 
 static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vosh_size, u8 *data)
 {
-	Bool flush_after = flush_required;
+	Bool flush_after = GF_FALSE;
 	if (!ctx->opid) {
 		ctx->opid = gf_filter_pid_new(filter);
 		mpgviddmx_check_dur(filter, ctx);
@@ -353,7 +353,7 @@ static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vos
 
 	//copy properties at init or reconfig
 	gf_filter_pid_copy_properties(ctx->opid, ctx->ipid);
-	ctx->copy_props = flush_required;
+	ctx->copy_props = GF_FALSE;
 	if (ctx->duration.num)
 		gf_filter_pid_set_property(ctx->opid, GF_PROP_PID_DURATION, & PROP_FRAC64(ctx->duration));
 	if (!ctx->timescale)
@@ -368,7 +368,7 @@ static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vos
 	gf_filter_pid_set_property(ctx->opid, GF_PROP_PID_UNFRAMED, NULL);
 
 	if (ctx->width && ctx->height) {
-		mpgviddmx_enqueue_or_dispatch(ctx, NULL, GF_TRUE, flush_required);
+		mpgviddmx_enqueue_or_dispatch(ctx, NULL, GF_TRUE, GF_FALSE);
 	} else {
 		flush_after = GF_TRUE;
 	}
@@ -423,11 +423,9 @@ static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vos
 		memcpy(dcfg, data, sizeof(char)*vosh_size);
 
 		/*remove packed flag if any (VOSH user data)*/
-		ctx->is_packed = ctx->is_vfr = ctx->forced_packed = flush_required;
+		ctx->is_packed = ctx->is_vfr = ctx->forced_packed = GF_FALSE;
 		i=0;
-		while (1) {
-			// <MASK>
-		}
+		while (1) {// <MASK>}
 		gf_filter_pid_set_property(ctx->opid, GF_PROP_PID_DECODER_CONFIG, & PROP_DATA_NO_COPY(dcfg, vosh_size));
 	}
 
@@ -444,7 +442,7 @@ static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vos
 	}
 
 	if (flush_after)
-		mpgviddmx_enqueue_or_dispatch(ctx, NULL, GF_TRUE, flush_required);
+		mpgviddmx_enqueue_or_dispatch(ctx, NULL, GF_TRUE, GF_FALSE);
 
 }
 
@@ -1409,9 +1407,11 @@ const GF_FilterRegister *rfmpgvid_register(GF_FilterSession *session)
 #endif // #if !defined(GPAC_DISABLE_AV_PARSERS) && !defined(GPAC_DISABLE_RFMPGVID)
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
 			char *frame = dcfg;
 			while ((i+3<vosh_size)  && ((frame[i]!=0) || (frame[i+1]!=0) || (frame[i+2]!=1))) i++;
 			if (i+4>=vosh_size) break;
@@ -1425,9 +1425,11 @@ Snippet 1:
 				frame[0] = 'n';
 			}
 			break;
-```
+		```
+
 Snippet 2:
 ```
+
 			char *frame = dcfg;
 			while ((i+3<vosh_size)  && ((frame[i]!=0) || (frame[i+1]!=0) || (frame[i+2]!=1))) i++;
 			if (i+4>=vosh_size) break;
@@ -1441,4 +1443,4 @@ Snippet 2:
 				frame[0] = 'n';
 			}
 			break;
-```
+		```

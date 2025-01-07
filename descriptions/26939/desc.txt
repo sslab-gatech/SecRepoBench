@@ -1,0 +1,3 @@
+// This function checks for corrupt profiles, specifically "xmp" and "exif" profiles, and attempts to repair them if corruption is detected.
+// For "xmp" profiles, it looks for garbage data after "<?xpacket end=\"w\"?>" and truncates the profile to remove it.
+// For "exif" profiles, it checks if the profile starts with a byte order marker instead of "Exif" and adds the "Exif" prefix if missing.

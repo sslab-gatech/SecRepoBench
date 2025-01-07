@@ -2491,9 +2491,7 @@ mrb_str_to_i(mrb_state *mrb, mrb_value self)
 #ifndef MRB_WITHOUT_FLOAT
 double
 mrb_str_len_to_dbl(mrb_state *mrb, const char *s, size_t len, mrb_bool badcheck)
-{
-  // <MASK>
-}
+{// <MASK>}
 
 MRB_API double
 mrb_cstr_to_dbl(mrb_state *mrb, const char *s, mrb_bool badcheck)

@@ -1,5 +1,8 @@
-// This function converts a string to a double while considering potential underscores and whitespace.
-// It trims leading spaces and checks for a hexadecimal format, handling underscores between digits.
-// It uses a buffer to process the string for conversion, ensuring not to exceed buffer limits.
-// If a conversion is unsuccessful, it raises an error if validation is required, otherwise returns 0.0.
-// The function handles special cases like hexadecimal and underscores gracefully, ensuring correct parsing.
+// Converts a string to a double-precision floating-point number,
+// handling different formats and invalid cases.
+// - It skips leading whitespace characters.
+// - Checks for hexadecimal format and processes it as an integer.
+// - Handles underscores between digits for readability.
+// - Can raise an error if invalid characters are found in `badcheck` mode.
+// - Uses a buffer to manage the conversion process, ensuring it doesn't overflow.
+// - Handles null-byte characters and trims the string accordingly.

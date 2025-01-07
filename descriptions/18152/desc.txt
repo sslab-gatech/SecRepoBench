@@ -1,0 +1,4 @@
+// Fix the missing null terminator in the query name field of a BAM alignment record.
+// If there's already space for a null terminator, insert it and update the record's
+// extra nulls count. If not, expand the data buffer to add space for a null terminator
+// and additional padding, then update the record's metadata accordingly.

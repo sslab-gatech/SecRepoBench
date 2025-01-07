@@ -170,9 +170,7 @@ MagickExport TokenInfo *DestroyTokenInfo(TokenInfo *token_info)
 */
 MagickExport void GetNextToken(const char *start,const char **end,
   const size_t extent,char *token)
-{
-  // <MASK>
-}
+{// <MASK>}
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

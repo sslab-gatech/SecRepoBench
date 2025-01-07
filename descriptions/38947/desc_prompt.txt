@@ -498,18 +498,18 @@ std::string LWSImporter::FindLWOFile(const std::string &in) {
 
 // ------------------------------------------------------------------------------------------------
 // Read file into given scene data structure
-void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSystem *ioHandler) {
-    // <MASK>
-}
+void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSystem *pIOHandler) {// <MASK>}
 
 #endif // !! ASSIMP_BUILD_NO_LWS_IMPORTER
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-    io = ioHandler;
-    std::unique_ptr<IOStream> file(ioHandler->Open(pFile, "rb"));
+
+    io = pIOHandler;
+    std::unique_ptr<IOStream> file(pIOHandler->Open(pFile, "rb"));
 
     // Check whether we can read from the file
     if (file.get() == nullptr) {
@@ -944,10 +944,12 @@ Snippet 1:
         }
     }
 ```
+
 Snippet 2:
 ```
-    io = ioHandler;
-    std::unique_ptr<IOStream> file(ioHandler->Open(pFile, "rb"));
+
+    io = pIOHandler;
+    std::unique_ptr<IOStream> file(pIOHandler->Open(pFile, "rb"));
 
     // Check whether we can read from the file
     if (file.get() == nullptr) {

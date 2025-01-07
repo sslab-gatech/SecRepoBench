@@ -1,0 +1,4 @@
+// Ensure the coordinate `x` is within a valid range by constraining it to the limits defined by `SSIZE_MAX`.
+// If `x` is less than the negative limit, return the negative limit value.
+// If `x` is greater than the positive limit, return the positive limit value.
+// Otherwise, return `x` as it is.

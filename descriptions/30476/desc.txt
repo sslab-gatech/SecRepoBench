@@ -1,0 +1,4 @@
+// This function checks if two expression trees are structurally identical and terminate in the same variable. 
+// It compares the kinds and types of the expressions and recursively verifies their components for specific 
+// expression kinds like IntLiteral, FieldAccess, IndexExpression, Swizzle, and VariableReference. If they 
+// match at every level, the function returns true, otherwise false.

@@ -1,0 +1,7 @@
+// Extract TIFF properties using TIFFGetField and set corresponding
+// image properties. Fetches various metadata like artist, copyright,
+// datetime, document name, host computer, image description, make, model,
+// OPI image ID, page name, and software, storing them as image properties.
+// Also retrieves custom properties and subfile type to set specific
+// image attributes. Ensures text strings are copied safely by bounding
+// their length to the defined maximum.

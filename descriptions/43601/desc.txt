@@ -1,0 +1,2 @@
+// Check if the tag specified by 'sig' is present in the profile. If not found,
+// unlock the mutex and return NULL, indicating the tag does not exist in the profile.

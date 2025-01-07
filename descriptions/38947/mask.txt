@@ -496,8 +496,6 @@ std::string LWSImporter::FindLWOFile(const std::string &in) {
 
 // ------------------------------------------------------------------------------------------------
 // Read file into given scene data structure
-void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSystem *pIOHandler) {
-    // <MASK>
-}
+void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSystem *pIOHandler) {// <MASK>}
 
 #endif // !! ASSIMP_BUILD_NO_LWS_IMPORTER

@@ -833,9 +833,7 @@ void SMDImporter::ParseSkeletonSection(const char* szCurrent, const char** szCur
 }
 // ------------------------------------------------------------------------------------------------
 // Parse a node line
-void SMDImporter::ParseNodeInfo(const char* szCurrent, const char** szCurrentOut) {
-    // <MASK>
-}
+void SMDImporter::ParseNodeInfo(const char* szCurrent, const char** szCurrentOut) {// <MASK>}
 
 // ------------------------------------------------------------------------------------------------
 // Parse a skeleton element

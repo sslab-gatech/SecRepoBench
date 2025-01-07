@@ -498,10 +498,8 @@ static int read_major_sync(MLPDecodeContext *m, GetBitContext *gb)
  *  (always) present only in blocks following a major sync. */
 
 static int read_restart_header(MLPDecodeContext *m, GetBitContext *gbp,
-                               const uint8_t *data_buffer, unsigned int substr)
-{
-    // <MASK>
-}
+                               const uint8_t *buf, unsigned int substr)
+{// <MASK>}
 
 /** Read parameters for one of the prediction filters. */
 
@@ -1289,9 +1287,11 @@ const FFCodec ff_truehd_decoder = {
 #endif /* CONFIG_TRUEHD_DECODER */
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
     SubStream *s = &m->substream[substr];
     unsigned int ch;
     int sync_word, tmp;
@@ -1397,7 +1397,7 @@ Snippet 1:
         s->ch_assign[ch_assign] = ch;
     }
 
-    checksum = ff_mlp_restart_checksum(data_buffer, get_bits_count(gbp) - start_count);
+    checksum = ff_mlp_restart_checksum(buf, get_bits_count(gbp) - start_count);
 
     if (checksum != get_bits(gbp, 8))
         av_log(m->avctx, AV_LOG_ERROR, "restart header checksum error\n");
@@ -1450,8 +1450,10 @@ Snippet 1:
 
     return 0;
 ```
+
 Snippet 2:
 ```
+
     SubStream *s = &m->substream[substr];
     unsigned int ch;
     int sync_word, tmp;
@@ -1557,7 +1559,7 @@ Snippet 2:
         s->ch_assign[ch_assign] = ch;
     }
 
-    checksum = ff_mlp_restart_checksum(data_buffer, get_bits_count(gbp) - start_count);
+    checksum = ff_mlp_restart_checksum(buf, get_bits_count(gbp) - start_count);
 
     if (checksum != get_bits(gbp, 8))
         av_log(m->avctx, AV_LOG_ERROR, "restart header checksum error\n");

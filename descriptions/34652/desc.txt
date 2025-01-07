@@ -1,0 +1,6 @@
+// Handle numbers with negative exponent in 'e' or 'g' format by switching to 'f' format.
+// Initialize `dec` to -1 for decimal position offset and insert the first digit.
+// Adjust precision to prevent buffer overflow based on available buffer space and
+// ensure that precision is extended for 'g' format by `e - 1` to account for the exponent.
+// Add a decimal point if there are digits after the decimal or if the alternate form is requested.
+// Precede with zeros if necessary to align the decimal point correctly.

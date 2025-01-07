@@ -1,0 +1,4 @@
+// Check if the number of steps in the compiled match exceeds the maximum allowed.
+// If it does, attempt to reallocate memory for the steps array to double its current size.
+// Handle potential memory allocation failure by logging an error, updating the error count in the stylesheet,
+// and returning -1 to indicate failure. If memory allocation succeeds, update the maxStep value.

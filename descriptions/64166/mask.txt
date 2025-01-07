@@ -1264,9 +1264,7 @@ void EmitXYZ2Lab(cmsIOHANDLER* m)
 
 static
 int WriteOutputLUT(cmsIOHANDLER* m, cmsHPROFILE hProfile, cmsUInt32Number Intent, cmsUInt32Number dwFlags)
-{
-    // <MASK>
-}
+{// <MASK>}
 
 
 // Builds a ASCII string containing colorant list in 0..1.0 range

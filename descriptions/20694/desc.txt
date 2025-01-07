@@ -1,8 +1,5 @@
-// Decodes the header of a CRAM slice block, which contains metadata
-// about the slice such as reference sequence ID, start position, 
-// span, number of records, and content IDs. It first checks if the 
-// block is compressed and decompresses it if necessary. The function
-// allocates memory for the slice header structure and populates it
-// by parsing the data from the block. It returns the populated
-// slice header on success and handles errors by freeing allocated
-// resources and returning NULL.
+// Parse and validate reference sequence start and span values for a CRAM 
+// mapped slice header. In Snippet 2, additional error checking is applied 
+// to ensure the start and span values are non-negative, logging an error 
+// and returning NULL if the validation fails. Snippet 1 does not include 
+// this validation.

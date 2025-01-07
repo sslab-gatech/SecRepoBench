@@ -507,11 +507,9 @@ file_regcomp(file_regex_t *rx, const char *pat, int flags)
 }
 
 protected int
-file_regexec(file_regex_t *regexContext, const char *str, size_t nmatch,
+file_regexec(file_regex_t *rx, const char *str, size_t nmatch,
     regmatch_t* pmatch, int eflags)
-{
-	// <MASK>
-}
+{// <MASK>}
 
 protected void
 file_regfree(file_regex_t *rx)
@@ -602,16 +600,20 @@ file_printable(char *buf, size_t bufsiz, const char *str)
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-	assert(regexContext->rc == 0);
-	return regexec(&regexContext->rx, str, nmatch, pmatch, eflags);
+
+	assert(rx->rc == 0);
+	return regexec(&rx->rx, str, nmatch, pmatch, eflags);
 ```
+
 Snippet 2:
 ```
-	assert(regexContext->rc == 0);
+
+	assert(rx->rc == 0);
 	/* XXX: force initialization because glibc does not always do this */
 	memset(pmatch, 0, nmatch * sizeof(*pmatch));
-	return regexec(&regexContext->rx, str, nmatch, pmatch, eflags);
+	return regexec(&rx->rx, str, nmatch, pmatch, eflags);
 ```

@@ -1,0 +1,4 @@
+// This section processes the next character after a JSON object key-value pair.
+// It checks if there's a comma, indicating more pairs to come, or a closing brace,
+// indicating the end of the object. If the buffer is exhausted (uc == ue), it exits
+// to handle the error scenario gracefully.

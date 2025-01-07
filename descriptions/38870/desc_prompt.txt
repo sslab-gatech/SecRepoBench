@@ -369,9 +369,7 @@ void ZipArchiveIOSystem::Implement::MapArchive() {
         return;
 
     // Loop over all files
-    do {
-        // <MASK>
-    } while (unzGoToNextFile(m_ZipFileHandle) != UNZ_END_OF_LIST_OF_FILE);
+    do {// <MASK>} while (unzGoToNextFile(m_ZipFileHandle) != UNZ_END_OF_LIST_OF_FILE);
 }
 
 bool ZipArchiveIOSystem::Implement::isOpen() const {
@@ -530,9 +528,11 @@ bool ZipArchiveIOSystem::isZipArchive(IOSystem *pIOHandler, const std::string &r
 } // namespace Assimp
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
         char filename[FileNameSize];
         unz_file_info fileInfo;
 
@@ -543,9 +543,11 @@ Snippet 1:
                 m_ArchiveMap.emplace(filename_string, ZipFileInfo(m_ZipFileHandle, fileInfo.uncompressed_size));
             }
         }
-```
+    ```
+
 Snippet 2:
 ```
+
         char filename[FileNameSize];
         unz_file_info fileInfo;
 
@@ -556,4 +558,4 @@ Snippet 2:
                 m_ArchiveMap.emplace(filename_string, ZipFileInfo(m_ZipFileHandle, fileInfo.uncompressed_size));
             }
         }
-```
+    ```

@@ -1,0 +1,8 @@
+// This code block implements a loop that processes variable-length coded (VLC) data to 
+// decode a block of discrete cosine transform (DCT) coefficients. It retrieves VLC 
+// values using `get_vlc2`, checks for end-of-block or invalid data, and calculates 
+// the position (`pos_add`) and number of bits (`num_bits`) from the VLC code. It then 
+// extracts the coefficient value from the bitstream, applies a scaling factor depending 
+// on the position, and updates the DCT block with the calculated coefficient using a 
+// scan table permutation for the appropriate position. The code is used in the context 
+// of decoding video data in the FFmpeg library.
