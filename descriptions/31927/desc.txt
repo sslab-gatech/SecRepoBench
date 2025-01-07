@@ -1,0 +1,3 @@
+// Parses sample size entries from a bitstream and updates the maximum size, total size, and total sample count. 
+// Handles both compact (4-bit) and regular sample sizes based on the provided sample size field. 
+// For compact sizes, it reads two samples per byte and includes padding if the sample count is odd.

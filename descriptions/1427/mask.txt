@@ -238,9 +238,7 @@ static void cdxl_decode_ham8(CDXLVideoContext *c, AVFrame *frame)
 
 static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
                              int *got_frame, AVPacket *pkt)
-{
-    // <MASK>
-}
+{// <MASK>}
 
 static av_cold int cdxl_decode_end(AVCodecContext *avctx)
 {

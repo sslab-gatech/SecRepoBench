@@ -1,6 +1,11 @@
 Below is the content of a code file where a code block is masked by `// <MASK>`.
 ```
-Permission is hereby granted, free of charge, to any person obtaining
+//---------------------------------------------------------------------------------
+//
+//  Little Color Management System
+//  Copyright (c) 1998-2023 Marti Maria Saguer
+//
+// Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the "Software"),
 // to deal in the Software without restriction, including without limitation
 // the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -1662,10 +1667,8 @@ cmsBool AllocateDataSet(cmsIT8* it8)
 }
 
 static
-char* GetData(cmsIT8* cmsIT8Handler, int nSet, int nField)
-{
-    // <MASK>
-}
+char* GetData(cmsIT8* it8, int nSet, int nField)
+{// <MASK>}
 
 static
 cmsBool SetData(cmsIT8* it8, int nSet, int nField, const char *Val)
@@ -2951,12 +2954,15 @@ void CMSEXPORT cmsIT8DefineDblFormat(cmsHANDLE hIT8, const char* Formatter)
 
     it8 ->DoubleFormatter[sizeof(it8 ->DoubleFormatter)-1] = 0;
 }
+
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-    TABLE* t = GetTable(cmsIT8Handler);
+
+    TABLE* t = GetTable(it8);
     int nSamples    = t -> nSamples;
     int nPatches    = t -> nPatches;
 
@@ -2966,9 +2972,11 @@ Snippet 1:
     if (!t->Data) return NULL;
     return t->Data [nSet * nSamples + nField];
 ```
+
 Snippet 2:
 ```
-    TABLE* t = GetTable(cmsIT8Handler);
+
+    TABLE* t = GetTable(it8);
     int nSamples    = t -> nSamples;
     int nPatches    = t -> nPatches;
 

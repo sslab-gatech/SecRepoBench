@@ -155,9 +155,7 @@ void AnimResolver::ClearAnimRangeSetup() {
 void AnimResolver::UpdateAnimRangeSetup() {
     // XXX doesn't work yet (hangs if more than one envelope channels needs to be interpolated)
 
-    for (std::list<LWO::Envelope>::iterator it = envelopes.begin(); it != envelopes.end(); ++it) {
-        // <MASK>
-    }
+    for (std::list<LWO::Envelope>::iterator it = envelopes.begin(); it != envelopes.end(); ++it) {// <MASK>}
 }
 
 // ------------------------------------------------------------------------------------------------

@@ -1,5 +1,8 @@
-// This part implements a function to unpack a BER (Basic Encoding Rules) encoded integer
-// from a given byte stream `data_stream` of length `srclen`. The function iterates over the
-// bytes of the stream to reconstruct the integer, taking into account the continuation bit in
-// each byte. If the integer grows too large, it raises a range error. Finally, it adds the
-// decoded integer to the array `ary`. It returns the number of bytes consumed from the stream.
+// This function implements the unpacking of BER (Basic Encoding Rules)
+// encoded integers from a byte array. It reads bytes from the source
+// `src` and decodes them into an integer `n` by processing 7 bits at a
+// time, continuing until a byte with the most significant bit (MSB) not
+// set is encountered. It stores the result in the array `ary`. The
+// function handles potential overflow by checking if `n` exceeds a
+// certain threshold (shifted MRB_INT_MAX) before shifting. It returns
+// the number of bytes processed.

@@ -257,10 +257,8 @@ check_name_arg(mrb_state *mrb, int posarg, const char *name, size_t len)
 } while (0)
 
 static const char*
-get_num(mrb_state *mrb, const char *p, const char *limit, int *valp)
-{
-  // <MASK>
-}
+get_num(mrb_state *mrb, const char *p, const char *end, int *valp)
+{// <MASK>}
 
 static void
 get_hash(mrb_state *mrb, mrb_value *hash, mrb_int argc, const mrb_value *argv)
@@ -1116,22 +1114,26 @@ mrb_mruby_sprintf_gem_final(mrb_state *mrb)
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
   char *e;
   mrb_int n;
-  if (!mrb_read_int(p, limit, &e, &n)) {
+  if (!mrb_read_int(p, end, &e, &n)) {
     return NULL;
   }
   *valp = (int)n;
   return e;
 ```
+
 Snippet 2:
 ```
+
   char *e;
   mrb_int n;
-  if (!mrb_read_int(p, limit, &e, &n) || INT_MAX < n) {
+  if (!mrb_read_int(p, end, &e, &n) || INT_MAX < n) {
     return NULL;
   }
   *valp = (int)n;

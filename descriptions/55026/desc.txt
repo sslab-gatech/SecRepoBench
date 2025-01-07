@@ -1,0 +1,5 @@
+// Aligns dimensions based on pixel format and codec ID. Specifically, for 
+// pixel formats like YUV420P or RGB555, width and height are aligned to 
+// specific values using macroblock assumptions. For the codec ID AV_CODEC_ID_BINKVIDEO,
+// width alignment is set to twice the default value (16 * 2) to account 
+// for specific requirements of the BINKVIDEO codec.

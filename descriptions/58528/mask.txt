@@ -343,9 +343,7 @@ int ff_hevc_slice_rpl(HEVCContext *s)
                               LT_CURR };
 
         /* concatenate the candidate lists for the current frame */
-        while (rpl_tmp.nb_refs < sh->nb_refs[list_idx]) {
-            // <MASK>
-        }
+        while (rpl_tmp.nb_refs < sh->nb_refs[list_idx]) {// <MASK>}
 
         /* reorder the references if necessary */
         if (sh->rpl_modification_flag[list_idx]) {

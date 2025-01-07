@@ -1,0 +1,11 @@
+// Function to read and validate the ICC profile header and tag directory.
+// Reads the profile header and checks for a valid ICC signature.
+// Adjusts endianness for various header parameters and populates them into
+// the profile structure. Extracts profile creation date and time, and the
+// profile ID from the header.
+// Reads the tag directory, validates the tag count, and performs sanity
+// checks on each tag to ensure offsets and sizes fall within the profile
+// bounds. For each tag, populates its signature, offset, and size into
+// the profile structure, and identifies linked tags sharing the same data.
+// Returns TRUE if successful or FALSE if any step fails, including reading
+// errors, invalid signature, excessive tags, or other inconsistencies.

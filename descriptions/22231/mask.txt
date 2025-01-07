@@ -2195,9 +2195,7 @@ int cram_decode_slice(cram_fd *fd, cram_container *c, cram_slice *s,
     embed_ref = s->hdr->ref_base_id >= 0 ? 1 : 0;
 
     if (ref_id >= 0) {
-        if (embed_ref) {
-            // <MASK>
-        } else if (!c->comp_hdr->no_ref) {
+        if (embed_ref) {// <MASK>} else if (!c->comp_hdr->no_ref) {
             //// Avoid Java cramtools bug by loading entire reference seq
             //s->ref = cram_get_ref(fd, s->hdr->ref_seq_id, 1, 0);
             //s->ref_start = 1;

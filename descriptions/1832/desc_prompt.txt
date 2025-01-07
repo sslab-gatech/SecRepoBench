@@ -712,10 +712,8 @@ static int read_filter_params(MLPDecodeContext *m, GetBitContext *gbp,
 
 /** Read parameters for primitive matrices. */
 
-static int read_matrix_params(MLPDecodeContext *m, unsigned int substr, GetBitContext *bitContext)
-{
-    // <MASK>
-}
+static int read_matrix_params(MLPDecodeContext *m, unsigned int substr, GetBitContext *gbp)
+{// <MASK>}
 
 /** Read channel parameters. */
 
@@ -1274,9 +1272,11 @@ AVCodec ff_truehd_decoder = {
 #endif /* CONFIG_TRUEHD_DECODER */
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
     SubStream *s = &m->substream[substr];
     unsigned int mat, ch;
     const int max_primitive_matrices = m->avctx->codec_id == AV_CODEC_ID_MLP
@@ -1288,7 +1288,7 @@ Snippet 1:
         return AVERROR_INVALIDDATA;
     }
 
-    s->num_primitive_matrices = get_bits(bitContext, 4);
+    s->num_primitive_matrices = get_bits(gbp, 4);
 
     if (s->num_primitive_matrices > max_primitive_matrices) {
         av_log(m->avctx, AV_LOG_ERROR,
@@ -1300,9 +1300,9 @@ Snippet 1:
 
     for (mat = 0; mat < s->num_primitive_matrices; mat++) {
         int frac_bits, max_chan;
-        s->matrix_out_ch[mat] = get_bits(bitContext, 4);
-        frac_bits             = get_bits(bitContext, 4);
-        s->lsb_bypass   [mat] = get_bits1(bitContext);
+        s->matrix_out_ch[mat] = get_bits(gbp, 4);
+        frac_bits             = get_bits(gbp, 4);
+        s->lsb_bypass   [mat] = get_bits1(gbp);
 
         if (s->matrix_out_ch[mat] > s->max_matrix_channel) {
             av_log(m->avctx, AV_LOG_ERROR,
@@ -1322,22 +1322,24 @@ Snippet 1:
 
         for (ch = 0; ch <= max_chan; ch++) {
             int coeff_val = 0;
-            if (get_bits1(bitContext))
-                coeff_val = get_sbits(bitContext, frac_bits + 2);
+            if (get_bits1(gbp))
+                coeff_val = get_sbits(gbp, frac_bits + 2);
 
             s->matrix_coeff[mat][ch] = coeff_val * (1 << (14 - frac_bits));
         }
 
         if (s->noise_type)
-            s->matrix_noise_shift[mat] = get_bits(bitContext, 4);
+            s->matrix_noise_shift[mat] = get_bits(gbp, 4);
         else
             s->matrix_noise_shift[mat] = 0;
     }
 
     return 0;
 ```
+
 Snippet 2:
 ```
+
     SubStream *s = &m->substream[substr];
     unsigned int mat, ch;
     const int max_primitive_matrices = m->avctx->codec_id == AV_CODEC_ID_MLP
@@ -1349,7 +1351,7 @@ Snippet 2:
         return AVERROR_INVALIDDATA;
     }
 
-    s->num_primitive_matrices = get_bits(bitContext, 4);
+    s->num_primitive_matrices = get_bits(gbp, 4);
 
     if (s->num_primitive_matrices > max_primitive_matrices) {
         av_log(m->avctx, AV_LOG_ERROR,
@@ -1360,9 +1362,9 @@ Snippet 2:
 
     for (mat = 0; mat < s->num_primitive_matrices; mat++) {
         int frac_bits, max_chan;
-        s->matrix_out_ch[mat] = get_bits(bitContext, 4);
-        frac_bits             = get_bits(bitContext, 4);
-        s->lsb_bypass   [mat] = get_bits1(bitContext);
+        s->matrix_out_ch[mat] = get_bits(gbp, 4);
+        frac_bits             = get_bits(gbp, 4);
+        s->lsb_bypass   [mat] = get_bits1(gbp);
 
         if (s->matrix_out_ch[mat] > s->max_matrix_channel) {
             av_log(m->avctx, AV_LOG_ERROR,
@@ -1382,14 +1384,14 @@ Snippet 2:
 
         for (ch = 0; ch <= max_chan; ch++) {
             int coeff_val = 0;
-            if (get_bits1(bitContext))
-                coeff_val = get_sbits(bitContext, frac_bits + 2);
+            if (get_bits1(gbp))
+                coeff_val = get_sbits(gbp, frac_bits + 2);
 
             s->matrix_coeff[mat][ch] = coeff_val * (1 << (14 - frac_bits));
         }
 
         if (s->noise_type)
-            s->matrix_noise_shift[mat] = get_bits(bitContext, 4);
+            s->matrix_noise_shift[mat] = get_bits(gbp, 4);
         else
             s->matrix_noise_shift[mat] = 0;
     }

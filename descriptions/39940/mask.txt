@@ -457,9 +457,7 @@ mrb_funcall_with_block(mrb_state *mrb, mrb_value self, mrb_sym mid, mrb_int argc
     MRB_END_EXC(&c_jmp);
     mrb->jmp = 0;
   }
-  else {
-    // <MASK>
-  }
+  else {// <MASK>}
   mrb_gc_arena_restore(mrb, ai);
   mrb_gc_protect(mrb, val);
   return val;

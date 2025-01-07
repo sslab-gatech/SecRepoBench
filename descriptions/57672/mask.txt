@@ -385,7 +385,13 @@ mrb_env_unshare(mrb_state *mrb, struct REnv *e, mrb_bool noraise)
 
   size_t live = mrb->gc.live;
   mrb_value *p = (mrb_value*)mrb_malloc_simple(mrb, sizeof(mrb_value)*len);
-  // <MASK>
+  if (live != mrb->gc.live && mrb_object_dead_p(mrb, (struct RBasic*)e)) {
+    // The e object is now subject to GC inside mrb_malloc_simple().
+    // Moreover, if NULL is returned due to mrb_malloc_simple() failure, simply ignore it.
+    mrb_free(mrb, p);
+    return TRUE;
+  }
+  else // <MASK>
 }
 
 static inline mrb_callinfo*

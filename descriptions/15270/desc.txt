@@ -1,0 +1,4 @@
+// This code block checks for a specific condition related to the codec context.
+// If the bits_per_coded_sample field in the AVCodecContext structure is negative,
+// it sets an error code (EINVAL) indicating an invalid argument and jumps to
+// the error handling part of the function labeled 'free_and_end'.

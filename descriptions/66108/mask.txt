@@ -589,9 +589,7 @@ restart:
 		ctx->resume_from = 0;
 	}
 
-	while (remain) {
-		// <MASK>
-	}
+	while (remain) {// <MASK>}
 
 	if (!pck) {
 		ctx->mp3_buffer_size = 0;

@@ -580,9 +580,7 @@ mrb_ary_shift(mrb_state *mrb, mrb_value self)
 
 static mrb_value
 mrb_ary_shift_m(mrb_state *mrb, mrb_value self)
-{
-  // <MASK>
-}
+{// <MASK>}
 
 /* self = [1,2,3]
    item = 0

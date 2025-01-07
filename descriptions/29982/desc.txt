@@ -1,0 +1,4 @@
+// Identify arguments within a constructor that can be flattened, re-walk them, and replace
+// nested constructors with their individual components. Create a new constructor with the
+// flattened arguments and replace the original expression in the CFG and IR. Trigger a rescan
+// if necessary. Reference counts remain unchanged, as no new references are added or removed.

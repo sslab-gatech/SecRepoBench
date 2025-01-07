@@ -917,10 +917,8 @@ pack_bstr(mrb_state *mrb, mrb_value src, mrb_value dst, mrb_int didx, int count,
 }
 
 static int
-unpack_bstr(mrb_state *mrb, const void *src, int slen, mrb_value ary, int bit_length, unsigned int flags)
-{
-  // <MASK>
-}
+unpack_bstr(mrb_state *mrb, const void *src, int slen, mrb_value ary, int count, unsigned int flags)
+{// <MASK>}
 
 static int
 pack_base64(mrb_state *mrb, mrb_value src, mrb_value dst, mrb_int didx, int count)
@@ -1739,22 +1737,24 @@ mrb_mruby_pack_gem_final(mrb_state *mrb)
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
   CHECK_UNPACK_LEN(mrb, slen, ary);
 
   const char *sptr0 = (const char*)src;
   const char *sptr = sptr0;
-  if (bit_length == -1)
-    bit_length = slen * 8;
+  if (count == -1)
+    count = slen * 8;
 
-  mrb_value dst = mrb_str_new(mrb, NULL, bit_length);
+  mrb_value dst = mrb_str_new(mrb, NULL, count);
   char *dptr = RSTRING_PTR(dst);
   const char *dptr0 = dptr;
   int bits = 0;
 
-  for (int i=0; i<bit_length; i++) {
+  for (int i=0; i<count; i++) {
     if (flags & PACK_FLAG_LSB) {
       if (i & 7) bits >>= 1;
       else bits = (unsigned char)*sptr++;
@@ -1770,21 +1770,23 @@ Snippet 1:
   mrb_ary_push(mrb, ary, dst);
   return (int)(sptr - sptr0);
 ```
+
 Snippet 2:
 ```
+
   CHECK_UNPACK_LEN(mrb, slen, ary);
 
   const char *sptr0 = (const char*)src;
   const char *sptr = sptr0;
-  if (bit_length == -1 || bit_length > slen * 8)
-    bit_length = slen * 8;
+  if (count == -1 || count > slen * 8)
+    count = slen * 8;
 
-  mrb_value dst = mrb_str_new(mrb, NULL, bit_length);
+  mrb_value dst = mrb_str_new(mrb, NULL, count);
   char *dptr = RSTRING_PTR(dst);
   const char *dptr0 = dptr;
   int bits = 0;
 
-  for (int i=0; i<bit_length; i++) {
+  for (int i=0; i<count; i++) {
     if (flags & PACK_FLAG_LSB) {
       if (i & 7) bits >>= 1;
       else bits = (unsigned char)*sptr++;

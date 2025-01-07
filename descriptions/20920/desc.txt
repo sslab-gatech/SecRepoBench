@@ -1,0 +1,4 @@
+// Check if the TIFF file is byte-swapped and, if so, swap the byte order of the IPTC profile data.
+// For Snippet 2, retrieve the TIFF field associated with the IPTC tag and determine the data type.
+// If the data type is TIFF_LONG, adjust the length accordingly before reading the IPTC profile into the image.
+// Otherwise, read the IPTC profile directly using the given length.

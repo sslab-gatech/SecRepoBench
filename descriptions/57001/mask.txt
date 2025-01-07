@@ -281,9 +281,7 @@ void OFFImporter::InternReadFile( const std::string& pFile, aiScene* pScene, IOS
 
     // load faces with their indices
     faces = mesh->mFaces;
-    for (unsigned int i = 0; i < numFaces; ) {
-      // <MASK>
-    }
+    for (unsigned int i = 0; i < numFaces; ) {// <MASK>}
 
     // generate the output node graph
     pScene->mRootNode = new aiNode();

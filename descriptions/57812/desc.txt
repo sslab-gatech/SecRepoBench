@@ -1,0 +1,5 @@
+// Parse multilayer extension data for the PPS (Picture Parameter Set).
+// This includes reading various flags and offsets related to reference
+// locations, scaling and color mapping. It handles cases where the number
+// of reference location offsets exceeds the allocated array size by 
+// resetting the count and returning an error code.

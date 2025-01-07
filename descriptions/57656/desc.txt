@@ -1,0 +1,4 @@
+// Check if a file exists at the given path. On Windows, use the _wstat64 function to retrieve
+// file status and return false if it fails. On non-Windows systems, open the file in read-binary 
+// mode and close it if it exists, returning false if it fails to open. Alternatively, on non-Windows, 
+// use the stat function to check if the path refers to a regular file and return false if not.

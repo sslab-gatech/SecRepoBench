@@ -1,7 +1,7 @@
-// Iterate through the string `in` to clean up path delimiters
-            // and handle special cases. Paths starting with "://" or "\\" 
-            // are left untouched. For paths containing double delimiters 
-            // (e.g., "//" or "\\\\"), convert all delimiters to the OS 
-            // specific separator and remove any duplicates. Additionally, 
-            // the code attempts to decode URI-style hex sequences (e.g., 
-            // "%20") by converting them to their ASCII equivalent if valid.
+// This function cleans up a given file path by performing various operations to standardize it.
+// It first checks if the input string is empty and returns if so. It then removes leading spaces
+// or new lines from the path. The function iterates through each character in the path to 
+// replace both forward slashes ('/') and backslashes ('\\') with the operating system's 
+// directory separator. It ensures double delimiters are reduced to single delimiters and 
+// handles special cases such as skipping over "://" and "\\\\" sequences. Additionally, it
+// detects and converts hexadecimal sequences (e.g., %20) in URIs to their respective characters.

@@ -1,0 +1,4 @@
+// Check if the `esd` field in the `ptr` structure is non-null.
+// If it is not null, remove the `esd` box from the `ptr` child boxes list.
+// Also, iterate through each child box of `ptr` and remove the `esd` box from their child boxes, if any.
+// Finally, delete the `esd` box from memory.

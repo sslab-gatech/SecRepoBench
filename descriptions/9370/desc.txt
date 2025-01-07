@@ -1,0 +1,5 @@
+// Read EXIF properties from a TIFF image if available.
+// The function retrieves the EXIF data if the TIFF has an EXIF IFD (Image File Directory).
+// It iterates over predefined EXIF tags, extracts their values, and sets them as image properties.
+// Handles various data types including ASCII, SHORT, LONG, and RATIONAL.
+// Ensures the TIFF directory is reset to its original state after processing.

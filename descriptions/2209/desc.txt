@@ -1,0 +1,11 @@
+// This function adds a reference frame with a given Picture Order Count (POC)
+// to the specified reference picture list. It first attempts to find an existing
+// reference frame in the Decoded Picture Buffer (DPB) using the specified POC.
+// If the found reference frame is the current frame being processed, or if the
+// list is already full (in case of Snippet 2), it returns an error indicating
+// invalid data. If no reference frame is found, it attempts to generate a
+// missing reference frame with the given POC. If this fails, it returns an
+// error indicating an out-of-memory condition. Otherwise, it adds the reference
+// frame to the reference picture list, increments the list's reference count,
+// and marks the reference frame with the provided flag. Finally, the function
+// returns 0 on success.

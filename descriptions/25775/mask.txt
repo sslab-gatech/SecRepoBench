@@ -25,9 +25,7 @@
 
 static int threedostr_probe(const AVProbeData *p)
 {
-    for (int i = 0; i < p->buf_size;) {
-        // <MASK>
-    }
+    for (int i = 0; i < p->buf_size;) {// <MASK>}
 
     return 0;
 }

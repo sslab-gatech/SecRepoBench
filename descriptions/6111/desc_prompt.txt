@@ -395,10 +395,8 @@ static inline int ProfileInteger(Image *image,short int *hex_digits)
   return(value);
 }
 
-static Image *ReadPSImage(const ImageInfo *image_info,ExceptionInfo *error_info)
-{
-  // <MASK>
-}
+static Image *ReadPSImage(const ImageInfo *image_info,ExceptionInfo *exception)
+{// <MASK>}
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1677,9 +1675,11 @@ RestoreMSCWarning
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
 #define BoundingBox  "BoundingBox:"
 #define BeginDocument  "BeginDocument:"
 #define BeginXMPPacket  "<?xpacket begin="
@@ -1789,10 +1789,10 @@ Snippet 1:
   if (image_info->debug != MagickFalse)
     (void) LogMagickEvent(TraceEvent,GetMagickModule(),"%s",
       image_info->filename);
-  assert(error_info != (ExceptionInfo *) NULL);
-  assert(error_info->signature == MagickCoreSignature);
-  image=AcquireImage(image_info,error_info);
-  status=OpenBlob(image_info,image,ReadBinaryBlobMode,error_info);
+  assert(exception != (ExceptionInfo *) NULL);
+  assert(exception->signature == MagickCoreSignature);
+  image=AcquireImage(image_info,exception);
+  status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
   if (status == MagickFalse)
     {
       image=DestroyImageList(image);
@@ -1801,7 +1801,7 @@ Snippet 1:
   status=AcquireUniqueSymbolicLink(image_info->filename,input_filename);
   if (status == MagickFalse)
     {
-      ThrowFileException(error_info,FileOpenError,"UnableToCreateTemporaryFile",
+      ThrowFileException(exception,FileOpenError,"UnableToCreateTemporaryFile",
         image_info->filename);
       image=DestroyImageList(image);
       return((Image *) NULL);
@@ -1898,7 +1898,7 @@ Snippet 1:
       continue;
     if (LocaleNCompare(PostscriptLevel,command,strlen(PostscriptLevel)) == 0)
       {
-        (void) SetImageProperty(image,"ps:Level",command+4,error_info);
+        (void) SetImageProperty(image,"ps:Level",command+4,exception);
         if (GlobExpression(command,"*EPSF-*",MagickTrue) != MagickFalse)
           pages=1;
       }
@@ -1928,7 +1928,7 @@ Snippet 1:
           datum[i]=(unsigned char) c;
         }
         SetStringInfoLength(profile,(size_t) i+1);
-        (void) SetImageProfile(image,"icc",profile,error_info);
+        (void) SetImageProfile(image,"icc",profile,exception);
         profile=DestroyStringInfo(profile);
         continue;
       }
@@ -1952,7 +1952,7 @@ Snippet 1:
             q=GetStringInfoDatum(profile);
             for (i=0; i < (ssize_t) length; i++)
               *q++=(unsigned char) ProfileInteger(image,hex_digits);
-            (void) SetImageProfile(image,"8bim",profile,error_info);
+            (void) SetImageProfile(image,"8bim",profile,exception);
             profile=DestroyStringInfo(profile);
           }
         continue;
@@ -1982,7 +1982,7 @@ Snippet 1:
         }
         SetStringInfoLength(profile,i);
         if (EOFBlob(image) == MagickFalse)
-          (void) SetImageProfile(image,"xmp",profile,error_info);
+          (void) SetImageProfile(image,"xmp",profile,exception);
         profile=DestroyStringInfo(profile);
         continue;
       }
@@ -2025,7 +2025,7 @@ Snippet 1:
         (void) SubstituteString(&value,"(","");
         (void) SubstituteString(&value,")","");
         (void) StripString(value);
-        (void) SetImageProperty(image,property,value,error_info);
+        (void) SetImageProperty(image,property,value,exception);
         value=DestroyString(value);
         continue;
       }
@@ -2084,7 +2084,7 @@ Snippet 1:
       (void) FormatLocaleString(geometry,MagickPathExtent,"%gx%g%+.15g%+.15g",
         hires_bounds.x2-hires_bounds.x1,hires_bounds.y2-hires_bounds.y1,
         hires_bounds.x1,hires_bounds.y1);
-      (void) SetImageProperty(image,"ps:HiResBoundingBox",geometry,error_info);
+      (void) SetImageProperty(image,"ps:HiResBoundingBox",geometry,exception);
       page.width=(size_t) ceil((double) ((hires_bounds.x2-hires_bounds.x1)*
         resolution.x/delta.x)-0.5);
       page.height=(size_t) ceil((double) ((hires_bounds.y2-hires_bounds.y1)*
@@ -2102,7 +2102,7 @@ Snippet 1:
       &page.height);
     if (flags == NoValue)
       {
-        (void) ThrowMagickException(error_info,GetMagickModule(),OptionError,
+        (void) ThrowMagickException(exception,GetMagickModule(),OptionError,
           "InvalidGeometry","`%s'",option);
         image=DestroyImage(image);
         return((Image *) NULL);
@@ -2123,7 +2123,7 @@ Snippet 1:
   file=AcquireUniqueFileResource(postscript_filename);
   if (file == -1)
     {
-      ThrowFileException(error_info,FileOpenError,"UnableToOpenFile",
+      ThrowFileException(exception,FileOpenError,"UnableToOpenFile",
         image_info->filename);
       image=DestroyImageList(image);
       return((Image *) NULL);
@@ -2147,12 +2147,12 @@ Snippet 1:
     Render Postscript with the Ghostscript delegate.
   */
   if (image_info->monochrome != MagickFalse)
-    delegate_info=GetDelegateInfo("ps:mono",(char *) NULL,error_info);
+    delegate_info=GetDelegateInfo("ps:mono",(char *) NULL,exception);
   else
     if (cmyk != MagickFalse)
-      delegate_info=GetDelegateInfo("ps:cmyk",(char *) NULL,error_info);
+      delegate_info=GetDelegateInfo("ps:cmyk",(char *) NULL,exception);
     else
-      delegate_info=GetDelegateInfo("ps:alpha",(char *) NULL,error_info);
+      delegate_info=GetDelegateInfo("ps:alpha",(char *) NULL,exception);
   if (delegate_info == (const DelegateInfo *) NULL)
     {
       (void) RelinquishUniqueFileResource(postscript_filename);
@@ -2202,15 +2202,15 @@ Snippet 1:
   options=DestroyString(options);
   density=DestroyString(density);
   *message='\0';
-  status=InvokePostscriptDelegate(read_info->verbose,command,message,error_info);
+  status=InvokePostscriptDelegate(read_info->verbose,command,message,exception);
   (void) InterpretImageFilename(image_info,image,filename,1,
-    read_info->filename,error_info);
+    read_info->filename,exception);
   if ((status == MagickFalse) ||
       (IsPostscriptRendered(read_info->filename) == MagickFalse))
     {
       (void) ConcatenateMagickString(command," -c showpage",MagickPathExtent);
       status=InvokePostscriptDelegate(read_info->verbose,command,message,
-        error_info);
+        exception);
     }
   (void) RelinquishUniqueFileResource(postscript_filename);
   (void) RelinquishUniqueFileResource(input_filename);
@@ -2219,7 +2219,7 @@ Snippet 1:
     for (i=1; ; i++)
     {
       (void) InterpretImageFilename(image_info,image,filename,(int) i,
-        read_info->filename,error_info);
+        read_info->filename,exception);
       if (IsPostscriptRendered(read_info->filename) == MagickFalse)
         break;
       (void) RelinquishUniqueFileResource(read_info->filename);
@@ -2228,12 +2228,12 @@ Snippet 1:
     for (i=1; ; i++)
     {
       (void) InterpretImageFilename(image_info,image,filename,(int) i,
-        read_info->filename,error_info);
+        read_info->filename,exception);
       if (IsPostscriptRendered(read_info->filename) == MagickFalse)
         break;
       read_info->blob=NULL;
       read_info->length=0;
-      next=ReadImage(read_info,error_info);
+      next=ReadImage(read_info,exception);
       (void) RelinquishUniqueFileResource(read_info->filename);
       if (next == (Image *) NULL)
         break;
@@ -2244,7 +2244,7 @@ Snippet 1:
   if (postscript_image == (Image *) NULL)
     {
       if (*message != '\0')
-        (void) ThrowMagickException(error_info,GetMagickModule(),
+        (void) ThrowMagickException(exception,GetMagickModule(),
           DelegateError,"PostscriptDelegateFailed","`%s'",message);
       image=DestroyImageList(image);
       return((Image *) NULL);
@@ -2254,7 +2254,7 @@ Snippet 1:
       Image
         *cmyk_image;
 
-      cmyk_image=ConsolidateCMYKImages(postscript_image,error_info);
+      cmyk_image=ConsolidateCMYKImages(postscript_image,exception);
       if (cmyk_image != (Image *) NULL)
         {
           postscript_image=DestroyImageList(postscript_image);
@@ -2271,7 +2271,7 @@ Snippet 1:
       */
       for (i=0; i < (ssize_t) image_info->scene; i++)
       {
-        clone_image=CloneImage(postscript_image,1,1,MagickTrue,error_info);
+        clone_image=CloneImage(postscript_image,1,1,MagickTrue,exception);
         if (clone_image != (Image *) NULL)
           PrependImageToList(&postscript_image,clone_image);
       }
@@ -2302,8 +2302,10 @@ Snippet 1:
   }
   return(GetFirstImageInList(postscript_image));
 ```
+
 Snippet 2:
 ```
+
 #define BoundingBox  "BoundingBox:"
 #define BeginDocument  "BeginDocument:"
 #define BeginXMPPacket  "<?xpacket begin="
@@ -2416,10 +2418,10 @@ Snippet 2:
   if (image_info->debug != MagickFalse)
     (void) LogMagickEvent(TraceEvent,GetMagickModule(),"%s",
       image_info->filename);
-  assert(error_info != (ExceptionInfo *) NULL);
-  assert(error_info->signature == MagickCoreSignature);
-  image=AcquireImage(image_info,error_info);
-  status=OpenBlob(image_info,image,ReadBinaryBlobMode,error_info);
+  assert(exception != (ExceptionInfo *) NULL);
+  assert(exception->signature == MagickCoreSignature);
+  image=AcquireImage(image_info,exception);
+  status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
   if (status == MagickFalse)
     {
       image=DestroyImageList(image);
@@ -2428,7 +2430,7 @@ Snippet 2:
   status=AcquireUniqueSymbolicLink(image_info->filename,input_filename);
   if (status == MagickFalse)
     {
-      ThrowFileException(error_info,FileOpenError,"UnableToCreateTemporaryFile",
+      ThrowFileException(exception,FileOpenError,"UnableToCreateTemporaryFile",
         image_info->filename);
       image=DestroyImageList(image);
       return((Image *) NULL);
@@ -2526,7 +2528,7 @@ Snippet 2:
       continue;
     if (LocaleNCompare(PostscriptLevel,command,strlen(PostscriptLevel)) == 0)
       {
-        (void) SetImageProperty(image,"ps:Level",command+4,error_info);
+        (void) SetImageProperty(image,"ps:Level",command+4,exception);
         if (GlobExpression(command,"*EPSF-*",MagickTrue) != MagickFalse)
           pages=1;
       }
@@ -2661,7 +2663,7 @@ Snippet 2:
         (void) SubstituteString(&value,"(","");
         (void) SubstituteString(&value,")","");
         (void) StripString(value);
-        (void) SetImageProperty(image,property,value,error_info);
+        (void) SetImageProperty(image,property,value,exception);
         value=DestroyString(value);
         continue;
       }
@@ -2720,7 +2722,7 @@ Snippet 2:
       (void) FormatLocaleString(geometry,MagickPathExtent,"%gx%g%+.15g%+.15g",
         hires_bounds.x2-hires_bounds.x1,hires_bounds.y2-hires_bounds.y1,
         hires_bounds.x1,hires_bounds.y1);
-      (void) SetImageProperty(image,"ps:HiResBoundingBox",geometry,error_info);
+      (void) SetImageProperty(image,"ps:HiResBoundingBox",geometry,exception);
       page.width=(size_t) ceil((double) ((hires_bounds.x2-hires_bounds.x1)*
         resolution.x/delta.x)-0.5);
       page.height=(size_t) ceil((double) ((hires_bounds.y2-hires_bounds.y1)*
@@ -2738,7 +2740,7 @@ Snippet 2:
       &page.height);
     if (flags == NoValue)
       {
-        (void) ThrowMagickException(error_info,GetMagickModule(),OptionError,
+        (void) ThrowMagickException(exception,GetMagickModule(),OptionError,
           "InvalidGeometry","`%s'",option);
         if (profiles != (LinkedListInfo *) NULL)
           profiles=DestroyLinkedList(profiles,RelinquishMagickMemory);
@@ -2761,7 +2763,7 @@ Snippet 2:
   file=AcquireUniqueFileResource(postscript_filename);
   if (file == -1)
     {
-      ThrowFileException(error_info,FileOpenError,"UnableToOpenFile",
+      ThrowFileException(exception,FileOpenError,"UnableToOpenFile",
         image_info->filename);
       if (profiles != (LinkedListInfo *) NULL)
         profiles=DestroyLinkedList(profiles,RelinquishMagickMemory);
@@ -2787,12 +2789,12 @@ Snippet 2:
     Render Postscript with the Ghostscript delegate.
   */
   if (image_info->monochrome != MagickFalse)
-    delegate_info=GetDelegateInfo("ps:mono",(char *) NULL,error_info);
+    delegate_info=GetDelegateInfo("ps:mono",(char *) NULL,exception);
   else
     if (cmyk != MagickFalse)
-      delegate_info=GetDelegateInfo("ps:cmyk",(char *) NULL,error_info);
+      delegate_info=GetDelegateInfo("ps:cmyk",(char *) NULL,exception);
     else
-      delegate_info=GetDelegateInfo("ps:alpha",(char *) NULL,error_info);
+      delegate_info=GetDelegateInfo("ps:alpha",(char *) NULL,exception);
   if (delegate_info == (const DelegateInfo *) NULL)
     {
       (void) RelinquishUniqueFileResource(postscript_filename);
@@ -2844,15 +2846,15 @@ Snippet 2:
   options=DestroyString(options);
   density=DestroyString(density);
   *message='\0';
-  status=InvokePostscriptDelegate(read_info->verbose,command,message,error_info);
+  status=InvokePostscriptDelegate(read_info->verbose,command,message,exception);
   (void) InterpretImageFilename(image_info,image,filename,1,
-    read_info->filename,error_info);
+    read_info->filename,exception);
   if ((status == MagickFalse) ||
       (IsPostscriptRendered(read_info->filename) == MagickFalse))
     {
       (void) ConcatenateMagickString(command," -c showpage",MagickPathExtent);
       status=InvokePostscriptDelegate(read_info->verbose,command,message,
-        error_info);
+        exception);
     }
   (void) RelinquishUniqueFileResource(postscript_filename);
   (void) RelinquishUniqueFileResource(input_filename);
@@ -2861,7 +2863,7 @@ Snippet 2:
     for (i=1; ; i++)
     {
       (void) InterpretImageFilename(image_info,image,filename,(int) i,
-        read_info->filename,error_info);
+        read_info->filename,exception);
       if (IsPostscriptRendered(read_info->filename) == MagickFalse)
         break;
       (void) RelinquishUniqueFileResource(read_info->filename);
@@ -2870,12 +2872,12 @@ Snippet 2:
     for (i=1; ; i++)
     {
       (void) InterpretImageFilename(image_info,image,filename,(int) i,
-        read_info->filename,error_info);
+        read_info->filename,exception);
       if (IsPostscriptRendered(read_info->filename) == MagickFalse)
         break;
       read_info->blob=NULL;
       read_info->length=0;
-      next=ReadImage(read_info,error_info);
+      next=ReadImage(read_info,exception);
       (void) RelinquishUniqueFileResource(read_info->filename);
       if (next == (Image *) NULL)
         break;
@@ -2886,7 +2888,7 @@ Snippet 2:
   if (postscript_image == (Image *) NULL)
     {
       if (*message != '\0')
-        (void) ThrowMagickException(error_info,GetMagickModule(),
+        (void) ThrowMagickException(exception,GetMagickModule(),
           DelegateError,"PostscriptDelegateFailed","`%s'",message);
       if (profiles != (LinkedListInfo *) NULL)
         profiles=DestroyLinkedList(profiles,RelinquishMagickMemory);
@@ -2898,7 +2900,7 @@ Snippet 2:
       Image
         *cmyk_image;
 
-      cmyk_image=ConsolidateCMYKImages(postscript_image,error_info);
+      cmyk_image=ConsolidateCMYKImages(postscript_image,exception);
       if (cmyk_image != (Image *) NULL)
         {
           postscript_image=DestroyImageList(postscript_image);
@@ -2915,7 +2917,7 @@ Snippet 2:
       */
       for (i=0; i < (ssize_t) image_info->scene; i++)
       {
-        clone_image=CloneImage(postscript_image,1,1,MagickTrue,error_info);
+        clone_image=CloneImage(postscript_image,1,1,MagickTrue,exception);
         if (clone_image != (Image *) NULL)
           PrependImageToList(&postscript_image,clone_image);
       }

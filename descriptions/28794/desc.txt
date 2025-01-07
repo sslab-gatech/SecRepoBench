@@ -1,0 +1,6 @@
+// Optimize swizzle expressions involving constructors. If the swizzle is applied to a
+// constructor (e.g., half4(scalar).zyy), it can be simplified by reordering the constructor's
+// arguments according to the swizzle. This involves checking if all swizzle components are
+// valid, ensuring side-effect expressions are used correctly, and reorganizing or reducing
+// expressions where possible. This optimization might require a rescan of the program to 
+// account for potential changes in usage and side effects.

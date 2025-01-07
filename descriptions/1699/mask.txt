@@ -711,9 +711,7 @@ static int read_filter_params(MLPDecodeContext *m, GetBitContext *gbp,
 /** Read parameters for primitive matrices. */
 
 static int read_matrix_params(MLPDecodeContext *m, unsigned int substr, GetBitContext *gbp)
-{
-    // <MASK>
-}
+{// <MASK>}
 
 /** Read channel parameters. */
 

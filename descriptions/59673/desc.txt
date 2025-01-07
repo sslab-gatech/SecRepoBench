@@ -1,0 +1,11 @@
+// This function performs motion compensation for low-resolution
+// video in MPEG encoding. It calculates motion vectors for both
+// luma and chroma components, taking into account the current
+// macroblock's position, motion vector type, and the field-based
+// nature of the video. The function handles different chroma formats
+// (e.g., 4:2:0, 4:2:2, 4:4:4) and performs edge emulation if motion
+// vectors point outside the image boundaries. The resulting motion
+// vectors are used to fetch reference pixels from the previous frame
+// and apply them to the current frame using pixel operation functions.
+// The code ensures compatibility with different pixel formats and
+// handles special cases for interlaced or field-based video.

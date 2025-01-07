@@ -1,6 +1,7 @@
-// This part processes a buffer containing video object start headers (vosh). 
-// It searches for a specific sequence in the buffer, looking for a 'DivX' identifier 
-// that appears after a start code (0x000001). 
-// If the sequence is found, it checks for a 'packed' flag character 'p' and alters it to 'n', 
-// indicating non-packed, while setting a flag `forced_packed` in the context structure to true. 
-// This operation helps identify and manage packed bitstreams in DivX format videos.
+// This code block iterates through the VOSH (Video Object Sequence Header) data
+// looking for a specific pattern. It checks for the start code pattern (0x000001)
+// followed by the string "DivX". If found, it searches for the character 'p'
+// within the VOSH data to potentially modify it to 'n', indicating a packed 
+// bitstream. The `ctx->forced_packed` flag is set to true if such a modification
+// takes place. The loop breaks once the pattern is found and handled, or if the
+// search reaches the end of the data without a complete match.

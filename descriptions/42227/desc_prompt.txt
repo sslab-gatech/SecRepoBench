@@ -745,17 +745,15 @@ cmsFloat64Number ParseFloatNumber(const char *Buffer)
 
 // Reads a string, special case to avoid infinite resursion on .include
 static
-void InStringSymbol(cmsIT8* parserContext)
+void InStringSymbol(cmsIT8* it8)
 {
-    while (isseparator(parserContext->ch))
-        NextCh(parserContext);
+    while (isseparator(it8->ch))
+        NextCh(it8);
 
-    if (parserContext->ch == '\'' || parserContext->ch == '\"')
-    {
-        // <MASK>
-    }
+    if (it8->ch == '\'' || it8->ch == '\"')
+    {// <MASK>}
     else
-        SynError(parserContext, "String expected");
+        SynError(it8, "String expected");
 
 }
 
@@ -2880,48 +2878,53 @@ void CMSEXPORT cmsIT8DefineDblFormat(cmsHANDLE hIT8, const char* Formatter)
 
     it8 ->DoubleFormatter[sizeof(it8 ->DoubleFormatter)-1] = 0;
 }
+
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
+
         int sng;
 
-        sng = parserContext->ch;
-        StringClear(parserContext->str);
+        sng = it8->ch;
+        StringClear(it8->str);
 
-        NextCh(parserContext);
+        NextCh(it8);
 
-        while (parserContext->ch != sng) {
+        while (it8->ch != sng) {
 
-            if (parserContext->ch == '\n' || parserContext->ch == '\r') break;
+            if (it8->ch == '\n' || it8->ch == '\r') break;
             else {
-                StringAppend(parserContext->str, (char)parserContext->ch);
-                NextCh(parserContext);
+                StringAppend(it8->str, (char)it8->ch);
+                NextCh(it8);
             }
         }
 
-        parserContext->sy = SSTRING;
-        NextCh(parserContext);        
-```
+        it8->sy = SSTRING;
+        NextCh(it8);        
+    ```
+
 Snippet 2:
 ```
+
         int sng;
 
-        sng = parserContext->ch;
-        StringClear(parserContext->str);
+        sng = it8->ch;
+        StringClear(it8->str);
 
-        NextCh(parserContext);
+        NextCh(it8);
 
-        while (parserContext->ch != sng) {
+        while (it8->ch != sng) {
 
-            if (parserContext->ch == '\n' || parserContext->ch == '\r' || parserContext->ch == 0) break;
+            if (it8->ch == '\n' || it8->ch == '\r' || it8->ch == 0) break;
             else {
-                StringAppend(parserContext->str, (char)parserContext->ch);
-                NextCh(parserContext);
+                StringAppend(it8->str, (char)it8->ch);
+                NextCh(it8);
             }
         }
 
-        parserContext->sy = SSTRING;
-        NextCh(parserContext);        
-```
+        it8->sy = SSTRING;
+        NextCh(it8);        
+    ```

@@ -1,0 +1,6 @@
+// Iterate over auxiliary data from a BAM record to encode it into CRAM format.
+// Handles special tags like RG:Z, MD:Z, and NM:i for potential CRAM-specific
+// optimizations such as omitting data that can be reconstructed.
+// Creates or retrieves a codec for each unique tag type and uses it to encode
+// the data into CRAM blocks. Initializes and manages both container-level and
+// file-level tag metrics, ensuring efficient encoding and tracking of tag data.

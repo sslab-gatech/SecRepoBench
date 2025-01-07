@@ -1,0 +1,9 @@
+// This function attempts to convert a multi-precision integer `y`
+// into a standard integer (`mrb_int`) and stores the result in `v`.
+// It first checks if the number `y` is zero, setting `i` to zero if true.
+// Then, it checks if the number of digits in `y` is more than two or 
+// if the second digit is greater than one, returning FALSE if either condition is met.
+// Otherwise, it calculates the integer value `i` by combining the limbs of `y`,
+// taking into account the sign and the bit length.
+// Finally, it checks if `i` is within the range of `MRB_INT_MIN` to `MRB_INT_MAX`.
+// If it is, `i` is assigned to `v` and the function returns TRUE; otherwise, FALSE is returned.

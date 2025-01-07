@@ -1,0 +1,5 @@
+// Check if the current character is a digit.
+// If so, read an integer value from the template string.
+// Update the template index to point after the read integer value.
+// If reading fails or the read integer exceeds the maximum allowable value,
+// raise a runtime error indicating the template length is too large.

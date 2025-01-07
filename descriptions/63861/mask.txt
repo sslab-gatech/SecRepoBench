@@ -923,9 +923,7 @@ void Type_Data_Free(struct _cms_typehandler_struct* self, void* Ptr)
 
 static
 void *Type_Text_Description_Read(struct _cms_typehandler_struct* self, cmsIOHANDLER* io, cmsUInt32Number* nItems, cmsUInt32Number SizeOfTag)
-{
-    // <MASK>
-}
+{// <MASK>}
 
 
 // This tag can come IN UNALIGNED SIZE. In order to prevent issues, we force zeros on description to align it

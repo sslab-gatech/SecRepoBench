@@ -3013,9 +3013,7 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
         cram_codec *codec = tm->codec;
         if (!tm->codec) goto_err;
 
-        switch(aux[2]) {
-            // <MASK>
-        }
+        switch(aux[2]) {// <MASK>}
         tm->blk->m = tm->m;
     }
 

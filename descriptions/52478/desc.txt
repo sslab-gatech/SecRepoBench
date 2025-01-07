@@ -1,9 +1,10 @@
-// Iterate over animation envelopes and process pre and post behavior settings. 
-// This involves handling different behavior types such as OffsetRepeat, Repeat, and Oscillate.
-// For pre behavior, if the behavior type matches, it calculates the starting time,
-// creates new keys, adjusts the existing keys, and updates the time values according
-// to the specified behavior.
-// The post behavior is prepared to handle similar behavior types but currently lacks
-// implementation details beyond suppressing compiler warnings.
-// This section does not handle reset, linear, or constant pre/post behaviors; these are
-// managed elsewhere in the code.
+// Iterate over a list of animation envelopes to process pre and post behaviors
+// for each envelope. For envelopes with keys, calculate the time delta between
+// the first and last key. Based on the pre-behavior type (OffsetRepeat, Repeat,
+// Oscillate), insert and modify keys to extend the envelope to start earlier
+// than the first key. Insert copies of the original key range to fill the time
+// before the first key, adjusting key times and values according to the
+// behavior. For OffsetRepeat, incrementally add the value delta to keys. 
+// The process is similar for post-behavior handling, preparing the envelope
+// to extend beyond the last key. This prepares envelopes for interpolation
+// during animation.

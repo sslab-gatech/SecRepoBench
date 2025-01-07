@@ -394,9 +394,7 @@ static inline int ProfileInteger(Image *image,short int *hex_digits)
 }
 
 static Image *ReadPSImage(const ImageInfo *image_info,ExceptionInfo *exception)
-{
-  // <MASK>
-}
+{// <MASK>}
 
 /*
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

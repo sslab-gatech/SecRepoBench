@@ -238,11 +238,9 @@ static void cdxl_decode_ham8(CDXLVideoContext *c, AVFrame *frame)
     }
 }
 
-static int cdxl_decode_frame(AVCodecContext *codec_context, void *data,
+static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
                              int *got_frame, AVPacket *pkt)
-{
-    // <MASK>
-}
+{// <MASK>}
 
 static av_cold int cdxl_decode_end(AVCodecContext *avctx)
 {
@@ -266,10 +264,12 @@ AVCodec ff_cdxl_decoder = {
 };
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-    CDXLVideoContext *c = codec_context->priv_data;
+
+    CDXLVideoContext *c = avctx->priv_data;
     AVFrame * const p = data;
     int ret, w, h, encoding, aligned_width, buf_size = pkt->size;
     const uint8_t *buf = pkt->data;
@@ -293,36 +293,36 @@ Snippet 1:
     if (c->bpp < 1)
         return AVERROR_INVALIDDATA;
     if (c->format != BIT_PLANAR && c->format != BIT_LINE && c->format != CHUNKY) {
-        avpriv_request_sample(codec_context, "Pixel format 0x%0x", c->format);
+        avpriv_request_sample(avctx, "Pixel format 0x%0x", c->format);
         return AVERROR_PATCHWELCOME;
     }
 
-    if ((ret = ff_set_dimensions(codec_context, w, h)) < 0)
+    if ((ret = ff_set_dimensions(avctx, w, h)) < 0)
         return ret;
 
     if (c->format == CHUNKY)
-        aligned_width = codec_context->width;
+        aligned_width = avctx->width;
     else
         aligned_width = FFALIGN(c->avctx->width, 16);
     c->padded_bits  = aligned_width - c->avctx->width;
-    if (c->video_size < aligned_width * codec_context->height * (int64_t)c->bpp / 8)
+    if (c->video_size < aligned_width * avctx->height * (int64_t)c->bpp / 8)
         return AVERROR_INVALIDDATA;
     if (!encoding && c->palette_size && c->bpp <= 8) {
-        codec_context->pix_fmt = AV_PIX_FMT_PAL8;
+        avctx->pix_fmt = AV_PIX_FMT_PAL8;
     } else if (encoding == 1 && (c->bpp == 6 || c->bpp == 8)) {
         if (c->palette_size != (1 << (c->bpp - 1)))
             return AVERROR_INVALIDDATA;
-        codec_context->pix_fmt = AV_PIX_FMT_BGR24;
+        avctx->pix_fmt = AV_PIX_FMT_BGR24;
     } else if (!encoding && c->bpp == 24 && c->format == CHUNKY &&
                !c->palette_size) {
-        codec_context->pix_fmt = AV_PIX_FMT_RGB24;
+        avctx->pix_fmt = AV_PIX_FMT_RGB24;
     } else {
-        avpriv_request_sample(codec_context, "Encoding %d, bpp %d and format 0x%x",
+        avpriv_request_sample(avctx, "Encoding %d, bpp %d and format 0x%x",
                               encoding, c->bpp, c->format);
         return AVERROR_PATCHWELCOME;
     }
 
-    if ((ret = ff_get_buffer(codec_context, p, 0)) < 0)
+    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
         return ret;
     p->pict_type = AV_PICTURE_TYPE_I;
 
@@ -335,7 +335,7 @@ Snippet 1:
             cdxl_decode_ham8(c, p);
         else
             cdxl_decode_ham6(c, p);
-    } else if (codec_context->pix_fmt == AV_PIX_FMT_PAL8) {
+    } else if (avctx->pix_fmt == AV_PIX_FMT_PAL8) {
         cdxl_decode_rgb(c, p);
     } else {
         cdxl_decode_raw(c, p);
@@ -344,9 +344,11 @@ Snippet 1:
 
     return buf_size;
 ```
+
 Snippet 2:
 ```
-    CDXLVideoContext *c = codec_context->priv_data;
+
+    CDXLVideoContext *c = avctx->priv_data;
     AVFrame * const p = data;
     int ret, w, h, encoding, aligned_width, buf_size = pkt->size;
     const uint8_t *buf = pkt->data;
@@ -370,36 +372,36 @@ Snippet 2:
     if (c->bpp < 1)
         return AVERROR_INVALIDDATA;
     if (c->format != BIT_PLANAR && c->format != BIT_LINE && c->format != CHUNKY) {
-        avpriv_request_sample(codec_context, "Pixel format 0x%0x", c->format);
+        avpriv_request_sample(avctx, "Pixel format 0x%0x", c->format);
         return AVERROR_PATCHWELCOME;
     }
 
-    if ((ret = ff_set_dimensions(codec_context, w, h)) < 0)
+    if ((ret = ff_set_dimensions(avctx, w, h)) < 0)
         return ret;
 
     if (c->format == CHUNKY)
-        aligned_width = codec_context->width;
+        aligned_width = avctx->width;
     else
         aligned_width = FFALIGN(c->avctx->width, 16);
     c->padded_bits  = aligned_width - c->avctx->width;
-    if (c->video_size < aligned_width * codec_context->height * (int64_t)c->bpp / 8)
+    if (c->video_size < aligned_width * avctx->height * (int64_t)c->bpp / 8)
         return AVERROR_INVALIDDATA;
     if (!encoding && c->palette_size && c->bpp <= 8 && c->format != CHUNKY) {
-        codec_context->pix_fmt = AV_PIX_FMT_PAL8;
+        avctx->pix_fmt = AV_PIX_FMT_PAL8;
     } else if (encoding == 1 && (c->bpp == 6 || c->bpp == 8)) {
         if (c->palette_size != (1 << (c->bpp - 1)))
             return AVERROR_INVALIDDATA;
-        codec_context->pix_fmt = AV_PIX_FMT_BGR24;
+        avctx->pix_fmt = AV_PIX_FMT_BGR24;
     } else if (!encoding && c->bpp == 24 && c->format == CHUNKY &&
                !c->palette_size) {
-        codec_context->pix_fmt = AV_PIX_FMT_RGB24;
+        avctx->pix_fmt = AV_PIX_FMT_RGB24;
     } else {
-        avpriv_request_sample(codec_context, "Encoding %d, bpp %d and format 0x%x",
+        avpriv_request_sample(avctx, "Encoding %d, bpp %d and format 0x%x",
                               encoding, c->bpp, c->format);
         return AVERROR_PATCHWELCOME;
     }
 
-    if ((ret = ff_get_buffer(codec_context, p, 0)) < 0)
+    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
         return ret;
     p->pict_type = AV_PICTURE_TYPE_I;
 
@@ -412,7 +414,7 @@ Snippet 2:
             cdxl_decode_ham8(c, p);
         else
             cdxl_decode_ham6(c, p);
-    } else if (codec_context->pix_fmt == AV_PIX_FMT_PAL8) {
+    } else if (avctx->pix_fmt == AV_PIX_FMT_PAL8) {
         cdxl_decode_rgb(c, p);
     } else {
         cdxl_decode_raw(c, p);

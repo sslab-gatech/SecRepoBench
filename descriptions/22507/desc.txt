@@ -1,8 +1,8 @@
-// Handle floating point number formatting for the format specifiers
-// 'f', 'g', 'G', 'e', 'E', 'a', and 'A'. Convert the argument to a
-// float using mrb_Float, check if it's a finite number, and handle
-// special cases for NaN and Infinity with appropriate signs. Set up
-// format specifiers using fmt_setup, then determine the required buffer
-// size for formatting, accounting for width and precision. Use
-// mrb_float_to_cstr to convert the float to a string, checking for
-// formatting errors. Adjust buffer length accordingly.
+// This code block handles the formatting of floating-point numbers within a string.
+// It retrieves the next argument as a floating-point value and determines the 
+// appropriate formatting based on various flags and the format specifier ('f', 'g', etc.).
+// If the floating-point value is a special value (NaN or Infinity), it formats it accordingly.
+// For finite numbers, it sets up the format string and calculates the necessary buffer size.
+// It then formats the number into a buffer using the specified precision and width.
+// If the calculated buffer size is too large, it raises an argument error.
+// Finally, it appends the formatted string to the result buffer.

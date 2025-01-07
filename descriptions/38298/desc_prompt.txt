@@ -728,10 +728,8 @@ ary_dup(mrb_state *mrb, struct RArray *a)
 }
 
 MRB_API mrb_value
-mrb_ary_splice(mrb_state *mrb, mrb_value array, mrb_int head, mrb_int len, mrb_value rpl)
-{
-  // <MASK>
-}
+mrb_ary_splice(mrb_state *mrb, mrb_value ary, mrb_int head, mrb_int len, mrb_value rpl)
+{// <MASK>}
 
 void
 mrb_ary_decref(mrb_state *mrb, mrb_shared_array *shared)
@@ -1283,10 +1281,12 @@ mrb_init_array(mrb_state *mrb)
 }
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security−specific features in the description.
+The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. Do not include any security specific features in the description.
+
 Snippet 1:
 ```
-  struct RArray *a = mrb_ary_ptr(array);
+
+  struct RArray *a = mrb_ary_ptr(ary);
   mrb_int alen = ARY_LEN(a);
   const mrb_value *argv;
   mrb_int argc;
@@ -1367,11 +1367,13 @@ Snippet 1:
     }
   }
   mrb_write_barrier(mrb, (struct RBasic*)a);
-  return array;
+  return ary;
 ```
+
 Snippet 2:
 ```
-  struct RArray *a = mrb_ary_ptr(array);
+
+  struct RArray *a = mrb_ary_ptr(ary);
   mrb_int alen = ARY_LEN(a);
   const mrb_value *argv;
   mrb_int argc;
@@ -1453,5 +1455,5 @@ Snippet 2:
     }
   }
   mrb_write_barrier(mrb, (struct RBasic*)a);
-  return array;
+  return ary;
 ```

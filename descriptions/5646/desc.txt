@@ -1,11 +1,10 @@
-// This function is responsible for extracting a token from a given string `start` and 
-// copying it into the `parsedString` buffer. The function processes the input string 
-// character by character, handling whitespace, quotes, escape characters, and 
-// special syntax cases like URLs, numbers, and symbols. It starts by skipping 
-// initial whitespace and then identifies the type of token (e.g., quoted strings, 
-// numbers, special symbols) based on the first character. It uses a switch-case 
-// structure to process different token types, handling escape characters and 
-// ensuring tokens are copied to the `parsedString` buffer without exceeding 
-// its specified `extent` length. If the token is a URL starting with "url(", 
-// it adjusts the `parsedString` to remove the "url(" prefix. After processing, 
-// it updates the `end` pointer to point to the character after the parsed token.
+// This function extracts the next token from a given character sequence
+// starting at 'start', and stores it in 'token'. Tokens are sequences of
+// characters delimited by whitespace, quotes, parentheses, or specific
+// separator characters such as ':', '=', ',', or ';'. The function skips
+// leading whitespace and handles escaped characters inside quoted strings.
+// It distinguishes between quoted and non-quoted tokens, recognizing different
+// quote characters ('"', '\'', '`', '{'). After processing, it updates the
+// 'end' pointer to point to the character following the token. The function
+// handles special cases such as URL-like tokens starting with "url(" and
+// adjusts the 'token' content appropriately.

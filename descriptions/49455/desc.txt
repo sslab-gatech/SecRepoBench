@@ -1,4 +1,7 @@
-// This section of code calculates the total number of nodes in a multidimensional cube,
-// represented by the array Dims. For each dimension, it checks for errors. The result is the product
-// of the sizes of all dimensions, and the function ensures no overflow occurs during this
-// computation by returning 0 in case of errors or overflow.
+// The code block within the masked region calculates the total number of nodes 
+// in an n-dimensional hypercube, represented by the Dims array. It iterates 
+// over each dimension (b) and multiplies the running total (rv) by the size 
+// of the current dimension. The function includes error handling by checking 
+// if the size of the dimension is valid (greater than 0 or 1, depending on 
+// the implementation) and ensures no overflow occurs by comparing the 
+// running total with UINT_MAX divided by the current dimension.

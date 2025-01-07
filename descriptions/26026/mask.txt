@@ -815,9 +815,7 @@ wavlike_write_bext_chunk (SF_PRIVATE *psf)
 
 int
 wavlike_read_cart_chunk (SF_PRIVATE *psf, uint32_t chunksize)
-{
-	// <MASK>
-} /* wavlike_read_cart_chunk */
+{// <MASK>} /* wavlike_read_cart_chunk */
 
 int
 wavlike_write_cart_chunk (SF_PRIVATE *psf)

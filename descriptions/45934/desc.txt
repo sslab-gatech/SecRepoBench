@@ -1,0 +1,2 @@
+// If a non-empty 'id' string is detected, an exception is thrown for an improper image header.
+// This check helps ensure that the image header is properly formatted before processing the image.

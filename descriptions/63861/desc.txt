@@ -1,7 +1,9 @@
-// This function reads a textDescriptionType structure from an ICC profile. The structure includes
-// ASCII and Unicode text, and ScriptCode values. The function allocates memory for the text,
-// reads it from the input handler, and then stores it in a multi-locale Unicode (mlu) container.
-// It first reads an ASCII text string length, then reads the ASCII string itself. After that, it
-// attempts to read and store a Unicode string if present. Finally, it skips over any ScriptCode
-// data, often found in some buggy profiles. The function returns a pointer to the mlu container,
-// or NULL if any read operation fails or memory allocation fails.
+// This function reads a text description tag from the input handler `io`.
+// It handles both ASCII and Unicode text, allocating memory for and
+// interpreting the strings accordingly. 
+// - The function starts by reading the ASCII string length and content.
+// - It ensures the ASCII string is null-terminated before storing it in an MLU object.
+// - It then reads the Unicode portion, if available, and stores it as well.
+// - The function also manages optional ScriptCode data by skipping it if present.
+// - Upon successful reading, it returns a pointer to the MLU object; 
+//   otherwise, it handles errors by freeing allocated resources.

@@ -1,11 +1,6 @@
-// Implements the division algorithm for multi-precision integers.
-// This code calculates the quotient and remainder of two large numbers.
-// The process involves estimating a digit of the quotient, adjusting the
-// remainder, and repeating until all digits are processed.
-// `qhat` is an estimated quotient digit, computed using the most significant
-// digits of the current remainder and the divisor.
-// Adjustments are made to ensure the estimated `qhat` is correct, and the
-// remainder is updated accordingly.
-// If `qhat` overestimates, the remainder is corrected by adding back the
-// divisor. Each calculated quotient digit is stored in `q`.
-// This logic iterates over all relevant digits of the dividend.
+// This code block implements the division of multi-precision integers using a long division algorithm.
+// It computes the quotient (q) and updates the remainder (x) by iterating over the digits of the dividend.
+// For each digit, a trial quotient (qhat) is calculated and used to adjust the remainder.
+// It handles multi-digit divisions by scaling and adjusting the operands accordingly.
+// The loop iterates over the difference in digit count between the dividend and divisor, updating the quotient q.
+// An optional check ensures the loop executes only when the number of digits in the dividend is at least that of the divisor.
