@@ -30,16 +30,18 @@ unittest_commands = {
         make install && \
         make check",
     "zstd":"make check ",
-    "ndpi":"arvo compile ; \
-        ls json-c || ( cd ndpi && ./configure && make ) ; \
-        rm ndpi/tests/pcap/fuzz-* ; \
-        rm -rf ndpi/fuzz/ ; \
-        make -C ndpi/tests check",
+    "ndpi": "apt-get update && apt-get install -y libpcap-dev libjson-c-dev && arvo compile && cd ndpi && ./configure --enable-fuzztargets && make && rm -f tests/pcap/fuzz-* && rm -rf fuzz/ && make -C tests check && cp fuzz/fuzz_ndpi_reader /out/ && cp fuzz/fuzz_process_packet /out/",
     "imagemagick":"apt-get update && apt-get install -y perl build-essential wget tar libperl-dev && apt-get clean && apt-get install -y ghostscript libfreetype6-dev libbz2-dev libtiff5-dev libjpeg-dev libopenjp2-7-dev libx11-dev libxext-dev hp2xx ffmpeg && ./configure --with-perl && make && make install && ldconfig /usr/local/lib && make check ; cd PerlMagick && make test ; perl -I../blib/lib -I../blib/arch t/bzlib/read.t ; perl -I../blib/lib -I../blib/arch t/bzlib/write.t ; perl -I../blib/lib -I../blib/arch t/zlib/read.t ; perl -I../blib/lib -I../blib/arch t/zlib/write.t ; perl -I../blib/lib -I../blib/arch t/tiff/read.t ; perl -I../blib/lib -I../blib/arch t/tiff/write.t ; perl -I../blib/lib -I../blib/arch t/ttf/read.t ; perl -I../blib/lib -I../blib/arch t/jpeg/read.t ; perl -I../blib/lib -I../blib/arch t/jpeg/write.t ; perl -I../blib/lib -I../blib/arch t/jng/read.t ; perl -I../blib/lib -I../blib/arch t/jng/write.t ; perl -I../blib/lib -I../blib/arch t/png/read.t ; perl -I../blib/lib -I../blib/arch t/png/write.t ; perl -I../blib/lib -I../blib/arch t/ps/read.t ; perl -I../blib/lib -I../blib/arch t/ps/write.t ; perl -I../blib/lib -I../blib/arch t/openjp2/read.t ; perl -I../blib/lib -I../blib/arch t/x11/read.t ; perl -I../blib/lib -I../blib/arch t/x11/write.t  ; perl -I../blib/lib -I../blib/arch t/hpgl/read.t ; perl -I../blib/lib -I../blib/arch t/mpeg/read.t",
     #"mupdf":"",
     #"leptonica":"arvo compile && make check",
     "hunspell":"arvo compile && make check",
-    "opensc":"",
+    "opensc":"sudo apt-get install -y autoconf libtool pkg-config libglib2.0-dev libeac-dev cmocka && \
+        ./bootstrap && \
+        ./configure --enable-cmocka && \
+        make && \
+        make check && \
+        cd src/tests/unittests && \
+        make check",
     "libxml2":"arvo compile && make ASAN_OPTIONS=\'$ASAN_OPTIONS detect_leaks=0\' check",
     "gpac":"arvo compile && \
         apt-get update && \
@@ -112,7 +114,12 @@ unittest_commands = {
     "spice-usbredir": "arvo compile && cd build && meson test",
     "wpantund": "arvo compile && make check",
     "flatbuffers": "cd flatbuffers && cmake -G 'Unix Makefiles' -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS='-pthread' && make  && make test   ",
-    "gdal": "cd gdal && ./autogen.sh && ./configure && make  && make install && cd ../autotest/cpp && make  && ./gdal_unit_test ",
+    "gdal": "apt-get update && apt-get install -y build-essential cmake libsqlite3-dev libz-dev libcurl4-openssl-dev libpng-dev libjpeg-dev libgeos-dev libproj-dev libxerces-c-dev libssl-dev git clang-14 && \
+        git clone https://github.com/OSGeo/gdal.git && \
+        cd gdal && mkdir -p build && cd build && \
+        cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON -DCMAKE_C_COMPILER=clang-14 -DCMAKE_CXX_COMPILER=clang++-14 && \
+        make -j$(nproc) && make install && ldconfig && \
+        cd ../autotest/cpp && make && ./gdal_unit_test",
     "skia": "apt-get update && timeout 300 apt-get install -y software-properties-common && add-apt-repository -y ppa:ubuntu-toolchain-r/test && apt-get update && apt-get install -y gcc-9 g++-9 && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 90 && apt-get update && apt-get install -y libfontconfig1-dev && python tools/git-sync-deps && apt-get install -y clang && rm -rf out/Debug && CC=clang CXX=clang++ bin/gn gen out/Debug --args='cc=\\\"clang\\\" cxx=\\\"clang++\\\"' && timeout 600 ninja -C out/Debug dm && out/Debug/dm -v --src tests",
     "libredwg": "cd libredwg && ./autogen.sh && ./configure && make  && yes | ./unit_testing_all.sh",
     # "poppler": "apt-get update && apt-get install -y libfontconfig1-dev libjpeg-dev libopenjp2-7-dev && \
@@ -213,7 +220,7 @@ unittest_patterns = {
 }
 
 bad_projects = [
-    "opensc", # cannot test
+    #"opensc", # cannot test
     "ghostpdl", # cannot test
     # "libredwg", # build issues
     "serenity", # build issues
