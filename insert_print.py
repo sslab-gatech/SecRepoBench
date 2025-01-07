@@ -101,10 +101,12 @@ def insert_print(id, file_name, diff, source_code):
     # Find the function containing the first modified line
     mod_lines = [d[0] for d in diff['added']] + [d[0] for d in diff['deleted']]
     file_lizard_src = lizard.analyze_file.analyze_source_code(file_name, source_code)
+    mod_funcs = []
     for func in file_lizard_src.function_list:
         for line_num in mod_lines:
             if func.start_line <= line_num <= func.end_line:
-                mod_func = func
+                mod_funcs.append(func)
+    mod_func = mod_funcs[0]
 
     # Parse the source code with Tree-sitter
     parser = Parser()
@@ -157,8 +159,22 @@ def insert_print(id, file_name, diff, source_code):
     return modified_source_code
 
 if __name__ == '__main__':
-    with open('ids_skia_top40.csv', 'r') as f:
+    with open('filter_logs_all/ids_top40_compilable_testable.csv', 'r') as f:
         ids = f.read().splitlines()
     # ids = sorted([int(id) for id in ids])
+
+    # with open('filter_logs_all/analyze_report_unittest_testcase/ids_each_step.json', 'r') as f:
+    #     ids_each_step = json.load(f)
+    # ids = ids_each_step['ids_pass_testcase_unittest']
+
+    with open('filter_logs_all/cases.json', 'r') as f:
+        cases = json.load(f)
+
+    wrong_ids = []
+
     for id in ids[1:]:
-        insert_print(id)
+        insert_print(id,
+                     cases[id]['changed_file'],
+                     cases[id]['diff'],
+                     cases[id]['source_code'])
+    

@@ -1,8 +1,7 @@
-// This function checks if the video codec specified by the FLV tag matches
-// the codec of the AVCodecParameters (vpar). It first verifies if the codec
-// ID and codec tag are unset, in which case it returns a match. Depending on
-// whether the extended header (exheader) is present, it reads the codec
-// identifier and compares it to known constants for HEVC, AV1, and VP9.
-// For codecs identified by FLV_VIDEO_CODECID_MASK, it checks against
-// various FLV codec IDs such as FLV1, FLASHSV, VP6, H264, and others,
-// returning true if there's a match between the codec IDs or codec tags.
+// This function checks if the video codec of the given AVCodecParameters (vpar)
+// matches the codec ID specified in the FLV header. It first checks if the codec ID
+// and codec tag are not set, returning true in such cases. The codec ID is determined 
+// based on the FLV video codec identifier, which is extracted from flags or the buffer 
+// in the FLV context. Depending on the codec ID found, it checks against known codec 
+// IDs like HEVC, AV1, VP9, FLV1, FLASHSV, FLASHSV2, VP6F, VP6A, and H264, returning 
+// true if there's a match, or defaults to comparing the codec tag.

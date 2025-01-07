@@ -1,9 +1,6 @@
-// The masked region implements the function to decompile tuple variations
-// from the 'cvar' table. It initializes shared indices and an iterator to
-// traverse the tuple variation data. The 'var_data_bytes' is either derived 
-// from 'tupleVariationData' directly or as a subarray from the input 'blob'. 
-// The function then calls 'decompile_tuple_variations' on the 'tupleVariationData' 
-// using the initialized iterator and shared indices, translating the data 
-// into a usable format for further processing. The success of the operation 
-// is indicated by the return value, which is 'false' if the iterator setup 
-// fails.
+// Decompile tuple variations by initializing shared indices and a tuple iterator.
+// Retrieve the size of the tuple variation data or create a byte array from the blob
+// (depending on the snippet used) and attempt to get a tuple iterator.
+// If the iterator cannot be obtained, return false indicating failure.
+// Use the iterator to decompile the tuple variations, taking into account
+// whether it's a 'gvar' table, shared indices, and axes mapping.
