@@ -1,5 +1,4 @@
-tatic int flv_same_video_codec(AVFormatContext *s, AVCodecParameters *vpar, int flags)
-{
+
     int flv_codecid = flags & FLV_VIDEO_CODECID_MASK;
     FLVContext *flv = s->priv_data;
 
