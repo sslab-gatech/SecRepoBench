@@ -1,6 +1,5 @@
-// This code block implements the logic for parsing a JSON array. 
-// The function uses a loop to process elements within the array.
-// It skips any whitespace and checks if the array has ended with a ']' character.
-// If a valid JSON element is found, the function continues parsing after a ',' or ends at a ']'.
-// If the array is successfully parsed, it increments the JSON_ARRAYN count and returns success.
-// If any parsing errors occur, it exits the loop and returns failure.
+// Check for the end of a JSON array during parsing. The code verifies
+// if the current character being parsed is the closing bracket ']' 
+// indicating the end of the array. In one variant of the implementation,
+// it also checks if the parsing pointer has reached the end of the data
+// buffer before checking for ']', ensuring no out-of-bounds access.

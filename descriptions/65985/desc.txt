@@ -1,5 +1,7 @@
-// Check for a valid start code in the stored buffer by appending
-// the start of the current packet to it. If a start code is found,
-// determine its type and offset, and prepare to reinitialize the 
-// parser from that point. If no start code is found, construct a
-// packet using the data in the buffer and dispatch it.
+// Check if there are any bytes stored in the header buffer `hdr_store` that need processing.
+// If there are, attempt to find a start code within these bytes by appending new data.
+// The `memcpy` or `memmove` operation is used to populate `hdr_store` with enough data
+// to search for a start code. If a start code is found, determine its type and location.
+// Adjust the parsing state accordingly, preparing to process the next video frame data.
+// If no start code is found, treat the stored bytes as continuation of the previous data
+// and dispatch them. Reset the header buffer `bytes_in_header` after processing.

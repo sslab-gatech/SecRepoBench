@@ -1,5 +1,9 @@
-// The `DrawImage` function is responsible for rendering vector graphics onto an image using a specified drawing primitive, which can be a string or a file. 
-// This function processes a series of drawing commands, updating the graphic context with attributes like affine transformations, colors, and gradients. 
-// It parses the commands, manages graphic contexts, and applies transformations to produce a rendered image. 
-// The function supports rendering primitives such as points, lines, rectangles, ellipses, and more complex paths.
-// It uses various utility functions to interpret and apply transformations, handle clipping paths, and manage memory for the drawing process.
+// This code block interprets and executes a series of drawing commands to render 
+// graphics on an image. It parses the commands from a string, which may include 
+// transformations, styles, and primitive shapes such as lines, rectangles, and paths.
+// A stack of graphic contexts is maintained to handle nested transformations and styles.
+// The drawing commands may be specified directly in the input string or may reference 
+// external resources, such as files or previously defined patterns or gradients.
+// The code handles affine transformations, color, and opacity settings, text annotations,
+// and other graphical operations. It updates the image's graphics state as specified 
+// by the commands, applying changes in a manner compliant with SVG standards.

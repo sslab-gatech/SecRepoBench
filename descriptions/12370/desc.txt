@@ -1,4 +1,7 @@
-// Validate the slice parameters for consistency and correctness. 
-// Check if the calculated offset for slice information exceeds the available buffer size, indicating potential data corruption.
-// Additionally, ensure that the slice height is positive and, in one implementation, verify that the total height covered by all slices does not exceed the expected frame height.
-// If any of these conditions are not met, return an error indicating invalid data.
+// Validate the slice information for the HuffYUV MT codec. Check that
+// the number of slices multiplied by 8 plus the slices_info_offset does
+// not exceed the available buffer size, ensuring it is within the bounds
+// minus a 16-byte offset used for additional data. Also, ensure that the
+// slice_height is positive to prevent processing invalid slice dimensions.
+// Optionally, verify that the total height represented by the number of
+// slices does not exceed the overall height of the frame.

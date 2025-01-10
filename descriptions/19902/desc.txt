@@ -1,8 +1,8 @@
-// Converts a string to a double-precision floating-point number,
-// handling different formats and invalid cases.
-// - It skips leading whitespace characters.
-// - Checks for hexadecimal format and processes it as an integer.
-// - Handles underscores between digits for readability.
-// - Can raise an error if invalid characters are found in `badcheck` mode.
-// - Uses a buffer to manage the conversion process, ensuring it doesn't overflow.
-// - Handles null-byte characters and trims the string accordingly.
+// Parse a string to a double value, handling various string formats.
+// 1. Trim leading whitespace from the input string.
+// 2. Check for and handle hexadecimal prefixes "0x" or "0X".
+// 3. Prepare a buffer to store cleaned input by removing underscores between digits.
+// 4. Iterate over the string, copying valid characters to the buffer.
+// 5. Handle null byte termination, and check for formatting errors when 'badcheck' is true.
+// 6. Convert the cleaned string in the buffer to a double using a library function.
+// 7. Return the parsed double value.

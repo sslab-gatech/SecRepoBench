@@ -1,6 +1,8 @@
-// This code block handles the formatting of floating-point numbers in different formats
-// (such as 'f', 'g', 'G', 'e', 'E', 'a', 'A') for the `sprintf` function.
-// It retrieves the next argument, converts it to a floating-point value, and checks for special cases like NaN and Inf.
-// Depending on format flags, it adjusts for width, precision, and signs.
-// The `fmt_setup` function is used to create a format string for the floating-point number.
-// The formatted result is appended to the output buffer, and necessary checks are performed to ensure the buffer size is sufficient.
+// Retrieve the next argument and convert it to a double precision float.
+// Check if the float value is finite. If the value is NaN (Not a Number) or
+// Infinity, prepare to format it as "NaN" or "Inf" respectively, 
+// including potential sign handling ('+' or ' ' for positive numbers if specified).
+// Calculate the number of characters needed for representation, considering any specified
+// width and flags. If the width is greater than the calculated size, adjust accordingly.
+// Handle padding and alignment (left or right) based on flags before storing the result
+// in the buffer.

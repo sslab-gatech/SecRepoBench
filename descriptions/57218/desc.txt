@@ -1,5 +1,6 @@
-// Parse a node line in the SMD file. Attempts to read the bone index
-// and handle possible parsing errors. If an error occurs during
-// parsing (e.g., EOF/EOL is reached unexpectedly), the function logs
-// an error message or throws an exception, and then proceeds to skip
-// to the next line.
+// Parse a node information from the SMD file. First, it attempts to read an 
+// unsigned integer as the bone index, following by skipping any spaces. If 
+// the parsing fails, it logs an error message indicating an unexpected EOF 
+// or end of line while parsing the bone index. Depending on the chosen snippet,
+// it either logs the error and returns or throws a DeadlyImportError with the 
+// same message.

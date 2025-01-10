@@ -1,1 +1,3 @@
-// Retrieve various TIFF properties such as artist, copyright, and model information from the TIFF file and set these as image properties. Use the TIFFGetField function to extract metadata like the artist's name and assign it to the image properties using SetImageProperty.
+// Retrieve and set TIFF properties for "artist" and "copyright" tags.
+// Check if the TIFF file contains the "artist" and "copyright" fields.
+// If present, assign their values to corresponding image properties.

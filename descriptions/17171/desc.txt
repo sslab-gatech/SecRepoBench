@@ -1,6 +1,2 @@
-// This code block implements the `exsltCryptoRc4DecryptFunction`, an XPath extension function.
-// It takes two arguments: a key and an encrypted string in hexadecimal format.
-// It first checks and retrieves the input arguments, allocating necessary memory for processing.
-// It then converts the hexadecimal string to a binary format and uses RC4 decryption with the provided key.
-// The decrypted result is verified for valid UTF-8 encoding (in Snippet 2) before being returned as a string.
-// Proper error handling and resource management are performed throughout the function to ensure stability.
+// Check if the decrypted string is valid UTF-8. If it is not, report an error and return an empty string.
+// Otherwise, return the decrypted string as the result.

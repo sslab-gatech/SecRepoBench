@@ -1,8 +1,7 @@
-// Determine the pixel format for the CDXL video based on encoding, bits per pixel (bpp),
-// format, and palette size. For non-encoded data with a valid palette size and bpp <= 8,
-// set the pixel format to AV_PIX_FMT_PAL8. For encoded data with bpp of 6 or 8, verify 
-// that the palette size matches the expected value and set the pixel format to 
-// AV_PIX_FMT_BGR24. For non-encoded data with bpp of 24 in chunky format and no palette,
-// set the pixel format to AV_PIX_FMT_RGB24. If none of these conditions are met, request
-// a sample and return an error indicating that the current combination of encoding, bpp, 
-// and format is not supported.
+// Calculate the number of padded bits needed for video decoding based on
+// aligned width and codec context width. Verify if the video size is 
+// sufficient for the given parameters (aligned width, height, and bits per 
+// pixel). Depending on the encoding type, palette size, bits per pixel, and 
+// format, determine the appropriate pixel format to use (e.g., PAL8, BGR24, 
+// RGB24). If conditions don't match expected patterns, request a sample and 
+// return a "patch welcome" error.

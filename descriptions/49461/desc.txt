@@ -1,4 +1,5 @@
-// This function writes 16-bit entries from a set of tone curves to a given I/O handler. 
-// It iterates over each curve and writes its entries sequentially.
-// The number of entries per curve can either be fixed or variable depending on the snippet.
-// It returns FALSE if writing any entry fails, otherwise TRUE on success.
+// Iterate over each curve in the `Tables` structure and write each entry
+// to the `io` handler. The number of entries in each curve is determined
+// and each entry is retrieved from the `Table16` array. The value of each
+// entry is then written as a 16-bit unsigned integer. If writing any entry
+// fails, the function returns `FALSE`.

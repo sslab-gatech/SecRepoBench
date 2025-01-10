@@ -1,15 +1,10 @@
-// This code handles motion compensation for different types of motion vectors
-// in low resolution. It iterates over several cases based on the motion vector
-// type (MV_TYPE_16X16, MV_TYPE_8X8, MV_TYPE_FIELD, MV_TYPE_16X8, MV_TYPE_DMV).
-// - For MV_TYPE_16X16, it applies motion compensation using a single motion vector
-//   for the entire macroblock.
-// - For MV_TYPE_8X8, it applies motion compensation to four 8x8 blocks separately,
-//   accumulating motion vectors for chroma compensation if needed.
-// - For MV_TYPE_FIELD, it manages motion compensation for field pictures, handling
-//   top and bottom fields independently and checking reference picture availability.
-// - For MV_TYPE_16X8, it processes two 16x8 partitions of a macroblock, each with
-//   its own motion vector, updating destination pointers after each half.
-// - For MV_TYPE_DMV, it performs dual-prime motion compensation, handling both
-//   frame and field picture structures, with potential field averaging.
-// The motion vectors and reference pictures are used in functions like
-// `mpeg_motion_lowres` and `hpel_motion_lowres` for performing the compensation.
+// Handle different motion vector types for low-resolution motion compensation
+// in the context of MPEG video decoding. The function processes macroblocks
+// based on their motion vector type and updates the destination buffers 
+// (luma and chroma) accordingly. The cases handled include field motion vectors
+// (MV_TYPE_FIELD), 16x8 motion vectors (MV_TYPE_16X8), and dual-prime motion 
+// vectors (MV_TYPE_DMV). The function performs separate operations based on 
+// whether the picture is a frame or field picture, and adapts the reference 
+// picture selection accordingly. Additionally, for DMV, it adjusts the 
+// prediction by averaging with the opposite field. This setup allows efficient 
+// handling of various motion compensation scenarios in low-resolution settings.

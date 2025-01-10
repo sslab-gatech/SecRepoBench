@@ -1,6 +1,7 @@
-// The masked code block performs a check for the presence of the string "DivX" 
-// within a given frame buffer starting at a certain offset. If the string 
-// "DivX" is not found at the specified position (offset plus 4), the code 
-// advances the index 'i' by 4 bytes and continues the loop. This is used to
-// determine if the header contains a "DivX" marker for packed DivX bitstreams,
-// which might require special handling or unpacking.
+// The code iterates through a buffer `dcfg` to search for the occurrence of
+// a specific byte pattern. It checks for the MPEG start code pattern (0x00 0x00 0x01)
+// followed by the string "DivX". The loop continues until either the end of the buffer
+// is reached or the pattern is found. If found, the frame is marked as 'packed'
+// by setting the first character of the matched pattern to 'n'. If not found,
+// the loop increments the index `i` to continue searching. The search ensures
+// not to exceed the buffer size `vosh_size`.

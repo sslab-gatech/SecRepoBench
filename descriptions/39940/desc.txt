@@ -1,7 +1,6 @@
-// The code block manages the setup and execution of a method call in the mruby VM. 
-// It initializes and checks the call stack, extending it if necessary, and handles method search.
-// The block calculates the offset if the argument vector is on the stack and raises an error 
-// for negative argument count. If the method is not defined, it sets up for method_missing handling. 
-// It then pushes a new callinfo onto the call stack and sets up the stack with arguments and block.
-// If the method is a C function, it directly calls the function. Otherwise, it executes the method 
-// by running the associated Ruby bytecode.
+// The masked block performs a method call setup in the mruby virtual machine.
+// It checks for a negative argument count and raises an error if found.
+// Then, it locates the method associated with the given symbol and class.
+// Depending on the method's presence and the number of arguments,
+// it may convert the arguments to an array if the count exceeds a threshold.
+// Additionally, it adjusts the stack size to accommodate the arguments and other call data.

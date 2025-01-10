@@ -1,7 +1,3 @@
-// The masked code block is a part of the `get_num` function, which attempts
-// to read an integer from a string pointer `p` up to `end`. It uses an 
-// auxiliary function `mrb_read_int` to parse the integer, updating `e` to
-// point to the end of the parsed number and storing the result in `n`.
-// If parsing fails or, in the case of Snippet 2, if `n` exceeds `INT_MAX`, 
-// the function returns `NULL`. Otherwise, the parsed value is assigned to
-// `*valp` and the end pointer `e` is returned.
+// Parse an integer from the given string range [p, end) and store it in *valp.
+// Uses mrb_read_int to read the integer, updating the pointer e to the end of the parsed number.
+// Returns NULL if the parsing fails or if the parsed integer is out of bounds (optional check).

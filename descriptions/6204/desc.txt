@@ -1,10 +1,7 @@
-// This code block is responsible for parsing color specifications given in
-// formats such as "rgb(100,255,0)" or "icc-color(profile,100,255,0)", and
-// assigning the parsed values to a PixelInfo structure. It handles various
-// colorspaces such as RGB, CMYK, HSL, and ICC profiles. The function first
-// extracts the colorspace keyword from the input string, and then parses
-// the color values enclosed in parentheses. The values are scaled accordingly
-// based on the colorspace and stored in the PixelInfo structure. Additionally,
-// the block checks for specific conditions like percentage values and alpha
-// channels, and adjusts the color information appropriately. If the specified
-// colorspace is not recognized, it throws an exception indicating the error.
+// Declare a character array `colorspace` for storing the colorspace name,  
+// ensuring it is large enough to hold typical color representations.  
+// Introduce a `MagickBooleanType` variable `icc_color` to track if the color  
+// is in an ICC color space. This section of code prepares for parsing colors  
+// described in a string format, such as "rgb(100,255,0)". Depending on the  
+// implementation, initialize `colorspace` to ensure it does not contain  
+// residual values, which may involve setting it to zero using `memset`.

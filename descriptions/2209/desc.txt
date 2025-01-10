@@ -1,6 +1,5 @@
-// This function attempts to add a reference frame with the specified POC to the reference picture list. 
-// It first tries to find the reference frame in the decoded picture buffer (DPB) using `find_ref_idx`. 
-// If the reference is already the current frame (`s->ref`), an error is returned to prevent self-referencing. 
-// If the reference list is already full (`HEVC_MAX_REFS`), an error is returned to prevent overflow. 
-// If the frame is not found, a missing reference frame is generated with `generate_missing_ref`. 
-// The reference frame is then added to the list, and marked with the specified reference flag (`ref_flag`).
+// Attempt to find a reference frame in the DPB with a given POC (picture order count).
+// If the found reference is the same as the current reference or if the list has reached its maximum capacity, 
+// return an error to prevent adding a duplicate or overflow.
+// If no reference is found, attempt to generate a missing reference frame for the given POC.
+// Return an error if the generation fails due to memory constraints.

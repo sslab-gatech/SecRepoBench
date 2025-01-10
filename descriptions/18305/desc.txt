@@ -1,1 +1,5 @@
-// Retrieve and set the image's X and Y resolution from the TIFF file metadata if available. The resolution values are assigned to the image structure.
+// Retrieve and possibly set EXIF properties for the image. The process is 
+// enabled by default unless explicitly disabled through the "tiff:exif-properties" 
+// option. Additionally, fetch the resolution properties of the image using 
+// TIFF tags for X and Y resolution, and update the image resolution fields 
+// if they are available.

@@ -1,6 +1,6 @@
-// Named macro extraction for drawing operations.
-// This code extracts and stores macros from a string of drawing operations.
-// It identifies named sections of the drawing instructions (e.g., "push" and "pop" graphic contexts) 
-// and stores them as macros in a splay tree for later use.
-// The process involves scanning for "push" and "pop" keywords to delineate macro boundaries,
-// handling comments, and storing the extracted macros with their names in a splay tree.
+// Extract macros from the MVG string. The code iterates through the string 
+// to find 'push' and 'pop' commands, handling nested structures accordingly.
+// It skips comments starting with '#'. When a complete macro is identified 
+// (when the nesting level `n` drops below zero), it extracts the macro 
+// definition between `start` and `end` pointers, and adds it to a splay tree 
+// for later retrieval using the macro name as the key.

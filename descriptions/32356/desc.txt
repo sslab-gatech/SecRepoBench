@@ -1,4 +1,4 @@
-// Check if the box size exceeds the container size.
-// Log a warning if logging is not disabled.
-// Depending on configuration, either set the container size to 0
-// or delete the box and return an error code.
+// Checks the size of the parent box against the size of the current box being parsed.
+// If the current box size exceeds the remaining parent box size, it sets the parent
+// box's size to zero. Optionally, when the 'no-check' option is not set, deletes the
+// current box and returns an error indicating the file is invalid.

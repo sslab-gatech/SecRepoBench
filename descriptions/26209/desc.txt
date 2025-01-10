@@ -1,6 +1,7 @@
-// Initializes default Huffman tables for an MJPEG decoder context.
-// This involves setting up VLC tables for luminance and chrominance 
-// for both DC and AC coefficients using predefined bits and values.
-// The function iterates over a static array of default Huffman tables,
-// building VLCs and copying raw Huffman lengths and values for each.
-// Returns 0 on success or a negative error code if VLC building fails.
+// Initialize default Huffman tables for MJPEG decoding. This involves setting
+// up a static structure `ht` which contains class, index, bits, and values
+// for both DC and AC coefficients of luminance and chrominance. The function
+// iterates over the elements of the `ht` array, building VLC tables using
+// these parameters. The tables are built using the `build_vlc` function. If
+// the class is less than 2, it also populates the raw Huffman length and
+// value arrays with the corresponding bits and values from the `ht` entries.

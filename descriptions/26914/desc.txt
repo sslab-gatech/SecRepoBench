@@ -1,6 +1,5 @@
-// LocaleLowercase and LocaleUppercase functions handle character case conversion.
-// Check if the input character is EOF before converting. In Snippet 1, 
-// if the character is EOF, it is returned as is, without conversion. 
-// Snippet 2 adds an additional check to ensure the character fits into an 
-// unsigned char, returning the original character if not. 
-// This ensures special or non-standard values are handled properly.
+// Convert a character to lowercase, considering locale settings if available.
+// If the character is EOF, return it unchanged. In certain implementations,
+// if the character is not an unsigned char, it is also returned unchanged.
+// If locale support is enabled and a C locale is available, use the locale-
+// specific function to convert the character to lowercase.

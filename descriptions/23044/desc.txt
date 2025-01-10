@@ -1,5 +1,7 @@
-// Function to compare two strings, `s1` and `s2`, up to a specified length `len`.
-// The comparison may ignore case or whitespace differences depending on the `flags`.
-// The comparison is unsigned, and the function also works correctly with different ctype functions without extra casting.
-// If flags are present, they can include ignoring case (uppercase/lowercase), compacting whitespace, or ignoring optional whitespace.
-// The function returns an integer indicating the difference between the strings.
+// Convert the input strings `s1` and `s2` to unsigned char pointers `a` and `b` 
+// to ensure the comparison operations are unsigned, which aligns with the behavior 
+// of `strncmp`. This conversion also allows the ctype functions to operate correctly 
+// without additional casting. Calculate the endpoint `eb` for the comparison by 
+// adding either the length of `s2` or `maxlen`, depending on whether whitespace 
+// flags (`STRING_COMPACT_WHITESPACE` or `STRING_COMPACT_OPTIONAL_WHITESPACE`) 
+// are set, allowing the function to properly handle whitespace compression.

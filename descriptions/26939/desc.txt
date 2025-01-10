@@ -1,4 +1,4 @@
-// Function to detect and repair corrupt image profiles.
-// - For "xmp" profiles, remove any garbage data found after the XMP packet end tag "<?xpacket end="w"?>". 
-// - For "exif" profiles, verify if the profile starts with a byte order marker ("MM" or "II") instead of "Exif".
-//   If it does, prepend "Exif\0\0" to the profile data to correct it.
+// Detects and attempts to repair corrupt profiles for 'xmp' and 'exif' data.
+// For 'xmp' profiles, it identifies and truncates data beyond the xpacket end tag.
+// For 'exif' profiles, it checks if the profile begins with a byte order marker
+// and prepends the standard Exif header if necessary.

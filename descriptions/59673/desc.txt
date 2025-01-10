@@ -1,11 +1,10 @@
-// This function performs motion compensation for low-resolution
-// video in MPEG encoding. It calculates motion vectors for both
-// luma and chroma components, taking into account the current
-// macroblock's position, motion vector type, and the field-based
-// nature of the video. The function handles different chroma formats
-// (e.g., 4:2:0, 4:2:2, 4:4:4) and performs edge emulation if motion
-// vectors point outside the image boundaries. The resulting motion
-// vectors are used to fetch reference pixels from the previous frame
-// and apply them to the current frame using pixel operation functions.
-// The code ensures compatibility with different pixel formats and
-// handles special cases for interlaced or field-based video.
+// This code snippet handles half-pel motion compensation in low-resolution
+// mode for MPEG video decoding. It accounts for motion vectors and adjusts
+// chroma (color) components based on pixel format. The snippet calculates
+// source positions and applies edge emulation if motion goes beyond the
+// frame boundaries. It processes luma and chroma planes separately, 
+// considering field-based encoding and half-pel accuracy. The snippet uses
+// pix_op functions for chroma motion compensation, depending on the lowres
+// level and pixel format (e.g., H263, H261). It includes handling for 
+// specific quirks like quarter-pixel motion and gray mode, ensuring 
+// proper image construction.

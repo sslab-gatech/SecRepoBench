@@ -1,3 +1,9 @@
-// Check if the token starts with "url(" and has more than 4 characters.
-// If so, adjust the token string to remove "url(" and any leading '#' character.
-// Adjust the end of the token by null-terminating it one character before its original end.
+// This section parses tokens from a string, handling special cases like quotes,
+// escape sequences, and specific punctuation. It uses a switch statement to 
+// determine how to handle the current character, which may be a quote, a 
+// forward slash, or other types. For quoted strings, it identifies the matching 
+// end quote and collects the characters in between. If encountering a '/', it 
+// checks for subsequent special characters. For other cases, it processes 
+// numerical values or sequences not interrupted by whitespace or punctuation. 
+// Special handling is done for URLs by trimming "url(" prefixes. The parsed 
+// token is stored in the 'token' buffer, which must not exceed 'extent' length.

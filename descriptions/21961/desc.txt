@@ -1,6 +1,6 @@
-// The code block implements reading different types of TIFF images using various methods.
-// It includes cases for handling YCCK, stripped, tiled, and generic TIFF images.
-// For YCCKMethod, the code reads and converts YCCK (CMYK) pixel values from the TIFF.
-// For ReadStripMethod, it reads image data in strips, iterating over each strip to populate the image pixels.
-// For ReadTileMethod, it processes a tiled TIFF image by reading and converting each tile to the image pixels.
-// The default ReadGenericMethod handles TIFF images using the TIFFReadRGBAImage function to convert pixels.
+// Implement reading TIFF images using either strip-based or tile-based methods.
+// For strip-based images, allocate memory for the strip size, read each strip,
+// and import quantum pixels for each scanline. For tile-based images, get tile
+// dimensions, allocate memory, read each tile, and import quantum pixels for
+// each row within the tile. Handle various color channels (RGB, CMYK, Alpha)
+// and manage progress updates for loading the image.
