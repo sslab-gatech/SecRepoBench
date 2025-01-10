@@ -1,5 +1,4 @@
-
-    if (!vpar->codec_id && !vpar->codec_tag)
+if (!vpar->codec_id && !vpar->codec_tag)
         return 1;
 
     switch (flv_codecid) {

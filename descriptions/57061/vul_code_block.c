@@ -1,9 +1,4 @@
-
-        xsltStepOpPtr tmp;
-
-	tmp = (xsltStepOpPtr) xmlRealloc(comp->steps, comp->maxStep * 2 *
-	                                 sizeof(xsltStepOp));
-	if (tmp == NULL) {
+if (tmp == NULL) {
 	    xsltGenericError(xsltGenericErrorContext,
 	     "xsltCompMatchAdd: memory re-allocation failure.\n");
 	    if (ctxt->style != NULL)
@@ -16,4 +11,3 @@
 	}
         comp->maxStep *= 2;
 	comp->steps = tmp;
-    

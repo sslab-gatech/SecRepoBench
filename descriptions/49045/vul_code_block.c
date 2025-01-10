@@ -1,5 +1,4 @@
-
-  mrb_int base = 10;
+mrb_int base = 10;
 
   mrb_get_args(mrb, "|i", &base);
 #ifdef MRB_USE_BIGINT

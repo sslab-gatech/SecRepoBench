@@ -90,7 +90,11 @@ static int build_vlc(VLC *vlc, const uint8_t *bits_table,
 }
 
 static int init_default_huffman_tables(MJpegDecodeContext *s)
-{// <MASK>}
+{
+    // <MASK>
+
+    return 0;
+}
 
 static void parse_avid(MJpegDecodeContext *s, uint8_t *buf, int len)
 {

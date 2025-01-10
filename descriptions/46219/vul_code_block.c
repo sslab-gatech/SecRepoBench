@@ -1,5 +1,4 @@
-
-  const StringInfo
+const StringInfo
     *profile;
 
   magick_unreferenced(property);

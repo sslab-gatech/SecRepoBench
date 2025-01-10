@@ -1,14 +1,4 @@
-
-    const uint8_t *ptr_y, *ptr_cb, *ptr_cr;
-    int mx, my, src_x, src_y, uvsrc_x, uvsrc_y, sx, sy, uvsx, uvsy;
-    ptrdiff_t uvlinesize, linesize;
-    const int lowres     = s->avctx->lowres;
-    const int op_index   = FFMIN(lowres - 1 + s->chroma_x_shift, 3);
-    const int block_s    = 8 >> lowres;
-    const int s_mask     = (2 << lowres) - 1;
-    const int h_edge_pos = s->h_edge_pos >> lowres;
-    const int v_edge_pos = s->v_edge_pos >> lowres;
-    linesize   = s->current_picture.f->linesize[0] << field_based;
+linesize   = s->current_picture.f->linesize[0] << field_based;
     uvlinesize = s->current_picture.f->linesize[1] << field_based;
 
     // FIXME obviously not perfect but qpel will not work in lowres anyway
@@ -123,4 +113,3 @@
             pix_op[op_index](dest_cr, ptr_cr, uvlinesize, hc, uvsx, uvsy);
         }
     }
-    // FIXME h261 lowres loop filter

@@ -1,17 +1,4 @@
-
-  size_t
-    length;
-
-  assert(string_info != (StringInfo *) NULL);
-  assert(string_info->signature == MagickCoreSignature);
-  assert(source != (const StringInfo *) NULL);
-  length=string_info->length;
-  if (~length < source->length)
-    ThrowFatalException(ResourceLimitFatalError,"UnableToConcatenateString");
-  length+=source->length;
-  if (~length < MagickPathExtent)
-    ThrowFatalException(ResourceLimitFatalError,"MemoryAllocationFailed");
-  if (string_info->datum == (unsigned char *) NULL)
+if (string_info->datum == (unsigned char *) NULL)
     string_info->datum=(unsigned char *) AcquireQuantumMemory(length+
       MagickPathExtent,sizeof(*string_info->datum));
   else

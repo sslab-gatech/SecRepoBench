@@ -301,7 +301,13 @@ static int
 xsltCompMatchAdd(xsltParserContextPtr ctxt, xsltCompMatchPtr comp,
                  xsltOp op, xmlChar * value, xmlChar * value2, int novar)
 {
-    if (comp->nbStep >= comp->maxStep) {// <MASK>}
+    if (comp->nbStep >= comp->maxStep) {
+        xsltStepOpPtr tmp;
+
+	tmp = (xsltStepOpPtr) xmlRealloc(comp->steps, comp->maxStep * 2 *
+	                                 sizeof(xsltStepOp));
+	// <MASK>
+    }
     comp->steps[comp->nbStep].op = op;
     comp->steps[comp->nbStep].value = value;
     comp->steps[comp->nbStep].value2 = value2;

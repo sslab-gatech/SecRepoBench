@@ -1,5 +1,4 @@
-
-      StringInfo
+StringInfo
         *dng;
 
       (void) ReadProfile(image,"xmp",profile,(ssize_t) length,exception);
@@ -13,4 +12,3 @@
             (void) CopyMagickString(image->magick,"DNG",MagickPathExtent);
           dng=DestroyStringInfo(dng);
         }
-    

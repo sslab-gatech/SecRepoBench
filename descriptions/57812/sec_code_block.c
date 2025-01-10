@@ -1,11 +1,4 @@
-
-    pps->poc_reset_info_present_flag = get_bits1(gb);
-    pps->pps_infer_scaling_list_flag = get_bits1(gb);
-    if (pps->pps_infer_scaling_list_flag)
-        pps->pps_scaling_list_ref_layer_id = get_bits(gb, 6);
-
-    pps->num_ref_loc_offsets = get_ue_golomb_long(gb);
-    if (pps->num_ref_loc_offsets > FF_ARRAY_ELEMS(pps->ref_loc_offset_layer_id)) {
+if (pps->num_ref_loc_offsets > FF_ARRAY_ELEMS(pps->ref_loc_offset_layer_id)) {
         pps->num_ref_loc_offsets = 0;
         return AVERROR_INVALIDDATA;
     }
@@ -35,9 +28,3 @@
             pps->phase_ver_chroma_plus8[pps->ref_loc_offset_layer_id[i]] = get_ue_golomb_long(gb);
         }
     }
-
-    pps->colour_mapping_enabled_flag = get_bits1(gb);
-    if (pps->colour_mapping_enabled_flag)
-        colour_mapping_table(gb, pps);
-
-    return 0;

@@ -1,6 +1,4 @@
-
-  mp_limb i;
-  size_t d;
+size_t d;
 
   if (y->sn == 0) {
     i = 0;
@@ -15,5 +13,3 @@
     i = y->sn * y->p[0];
   }
   if (MRB_INT_MAX < i || i < MRB_INT_MIN) return FALSE;
-  *v = i;
-  return TRUE;

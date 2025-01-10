@@ -175,7 +175,17 @@ alac_decode (ALAC_DECODER *p, struct BitBuffer * bits, int32_t * sampleBuffer, u
 	*outNumSamples = numSamples ;
 
 	while (status == ALAC_noErr)
-	{// <MASK>}
+	{
+		// bail if we ran off the end of the buffer
+		RequireAction (bits->cur < bits->end, status = kALAC_ParamError ; goto Exit ;) ;
+
+		// copy global decode params for this element
+		pb = p->mConfig.pb ;
+
+		// read element tag
+		tag = BitBufferReadSmall (bits, 3) ;
+		// <MASK>
+	}
 
 NoMoreChannels:
 

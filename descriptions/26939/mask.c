@@ -1841,7 +1841,9 @@ static void GetProfilesFromResourceBlock(Image *image,
 }
 
 static void PatchCorruptProfile(const char *name,StringInfo *profile)
-{// <MASK>}
+{
+  // <MASK>
+}
 
 #if defined(MAGICKCORE_XML_DELEGATE)
 static MagickBooleanType ValidateXMPProfile(Image *image,

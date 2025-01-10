@@ -1,11 +1,4 @@
-
-        if ((*it).keys.empty()) continue;
-
-        const double my_first = (*it).keys.front().time;
-        const double my_last = (*it).keys.back().time;
-
-        const double delta = my_last - my_first;
-        const size_t old_size = (*it).keys.size();
+const size_t old_size = (*it).keys.size();
 
         const float value_delta = (*it).keys.back().value - (*it).keys.front().value;
 
@@ -68,18 +61,3 @@
             // silence compiler warning
             break;
         }
-
-        // process post behavior
-        switch ((*it).post) {
-
-        case LWO::PrePostBehaviour_OffsetRepeat:
-        case LWO::PrePostBehaviour_Repeat:
-        case LWO::PrePostBehaviour_Oscillate:
-
-            break;
-
-        default:
-            // silence compiler warning
-            break;
-        }
-    

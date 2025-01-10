@@ -43,7 +43,10 @@ void SkTDStorage::reset() {
     new (this) SkTDStorage{};
 }
 
-void SkTDStorage::assign(const void* src, int count, size_t sizeOfT) {// <MASK>}
+void SkTDStorage::assign(const void* src, int count, size_t sizeOfT) {
+    SkASSERT(count >= 0);
+    // <MASK>
+}
 
 void SkTDStorage::resize(int newCount, size_t sizeOfT) {
     SkASSERT(newCount >= 0);

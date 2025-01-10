@@ -1688,7 +1688,9 @@ static MagickBooleanType GetEXIFProperty(const Image *image,
 
 static const char *GetICCProperty(const Image *image,const char *key,
   ExceptionInfo *exception)
-{// <MASK>}
+{
+  // <MASK>
+}
 
 static MagickBooleanType SkipXMPValue(const char *value)
 {

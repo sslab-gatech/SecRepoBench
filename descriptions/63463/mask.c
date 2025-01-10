@@ -6913,7 +6913,9 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
           if (obj->type != DWG_TYPE_JUMP_r11)
             {
               SINCE (R_2_0b) // Pre R_2_0 doesn't contain size of entity
-              {// <MASK>}
+              {
+                // <MASK>
+              }
             }
           // add to block header
           if (_hdr && obj->supertype == DWG_SUPERTYPE_ENTITY

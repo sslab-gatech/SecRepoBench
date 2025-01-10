@@ -1,6 +1,4 @@
 
-  mp_limb i;
-
   if (y->sn == 0) {
     i = 0;
   }
@@ -11,5 +9,3 @@
     i = (y->sn * (y->p[0] | (y->p[1] & 1) << DIGITBITS));
     if (MRB_INT_MAX < i || i < MRB_INT_MIN) return FALSE;
   }
-  *v = i;
-  return TRUE;

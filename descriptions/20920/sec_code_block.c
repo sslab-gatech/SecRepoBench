@@ -1,5 +1,4 @@
-
-      const TIFFField
+const TIFFField
         *field;
 
       if (TIFFIsByteSwapped(tiff) != 0)
@@ -9,4 +8,3 @@
         status=ReadProfile(image,"iptc",profile,4L*length,exception);
       else
         status=ReadProfile(image,"iptc",profile,length,exception);
-    

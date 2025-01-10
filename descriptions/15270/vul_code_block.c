@@ -1,27 +1,4 @@
-
-        if (!avctx->bit_rate)
-            avctx->bit_rate = get_bit_rate(avctx);
-        /* validate channel layout from the decoder */
-        if (avctx->channel_layout) {
-            int channels = av_get_channel_layout_nb_channels(avctx->channel_layout);
-            if (!avctx->channels)
-                avctx->channels = channels;
-            else if (channels != avctx->channels) {
-                char buf[512];
-                av_get_channel_layout_string(buf, sizeof(buf), -1, avctx->channel_layout);
-                av_log(avctx, AV_LOG_WARNING,
-                       "Channel layout '%s' with %d channels does not match specified number of channels %d: "
-                       "ignoring specified channel layout\n",
-                       buf, channels, avctx->channels);
-                avctx->channel_layout = 0;
-            }
-        }
-        if (avctx->channels && avctx->channels < 0 ||
-            avctx->channels > FF_SANE_NB_CHANNELS) {
-            ret = AVERROR(EINVAL);
-            goto free_and_end;
-        }
-        if (avctx->sub_charenc) {
+if (avctx->sub_charenc) {
             if (avctx->codec_type != AVMEDIA_TYPE_SUBTITLE) {
                 av_log(avctx, AV_LOG_ERROR, "Character encoding is only "
                        "supported with subtitles codecs\n");
@@ -58,9 +35,3 @@
                 }
             }
         }
-
-#if FF_API_AVCTX_TIMEBASE
-        if (avctx->framerate.num > 0 && avctx->framerate.den > 0)
-            avctx->time_base = av_inv_q(av_mul_q(avctx->framerate, (AVRational){avctx->ticks_per_frame, 1}));
-#endif
-    

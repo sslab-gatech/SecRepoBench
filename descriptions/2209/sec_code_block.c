@@ -1,5 +1,4 @@
-
-    HEVCFrame *ref = find_ref_idx(s, poc);
+HEVCFrame *ref = find_ref_idx(s, poc);
 
     if (ref == s->ref || list->nb_refs >= HEVC_MAX_REFS)
         return AVERROR_INVALIDDATA;
@@ -9,10 +8,3 @@
         if (!ref)
             return AVERROR(ENOMEM);
     }
-
-    list->list[list->nb_refs] = ref->poc;
-    list->ref[list->nb_refs]  = ref;
-    list->nb_refs++;
-
-    mark_ref(ref, ref_flag);
-    return 0;

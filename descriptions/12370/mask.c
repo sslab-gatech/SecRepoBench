@@ -1255,6 +1255,7 @@ static int decode_frame(AVCodecContext *avctx, void *data, int *got_frame,
         slice_height = AV_RL32(avpkt->data + buf_size - 8);
         nb_slices = AV_RL32(avpkt->data + buf_size - 12);
         // <MASK>
+            return AVERROR_INVALIDDATA;
     } else {
         slice_height = height;
         nb_slices = 1;

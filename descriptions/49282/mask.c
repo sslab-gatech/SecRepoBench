@@ -740,7 +740,12 @@ mpz_get_str(mrb_state *mrb, char *s, mrb_int sz, mrb_int base, mpz_t *x)
 
 static int
 mpz_get_int(mpz_t *y, mrb_int *v)
-{// <MASK>}
+{
+  mp_limb i;
+  // <MASK>
+  *v = i;
+  return TRUE;
+}
 
 static void
 mpz_mul_2exp(mrb_state *mrb, mpz_t *z, mpz_t *x, mrb_int e)

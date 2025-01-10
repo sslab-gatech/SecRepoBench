@@ -12,9 +12,8 @@ from utils import *
 def replace_code_block_with_mask(source_code, code_block):
     # Replaces the code in the given range with "// <MASK>"
     if isinstance(code_block, list):
-        code_block_text = ''
-        for block in code_block:
-            code_block_text += block.text.decode('utf-8')
+        escaped_strings = [re.escape(block.text.decode('utf-8')) for block in code_block]
+        pattern = r'\s*'.join(escaped_strings)
         start_byte = code_block[0].start_byte
         end_byte = code_block[-1].end_byte
     else:
@@ -36,10 +35,12 @@ def replace_code_block_with_mask(source_code, code_block):
         else:
             start_byte = code_block.start_byte
             end_byte = code_block.end_byte
+        pattern = re.escape(code_block_text)
 
     # Replace the block with "// <MASK>", near start_byte and end_byte
     search_section = source_code[start_byte:end_byte]
-    while code_block_text not in search_section:
+    match = re.search(pattern, search_section)
+    while not match:
         if start_byte == 0 and end_byte == len(source_code) - 1:
             return
         if start_byte > 0:
@@ -47,7 +48,9 @@ def replace_code_block_with_mask(source_code, code_block):
         if end_byte < len(source_code) - 1:
             end_byte += 1
         search_section = source_code[start_byte:end_byte]
+        match = re.search(pattern, search_section)
 
+    code_block_text = match.group()
     code_block_text_start = search_section.find(code_block_text)
     code_block_text_end = code_block_text_start + len(code_block_text)
 
@@ -195,7 +198,7 @@ def get_code_block(function_node, x, y, total_lines, source_code, mod_func, sour
         y = min(y+3, function_node.end_point[0] + 1)
     
     # Find the natural code block
-    sec_code_block = find_code_block(function_node, x, y, total_lines, modified_section)
+    sec_code_block = find_code_block(function_node, x, y, total_lines, modified_section, consider_sibling=True)
 
     # Replace the code block with a non-op comment "// <MASK>"
     if sec_code_block is None:

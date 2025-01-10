@@ -1,5 +1,4 @@
-
-  char buf[DBL_DIG * 4 + 20];
+char buf[DBL_DIG * 4 + 20];
   const char *p = s, *p2;
   const char *pend = p + len;
   char *end;
@@ -64,22 +63,3 @@
     }
     prev = c;
   }
-  *n = '\0';
-  p = buf;
-  pend = n;
-nocopy:
-  d = mrb_float_read(p, &end);
-  if (p == end) {
-    if (badcheck) {
-bad:
-      mrb_raisef(mrb, E_ARGUMENT_ERROR, "invalid string for float(%!s)", s);
-      /* not reached */
-    }
-    return d;
-  }
-  if (badcheck) {
-    if (!end || p == end) goto bad;
-    while (end<pend && ISSPACE(*end)) end++;
-    if (end<pend) goto bad;
-  }
-  return d;

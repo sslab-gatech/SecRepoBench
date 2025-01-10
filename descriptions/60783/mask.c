@@ -305,7 +305,9 @@ static void flv_set_audio_codec(AVFormatContext *s, AVStream *astream,
 }
 
 static int flv_same_video_codec(AVCodecParameters *vpar, uint32_t flv_codecid)
-{// <MASK>}
+{
+    // <MASK>
+}
 
 static int flv_set_video_codec(AVFormatContext *s, AVStream *vstream,
                                uint32_t flv_codecid, int read)

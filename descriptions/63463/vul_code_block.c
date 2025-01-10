@@ -1,5 +1,4 @@
-
-                PRE (R_11) // no crc16
+PRE (R_11) // no crc16
                 {
                   if (obj->address + obj->size != dat->byte)
                     {
@@ -57,4 +56,3 @@
                   if (!bit_check_CRC (dat, obj->address, 0xC0C1))
                     error |= DWG_ERR_WRONGCRC;
                 }
-              

@@ -409,7 +409,12 @@ pack_BER(mrb_state *mrb, mrb_value o, mrb_value str, mrb_int sidx, unsigned int 
 
 static int
 unpack_BER(mrb_state *mrb, const unsigned char *src, int srclen, mrb_value ary, unsigned int flags)
-{// <MASK>}
+{
+  mrb_int i, n = 0;
+  // <MASK>
+  mrb_ary_push(mrb, ary, mrb_int_value(mrb, n));
+  return i;
+}
 
 #ifndef MRB_NO_FLOAT
 static int

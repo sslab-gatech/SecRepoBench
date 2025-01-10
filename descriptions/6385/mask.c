@@ -4160,7 +4160,14 @@ MagickExport MagickBooleanType SetImageProperty(Image *image,
           return(MagickFalse);
         }
       if (LocaleCompare("density",property) == 0)
-        {// <MASK>}
+        {
+          GeometryInfo
+            geometry_info;
+
+          flags=ParseGeometry(value,&geometry_info);
+          // <MASK>
+          return(MagickTrue);
+        }
       if (LocaleCompare("depth",property) == 0)
         {
           image->depth=StringToUnsignedLong(value);

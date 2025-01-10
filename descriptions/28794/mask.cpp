@@ -1158,7 +1158,21 @@ void Compiler::simplifyExpression(DefinitionMap& definitions,
                 break;
             }
             // Optimize swizzles of constructors.
-            if (s.base()->is<Constructor>()) {// <MASK>}
+            if (s.base()->is<Constructor>()) {
+                Constructor& base = s.base()->as<Constructor>();
+                std::unique_ptr<Expression> replacement;
+                const Type& componentType = base.type().componentType();
+                int swizzleSize = s.components().size();
+
+                // The IR generator has already converted any zero/one swizzle components into
+                // constructors containing zero/one args. Confirm that this is true by checking that
+                // our swizzle components are all `xyzw` (values 0 through 3).
+                SkASSERT(std::all_of(s.components().begin(), s.components().end(),
+                                     [](int8_t c) { return c >= 0 && c <= 3; }));
+
+                // <MASK>
+                break;
+            }
             break;
         }
         default:

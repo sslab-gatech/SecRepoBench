@@ -1,19 +1,4 @@
-
-            char
-              name[MagickPathExtent];
-
-            const char
-              *p;
-
-            ssize_t
-             n;
-
-            /*
-              Named macro (e.g. push graphic-context "wheel").
-            */
-            GetNextToken(q,&q,extent,token);
-            start=q;
-            end=q;
+end=q;
             (void) CopyMagickString(name,token,MagickPathExtent);
             n=0;
             for (p=q; *q != '\0'; )
@@ -54,4 +39,3 @@
                   break;
                 }
             }
-          
