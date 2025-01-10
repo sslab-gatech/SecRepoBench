@@ -1,5 +1,4 @@
-
-  register unsigned char
+register unsigned char
     *p;
 
   size_t

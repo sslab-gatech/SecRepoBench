@@ -88,7 +88,9 @@ mpz_clear(mrb_state *mrb, mpz_t *s)
 
 static size_t
 digits(mpz_t *x)
-{// <MASK>}
+{
+  // <MASK>
+}
 
 /* y = x */
 static void

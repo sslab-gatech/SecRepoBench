@@ -367,7 +367,10 @@ void ZipArchiveIOSystem::Implement::MapArchive() {
         return;
 
     // Loop over all files
-    do {// <MASK>} while (unzGoToNextFile(m_ZipFileHandle) != UNZ_END_OF_LIST_OF_FILE);
+    do {
+        char filename[FileNameSize];
+        // <MASK>
+    } while (unzGoToNextFile(m_ZipFileHandle) != UNZ_END_OF_LIST_OF_FILE);
 }
 
 bool ZipArchiveIOSystem::Implement::isOpen() const {

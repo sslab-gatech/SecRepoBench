@@ -183,7 +183,10 @@ usub(mrb_state *mrb, mpz_t *z, mpz_t *y, mpz_t *x)
 /* compare abs(x) and abs(y) */
 static int
 ucmp(mpz_t *y, mpz_t *x)
-{// <MASK>}
+{
+  // <MASK>
+  return 0;
+}
 
 static int
 uzero(mpz_t *x)

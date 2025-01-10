@@ -1,5 +1,4 @@
-
-    static const struct {
+static const struct {
         int class;
         int index;
         const uint8_t *bits;
@@ -36,5 +35,3 @@
                    ht[i].values, ht[i].length);
         }
     }
-
-    return 0;

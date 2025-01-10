@@ -336,7 +336,7 @@ char *gf_text_get_utf8_line(char *szLine, u32 lineSize, FILE *txt_in, s32 unicod
 					j++;
 				}
 				/*UTF8 3 bytes char*/
-				else // <MASK>
+				else if ( (szLine[i] & 0xf0) == 0xe0) // <MASK>
 			}
 
 			if (j >= GF_ARRAY_LENGTH(szLineConv))

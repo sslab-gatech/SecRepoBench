@@ -1,5 +1,4 @@
-
-  if (y->sz < x->sz) return -1;
+if (y->sz < x->sz) return -1;
   if (y->sz > x->sz) return 1;
   if (x->sz == 0) return 0;
   for (size_t i=x->sz-1;; i--) {
@@ -9,4 +8,3 @@
     if (a < b) return -1;
     if (i == 0) break;
   }
-  return 0;

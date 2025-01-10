@@ -841,7 +841,10 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
               case 'I':
               {
                 if (LocaleCompare(keyword,"id") == 0)
-                  {// <MASK>}
+                  {
+                    // <MASK>
+                    break;
+                  }
                 if (LocaleCompare(keyword,"iterations") == 0)
                   {
                     image->iterations=StringToUnsignedLong(options);

@@ -1,9 +1,4 @@
-
-	const unsigned char *uc = *ucp;
-
-	DPRINTF("Parse const: ", uc, *ucp);
-	*ucp += --len - 1;
-	if (*ucp > ue)
+if (*ucp > ue)
 		*ucp = ue;
 	for (; uc < ue && --len;) {
 		if (*uc++ != *++str) {
@@ -11,5 +6,3 @@
 			return 0;
 		}
 	}
-	DPRINTF("Good const: ", uc, *ucp);
-	return 1;

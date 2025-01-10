@@ -1,4 +1,4 @@
-if (n == nullptr) {
+{
             if (topLevel) {
                 elements.insert(ElementMap::value_type(str, element));
                 return;

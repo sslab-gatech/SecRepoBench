@@ -175,7 +175,21 @@ mrb_format_float(mrb_float f, char *buf, size_t buf_size, char fmt, int prec, ch
     // If the user specified 'g' format, and e is <= 4, then we'll switch
     // to the fixed format ('f')
 
-    if (fmt == 'f' || (fmt == 'g' && e <= 4)) {// <MASK>} else {
+    if (fmt == 'f' || (fmt == 'g' && e <= 4)) {
+      fmt = 'f';
+      dec = -1;
+      *s++ = first_dig;
+
+      // <MASK>
+      num_digits = prec;
+      if (num_digits || alt_form) {
+        *s++ = '.';
+        while (--e && num_digits) {
+          *s++ = '0';
+          num_digits--;
+        }
+      }
+    } else {
       // For e & g formats, we'll be printing the exponent, so set the
       // sign.
       e_sign = e_sign_char;

@@ -1,5 +1,4 @@
-case '\\':
-			if (uc == ue)
+if (uc == ue)
 				goto out;
 			switch (*uc++) {
 			case '\0':

@@ -2491,7 +2491,28 @@ mrb_str_to_i(mrb_state *mrb, mrb_value self)
 #ifndef MRB_WITHOUT_FLOAT
 double
 mrb_str_len_to_dbl(mrb_state *mrb, const char *s, size_t len, mrb_bool badcheck)
-{// <MASK>}
+{
+  // <MASK>
+  *n = '\0';
+  p = buf;
+  pend = n;
+nocopy:
+  d = mrb_float_read(p, &end);
+  if (p == end) {
+    if (badcheck) {
+bad:
+      mrb_raisef(mrb, E_ARGUMENT_ERROR, "invalid string for float(%!s)", s);
+      /* not reached */
+    }
+    return d;
+  }
+  if (badcheck) {
+    if (!end || p == end) goto bad;
+    while (end<pend && ISSPACE(*end)) end++;
+    if (end<pend) goto bad;
+  }
+  return d;
+}
 
 MRB_API double
 mrb_cstr_to_dbl(mrb_state *mrb, const char *s, mrb_bool badcheck)

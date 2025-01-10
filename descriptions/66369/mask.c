@@ -2789,7 +2789,17 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
     }
 
     // Copy aux keys to td_b and aux values to slice aux blocks
-    while (aux_end - aux >= 1 && aux[0] != 0) {// <MASK>}
+    while (aux_end - aux >= 1 && aux[0] != 0) {
+        int r;
+
+        // Room for code + type + at least 1 byte of data
+        if (aux - orig >= aux_size - 3)
+            goto err;
+
+        // RG:Z
+        // <MASK>
+        tm->blk->m = tm->m;
+    }
 
     // FIXME: sort BLOCK_DATA(td_b) by char[3] triples
 

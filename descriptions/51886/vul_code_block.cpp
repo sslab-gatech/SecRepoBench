@@ -1,6 +1,4 @@
-
-    SkASSERT(count >= 0);
-    if (count > 0) {
+if (count > 0) {
         fCount = count;
         size_t byteSize = this->size_bytes(sizeOfT);
         if (fCount > fReserve) {

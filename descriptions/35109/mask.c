@@ -259,7 +259,12 @@ check_name_arg(mrb_state *mrb, int posarg, const char *name, size_t len)
 
 static const char *
 get_num(mrb_state *mrb, const char *p, const char *end, int *valp)
-{// <MASK>}
+{
+  mrb_int next_n = (int)*valp;
+  // <MASK>
+  *valp = (int)next_n;
+  return p;
+}
 
 static void
 get_hash(mrb_state *mrb, mrb_value *hash, mrb_int argc, const mrb_value *argv)

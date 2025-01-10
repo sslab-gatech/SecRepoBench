@@ -1,6 +1,4 @@
-
-            case 'k':
-            case 'K': {
+case 'K': {
                 ++m_DataIt;
                 if (*m_DataIt == 'a') // Ambient color
                 {
@@ -121,8 +119,3 @@
                 getFloatValue(m_pModel->m_pCurrentMaterial->anisotropy);
                 m_DataIt = skipLine<DataArrayIt>(m_DataIt, m_DataItEnd, m_uiLine);
             } break;
-
-            default: {
-                m_DataIt = skipLine<DataArrayIt>(m_DataIt, m_DataItEnd, m_uiLine);
-            } break;
-        

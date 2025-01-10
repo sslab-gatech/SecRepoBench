@@ -126,7 +126,8 @@ json_parse_string(const unsigned char **ucp, const unsigned char *ue)
 		switch (*uc++) {
 		case '\0':
 			goto out;
-		// <MASK>
+		case '\\':
+			// <MASK>
 		case '"':
 			*ucp = uc;
 			return 1;

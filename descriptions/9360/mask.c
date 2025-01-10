@@ -2278,7 +2278,23 @@ static SplayTreeInfo *GetMVGMacros(const char *primitive)
 
         GetNextToken(q,&q,extent,token);
         if (*q == '"')
-          {// <MASK>}
+          {
+            char
+              name[MagickPathExtent];
+
+            const char
+              *p;
+
+            ssize_t
+             n;
+
+            /*
+              Named macro (e.g. push graphic-context "wheel").
+            */
+            GetNextToken(q,&q,extent,token);
+            start=q;
+            // <MASK>
+          }
       }
   }
   token=DestroyString(token);

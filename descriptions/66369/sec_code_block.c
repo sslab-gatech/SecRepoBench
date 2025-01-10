@@ -1,12 +1,4 @@
-
-        int r;
-
-        // Room for code + type + at least 1 byte of data
-        if (aux - orig >= aux_size - 3)
-            goto err;
-
-        // RG:Z
-        if (aux[0] == 'R' && aux[1] == 'G' && aux[2] == 'Z') {
+if (aux[0] == 'R' && aux[1] == 'G' && aux[2] == 'Z') {
             char *rg = &aux[3];
             aux = rg;
             while (aux < aux_end && *aux++);
@@ -381,5 +373,3 @@
             hts_log_error("Unknown aux type '%c'", aux_end - aux < 2 ? '?' : aux[2]);
             goto err;
         }
-        tm->blk->m = tm->m;
-    

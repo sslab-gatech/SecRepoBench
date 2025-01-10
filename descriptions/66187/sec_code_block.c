@@ -1,4 +1,4 @@
-if ( (szLine[i] & 0xf0) == 0xe0) {
+{
 					if (j+1 >= GF_ARRAY_LENGTH(szLineConv) || i+1 >= len)
 						break;
 					szLineConv[j] = szLine[i];

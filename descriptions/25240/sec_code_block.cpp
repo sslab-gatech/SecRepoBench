@@ -1,6 +1,4 @@
-
-            case 'k':
-            case 'K': {
+case 'K': {
                 ++m_DataIt;
                 if (*m_DataIt == 'a') // Ambient color
                 {
@@ -137,8 +135,3 @@
                 if (m_pModel->m_pCurrentMaterial != nullptr)
                     m_DataIt = skipLine<DataArrayIt>(m_DataIt, m_DataItEnd, m_uiLine);
             } break;
-
-            default: {
-                m_DataIt = skipLine<DataArrayIt>(m_DataIt, m_DataItEnd, m_uiLine);
-            } break;
-        

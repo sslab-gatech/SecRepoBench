@@ -507,7 +507,9 @@ file_regcomp(file_regex_t *rx, const char *pat, int flags)
 protected int
 file_regexec(file_regex_t *rx, const char *str, size_t nmatch,
     regmatch_t* pmatch, int eflags)
-{// <MASK>}
+{
+	// <MASK>
+}
 
 protected void
 file_regfree(file_regex_t *rx)

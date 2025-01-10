@@ -1,5 +1,4 @@
-
-  const char
+const char
     *value;
 
   const StringInfo

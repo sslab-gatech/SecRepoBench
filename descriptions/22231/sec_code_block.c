@@ -1,17 +1,4 @@
-
-            cram_block *b;
-            if (s->hdr->ref_base_id < 0) {
-                hts_log_error("No reference specified and no embedded reference is available"
-                              " at #%d:%"PRId64"-%"PRId64, ref_id, s->hdr->ref_seq_start,
-                              s->hdr->ref_seq_start + s->hdr->ref_seq_span-1);
-                return -1;
-            }
-            b = cram_get_block_by_id(s, s->hdr->ref_base_id);
-            if (!b)
-                return -1;
-            if (cram_uncompress_block(b) != 0)
-                return -1;
-            s->ref = (char *)BLOCK_DATA(b);
+s->ref = (char *)BLOCK_DATA(b);
             s->ref_start = s->hdr->ref_seq_start;
             s->ref_end   = s->hdr->ref_seq_start + s->hdr->ref_seq_span-1;
             if (s->hdr->ref_seq_span > b->uncomp_size) {
@@ -19,4 +6,3 @@
                               ref_id, s->ref_start, s->ref_end);
                 return -1;
             }
-        

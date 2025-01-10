@@ -1,4 +1,1 @@
-
-                    (void) CopyMagickString(id,options,MagickPathExtent);
-                    break;
-                  
+(void) CopyMagickString(id,options,MagickPathExtent);

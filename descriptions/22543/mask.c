@@ -467,7 +467,50 @@ static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
     for (x=0; x < (ssize_t) image->columns; x++)
     {
       for (i=0; i < (ssize_t) jp2_image->numcomps; i++)
-      {// <MASK>}
+      {
+        double
+          pixel,
+          scale;
+
+        // <MASK>
+        switch (i)
+        {
+           case 0:
+           {
+             if (jp2_image->numcomps == 1)
+               {
+                 SetPixelGray(image,ClampToQuantum(pixel),q);
+                 SetPixelAlpha(image,OpaqueAlpha,q);
+                 break;
+               }
+             SetPixelRed(image,ClampToQuantum(pixel),q);
+             SetPixelGreen(image,ClampToQuantum(pixel),q);
+             SetPixelBlue(image,ClampToQuantum(pixel),q);
+             SetPixelAlpha(image,OpaqueAlpha,q);
+             break;
+           }
+           case 1:
+           {
+             if (jp2_image->numcomps == 2)
+               {
+                 SetPixelAlpha(image,ClampToQuantum(pixel),q);
+                 break;
+               }
+             SetPixelGreen(image,ClampToQuantum(pixel),q);
+             break;
+           }
+           case 2:
+           {
+             SetPixelBlue(image,ClampToQuantum(pixel),q);
+             break;
+           }
+           case 3:
+           {
+             SetPixelAlpha(image,ClampToQuantum(pixel),q);
+             break;
+           }
+        }
+      }
       q+=GetPixelChannels(image);
     }
     if (SyncAuthenticPixels(image,exception) == MagickFalse)

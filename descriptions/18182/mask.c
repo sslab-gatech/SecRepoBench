@@ -702,7 +702,9 @@ static void TIFFGetProfiles(TIFF *tiff,Image *image,ExceptionInfo *exception)
 #if defined(TIFFTAG_XMLPACKET)
   if ((TIFFGetField(tiff,TIFFTAG_XMLPACKET,&length,&profile) == 1) &&
       (profile != (unsigned char *) NULL))
-    {// <MASK>}
+    {
+      // <MASK>
+    }
 #endif
   if ((TIFFGetField(tiff,34118,&length,&profile) == 1) &&
       (profile != (unsigned char *) NULL))

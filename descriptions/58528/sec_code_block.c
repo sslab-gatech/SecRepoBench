@@ -1,5 +1,4 @@
-
-            for (i = 0; i < FF_ARRAY_ELEMS(cand_lists); i++) {
+for (i = 0; i < FF_ARRAY_ELEMS(cand_lists); i++) {
                 RefPicList *rps = &s->rps[cand_lists[i]];
                 for (j = 0; j < rps->nb_refs && rpl_tmp.nb_refs < HEVC_MAX_REFS; j++) {
                     rpl_tmp.list[rpl_tmp.nb_refs]       = rps->list[j];
@@ -15,4 +14,3 @@
                 rpl_tmp.isLongTerm[rpl_tmp.nb_refs]     = 1;
                 rpl_tmp.nb_refs++;
             }
-        

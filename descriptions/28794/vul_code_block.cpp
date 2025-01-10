@@ -1,16 +1,4 @@
-
-                Constructor& base = s.base()->as<Constructor>();
-                std::unique_ptr<Expression> replacement;
-                const Type& componentType = base.type().componentType();
-                int swizzleSize = s.components().size();
-
-                // The IR generator has already converted any zero/one swizzle components into
-                // constructors containing zero/one args. Confirm that this is true by checking that
-                // our swizzle components are all `xyzw` (values 0 through 3).
-                SkASSERT(std::all_of(s.components().begin(), s.components().end(),
-                                     [](int8_t c) { return c >= 0 && c <= 3; }));
-
-                if (base.arguments().size() == 1 && base.arguments().front()->type().isScalar()) {
+if (base.arguments().size() == 1 && base.arguments().front()->type().isScalar()) {
                     // `half4(scalar).zyy` can be optimized to `half3(scalar)`. The swizzle
                     // components don't actually matter since all fields are the same.
                     ExpressionArray newArgs;
@@ -154,5 +142,3 @@
                     }
                     SkASSERT((*iter)->isExpression());
                 }
-                break;
-            

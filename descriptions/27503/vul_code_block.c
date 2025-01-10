@@ -1,13 +1,4 @@
-
-		// bail if we ran off the end of the buffer
-		RequireAction (bits->cur < bits->end, status = kALAC_ParamError ; goto Exit ;) ;
-
-		// copy global decode params for this element
-		pb = p->mConfig.pb ;
-
-		// read element tag
-		tag = BitBufferReadSmall (bits, 3) ;
-		switch (tag)
+switch (tag)
 		{
 			case ID_SCE:
 			case ID_LFE:
@@ -383,4 +374,3 @@
 		if (channelIndex >= numChannels)
 			break ;
 #endif
-	

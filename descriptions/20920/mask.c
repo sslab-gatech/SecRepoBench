@@ -693,7 +693,9 @@ static MagickBooleanType TIFFGetProfiles(TIFF *tiff,Image *image,
 #if defined(TIFFTAG_RICHTIFFIPTC)
   if ((TIFFGetField(tiff,TIFFTAG_RICHTIFFIPTC,&length,&profile) == 1) &&
       (profile != (unsigned char *) NULL))
-    {// <MASK>}
+    {
+      // <MASK>
+    }
 #endif
 #if defined(TIFFTAG_XMLPACKET)
   if ((TIFFGetField(tiff,TIFFTAG_XMLPACKET,&length,&profile) == 1) &&

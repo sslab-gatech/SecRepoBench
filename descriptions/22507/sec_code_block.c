@@ -1,5 +1,4 @@
-
-        mrb_value val = GETARG();
+mrb_value val = GETARG();
         double fval;
         mrb_int need = 6;
         char fbuf[64];
@@ -42,32 +41,3 @@
           }
           break;
         }
-
-        fmt_setup(fbuf, sizeof(fbuf), *p, flags, width, prec);
-        need = 0;
-        if (*p != 'e' && *p != 'E') {
-          int i;
-          frexp(fval, &i);
-          if (i > 0)
-            need = BIT_DIGITS(i);
-        }
-        if (need > MRB_INT_MAX - ((flags&FPREC) ? prec : 6)) {
-        too_big_width:
-          mrb_raise(mrb, E_ARGUMENT_ERROR,
-                    (width > prec ? "width too big" : "prec too big"));
-        }
-        need += (flags&FPREC) ? prec : 6;
-        if ((flags&FWIDTH) && need < width)
-          need = width;
-        if (need > MRB_INT_MAX - 20) {
-          goto too_big_width;
-        }
-        need += 20;
-
-        CHECK(need);
-        n = mrb_float_to_cstr(mrb, &buf[blen], need, fbuf, fval);
-        if (n < 0 || n >= need) {
-          mrb_raise(mrb, E_RUNTIME_ERROR, "formatting error");
-        }
-        blen += n;
-      

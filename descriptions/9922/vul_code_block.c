@@ -1,5 +1,4 @@
-case '\\':
-			switch (*uc++) {
+switch (*uc++) {
 			case '\0':
 				goto out;
 			case '"':

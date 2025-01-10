@@ -141,7 +141,9 @@ static void copy_CTB(uint8_t *dst, const uint8_t *src, int width, int height,
 {
     int i, j;
 
-    if (((intptr_t)dst | (intptr_t)src | stride_dst | stride_src) & 15) {// <MASK>} else {
+    if (((intptr_t)dst | (intptr_t)src | stride_dst | stride_src) & 15) {
+        // <MASK>
+    } else {
         for (i = 0; i < height; i++) {
             for (j = 0; j < width; j+=16)
                 AV_COPY128(dst+j, src+j);
