@@ -1,8 +1,3 @@
-// Determine the number of coordinates needed for each type of drawing primitive.
-// - RectanglePrimitive: Multiply by 5 to account for rectangle's corners and closure.
-// - RoundRectanglePrimitive: Use a helper function to get coordinates based on rounded edges.
-// - BezierPrimitive: Check for a coordinate limit, and use a quantum multiplier.
-// - PathPrimitive: Analyze the path string to count values, adjusting for Bezier complexity.
-// - CirclePrimitive: Calculate using an assumed full circle.
-// - ArcPrimitive: Calculate using center and radii derived from points.
-// - EllipsePrimitive: Use a helper function to account for ellipse shape.
+// Handle CirclePrimitive and ArcPrimitive cases by calculating the number of coordinates for ellipses. 
+// For CirclePrimitive, use a full 360-degree range to determine the ellipse coordinates based on the center and radius.
+// For ArcPrimitive, calculate the center and radii from the given points and use the specified arc angle to determine the coordinates.

@@ -1,7 +1,3 @@
-// This code block is responsible for probing the data to identify the potential subtitle format.
-// It uses the `gf_utf_get_string_from_bom` function to process the data and obtain a UTF string.
-// It strips leading whitespace characters from the processed data for accurate format detection.
-// The block then checks for specific format identifiers in the data, such as "WEBVTT" for WebVTT,
-// " --> " for SRT, "FWS" or "CWS" for Flash, "[Script Info" for SSA, and XML tags for TexML, TTXT, and TTML.
-// The `PROBE_OK` macro is used to return a mime type and a probing score if a format is recognized.
-// If no recognized format is found, it returns NULL, indicating the data's format is not supported.
+// Strip leading whitespace characters from the data buffer.
+// Continue incrementing the pointer until the first character is not a whitespace.
+// Optionally, decrement the size of the remaining data buffer to reflect this change.

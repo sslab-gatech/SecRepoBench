@@ -1,7 +1,5 @@
-// Parses the 'cart' chunk of a WAVE file, performing several checks
-// on the chunk size to ensure it falls within acceptable bounds. If 
-// the size is valid, it allocates memory for an SF_CART_INFO_16K 
-// structure to store cart metadata and reads it from the file. It 
-// logs the chunk size and handles cases where more than one cart 
-// chunk is found. The function also checks for the presence of tag 
-// text data and reads it if available.
+// Check if the chunk size is too large to be handled. Depending on the 
+// chosen implementation, the size check either considers the full size 
+// of the SF_CART_INFO_16K structure or excludes the 'tag_text_size' 
+// field. If the chunk size is deemed too large, log a message and skip 
+// over the chunk by reading and discarding its contents, then return 0.

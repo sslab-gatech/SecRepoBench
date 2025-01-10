@@ -1,6 +1,5 @@
-// Decompile tuple variations by initializing shared indices and a tuple iterator.
-// Retrieve the size of the tuple variation data or create a byte array from the blob
-// (depending on the snippet used) and attempt to get a tuple iterator.
-// If the iterator cannot be obtained, return false indicating failure.
-// Use the iterator to decompile the tuple variations, taking into account
-// whether it's a 'gvar' table, shared indices, and axes mapping.
+// Initialize a vector to hold shared indices and a tuple iterator for processing
+// tuple variations. Calculate the byte length of the TupleVariationData based on
+// the number of axes or obtain it from the input blob. Convert the data into a
+// byte array. Attempt to initialize the tuple iterator using the byte array, the
+// number of axes, and other relevant information. If unsuccessful, return false.

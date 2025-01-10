@@ -1,9 +1,6 @@
-// Parse the multilayer extension parameters for HEVC PPS. 
-// Reads flags for POC reset information and scaling list inference. 
-// If scaling list inference is enabled, reads the reference layer ID.
-// Parses the number of reference location offsets and validates their count.
-// For each reference location offset, reads and processes flags for 
-// scaled reference layer offsets, reference region offsets, and resample phase set.
-// If corresponding flags are set, reads relevant offset or phase values 
-// using Golomb-coded data and bit-fields.
-// Finally, checks if color mapping is enabled and processes the color mapping table if it is.
+// Parse reference location offsets for multiple layers in the PPS
+// Iterate over all reference location offsets specified by num_ref_loc_offsets
+// For each offset, read and store the layer ID from the bitstream
+// Check and process flags for scaled reference layer offsets, reference region offsets, and resample phase set
+// Retrieve and store the respective offset values using Golomb-coded data as needed
+// Handle resample phases for luma and chroma components if specified

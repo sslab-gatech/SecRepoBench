@@ -1,4 +1,7 @@
-// If the MVG class exists, insert its contents into the current stream.
-// Calculate the offset from the start of the primitive string.
-// Allocate a new string, copy the current primitive up to the offset, append the class contents, and then append the rest of the primitive.
-// Replace the original primitive string with the new one, adjusting the position pointer accordingly.
+// Check if the current token matches the graphic context ID, break if true.
+// Retrieve the MVG class definition from the macros using the token.
+// If the class definition is found and the current pointer is valid,
+// inject the class elements into the stream at the current offset.
+// Concatenate the MVG class to the elements string, followed by the remaining content.
+// Free the previous primitive string and update it with the new elements.
+// Adjust the stream pointer to the new position in the modified primitive.

@@ -1,6 +1,5 @@
-// This code block is responsible for handling environment unsharing in mruby's VM.
-// It handles the allocation of a new stack for an environment, copying the existing stack
-// values to the new stack, and updating the environment's stack pointer.
-// The environment is then marked as closed, indicating it is no longer on the VM stack.
-// An optional write barrier is used in snippet 2 to mark the environment for the garbage collector,
-// ensuring proper memory management when the environment object is modified.
+// This section handles the case where an environment (`e`) is on the stack and needs to be "unshared."
+// It allocates memory for a new stack with the given length `len` and copies the existing stack contents to it.
+// The new stack is then assigned to the environment `e`, and the environment is marked as closed.
+// If the `mrb_write_barrier` function is called, it ensures proper garbage collection tracking for the modified environment.
+// The function returns `TRUE` to indicate the stack has been successfully unshared.

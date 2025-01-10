@@ -1,7 +1,3 @@
-// The masked section handles calculating the length of a subarray to be
-// spliced. It determines how many elements will be affected by the operation
-// starting from the specified head index. If the head index is within the
-// array bounds, it computes the length as the difference between the total
-// array length and the head index. An additional step in the process might
-// involve recalculating the tail index to ensure that the operation does not
-// exceed array bounds.
+// Calculate the tail index by adding head and len.
+// If the array length (alen) is less than len or tail, adjust len to fit within the array bounds.
+// Ensure the array bounds are respected by potentially updating tail based on new len.

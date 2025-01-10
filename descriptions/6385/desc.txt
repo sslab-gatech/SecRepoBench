@@ -1,4 +1,5 @@
-// Parse the geometry string to set the image resolution.
-// Uses `ParseGeometry` to extract x (rho) and y (sigma) resolution values.
-// If only x value is provided, set y resolution to x resolution.
-// Returns true if successful.
+// Update the image's horizontal and vertical resolution based on parsed geometry information.  
+// The approach may vary depending on whether specific flags (RhoValue and SigmaValue) are set.
+// For example, if only SigmaValue is set, the vertical resolution (y) is updated based on sigma value;  
+// otherwise, the horizontal resolution (x) updates based on rho value and vertical resolution (y)  
+// mirrors the horizontal resolution unless specified otherwise by SigmaValue.

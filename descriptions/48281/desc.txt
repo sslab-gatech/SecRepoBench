@@ -1,5 +1,5 @@
-// Validate input buffer size and frame width
-// - Ensure the buffer size is at least 4 bytes to have enough data for processing
-// - Check that the frame width is at least 8 pixels, which is the minimum required width
-// - Optionally, check if the frame width is a multiple of 8, ensuring proper alignment
-// Return an error if any of these conditions are not met, indicating invalid data input.
+// Initialize variables for processing the second field offset and return value.
+// Check the buffer size and the width of the video context to ensure they meet minimum requirements.
+// In the second snippet, an additional check ensures that the width is a multiple of 8.
+// If the requirements are not met, return an error indicating invalid data.
+// Extract the quality value from the first byte of the buffer for further processing.

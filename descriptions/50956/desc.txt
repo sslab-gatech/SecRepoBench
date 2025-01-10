@@ -1,6 +1,3 @@
-// Retrieve matrix data from two adjacent matrix stages for potential optimization.
-// Ensure the first matrix has no input offset to proceed with matrix multiplication.
-// Multiply the matrices to combine their transformations, storing the result in 'res'.
-// Check if the resulting matrix 'res' is an identity matrix and if the offset is zero.
-// If the resulting matrix is an identity matrix and there's no offset, mark it as 
-// an identity operation, allowing the removal of these stages from the pipeline.
+// Ensure that the matrix operation involves only RGB channels (3 channels for both input and output),
+// and that the input matrix offset should be zero. This check is necessary for optimizing matrices
+// within color management systems, allowing for efficient handling of common RGB transformations.

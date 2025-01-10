@@ -1,7 +1,1 @@
-// Parse an ESDS box contained within unknown data.
-// Create a bitstream reader (mybs) for the remaining unknown data.
-// Use a cookie to disable logging during parsing operations.
-// If an ESDS box already exists, remove it from the child boxes list and from any nested child lists.
-// Parse an ESDS box from the bitstream, replacing the existing one if successful.
-// If parsing is successful, add the ESDS box to the child boxes list.
-// Clean up and delete the bitstream reader.
+// Remove the ESD (Elementary Stream Descriptor) box from the parent box's list of children, if it exists. The function either removes the ESD box directly from the list of child boxes or iterates through the child boxes to ensure removal from any nested structures, then deletes the ESD box from memory. This ensures that the ESD box is no longer part of the box hierarchy and frees associated resources.

@@ -1,7 +1,5 @@
-// This function attempts to read a specified tag from an ICC profile.
-// It first acquires a mutex for thread safety, then searches for the tag in the profile's tag directory.
-// If the tag is already loaded in memory, it returns a pointer to the tag data.
-// Otherwise, it seeks to the tag's location in the profile file, reads the tag's type base,
-// and verifies if the tag type is supported. If supported, it uses the appropriate type handler
-// to read and load the tag data into memory. Upon successful reading, it returns a pointer to the loaded data.
-// If any error occurs during these operations, it releases the mutex and returns NULL.
+// Seek to the tag's location in the IO handler. Check if the tag is supported 
+// by retrieving the tag descriptor for the given signature. If the tag descriptor 
+// is not found, log an error and exit. Read the base type of the tag and verify 
+// if it is supported by the tag descriptor. If the type is unsupported, exit. 
+// Deduct 8 bytes from the tag size to account for the tag's base type header.

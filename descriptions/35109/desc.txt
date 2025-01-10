@@ -1,5 +1,8 @@
-// Parses a numeric value from the format string, updating the provided pointer `valp`.
-// Iterates over the characters in the range [p, end), continuing while the character is a digit.
-// Builds the number incrementally, checking for overflow during multiplication and addition operations.
-// If the parsing reaches the end of the string without encountering a non-digit, raises an error.
-// Once parsed, updates `valp` with the new number and returns the current position `p` in the string.
+// This code parses a sequence of digits from a format string to compute an integer value.
+// It iterates over the characters in the string as long as they are digits and attempts to 
+// accumulate these digits into an integer `next_n`. The accumulation process checks for 
+// overflow using `mrb_int_mul_overflow` and ensures that the resulting value will not exceed 
+// `MRB_INT_MAX`. If an overflow is detected or the integer overflows beyond `MRB_INT_MAX`, 
+// the function returns `NULL`. After parsing the digits, it checks if `p` has exceeded the 
+// `end`, indicating a malformed format string, and raises an error if so. The second snippet 
+// has an additional check to ensure `next_n` remains within the bounds of `INT_MAX`.

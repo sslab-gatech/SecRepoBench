@@ -1,5 +1,6 @@
-// Concatenate the contents of a source StringInfo to a destination StringInfo.
-// Ensure enough memory is allocated for the combined length of the two strings,
-// including additional buffer space. Adjust the length of the destination string
-// to reflect the concatenated result. Handle any memory allocation failures
-// by throwing a fatal exception.
+// Concatenate the source StringInfo's data to the destination StringInfo's data.
+// Ensure enough memory is allocated to accommodate the concatenated result,
+// including additional space defined by MagickPathExtent. If the current
+// destination data is NULL, allocate new memory; otherwise, resize existing memory.
+// Copy the source data to the end of the destination's data.
+// Update the length of the destination StringInfo to reflect the new total length.

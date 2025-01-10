@@ -1,5 +1,4 @@
-// Assigns new data to the storage from the source pointer `src` for a specified number of 
-// elements `count` each of size `sizeOfT`. Ensures that the storage is resized accordingly. 
-// If `count` is greater than zero, it updates the storage, either reallocating to fit the new 
-// size or shrinking to fit exactly, depending on the implementation. Uses assertions to 
-// validate input and performs memory copy if the source is not null.
+// Assign the given source data to the storage, updating the count and size as necessary.
+// If the count is greater than zero, ensure the storage can accommodate the new size.
+// Optionally reallocate memory if the current reserve is insufficient.
+// Copy the source data into storage if the source is non-null.

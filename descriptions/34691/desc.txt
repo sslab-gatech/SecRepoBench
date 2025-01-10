@@ -1,11 +1,8 @@
-// This function implements the behavior of `Array#shift` in Ruby, allowing the
-// removal of a specified number of elements from the beginning of an array.
-// It first retrieves the current array length and checks if a specific number of
-// elements to remove is provided; if not, defaults to removing one element.
-// If the array length is zero or the number to remove is zero, it returns a new,
-// empty array. The function handles cases where the array is shared or embedded
-// and updates the underlying array structure accordingly. Depending on the array
-// length and the number of elements to be removed, it might convert the array to
-// a shared array to optimize memory usage. It then creates a new array containing
-// the removed elements and adjusts the original array's length and pointers
-// accordingly, finally returning the new array with the removed elements.
+// This section implements the functionality for shifting elements from an array,
+// either by removing a single element (default behavior) or a specified number
+// of elements when provided with an integer argument. It checks the number of
+// arguments passed and determines if the operation is a single element shift or
+// a multiple shift. It also handles edge cases such as shifting from an empty
+// array or when a negative number of elements is specified, raising an argument
+// error if necessary. The method ensures that shared arrays are handled
+// correctly by adjusting the pointer and length of the underlying storage.

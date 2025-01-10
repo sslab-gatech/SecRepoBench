@@ -1,4 +1,5 @@
-// Identify arguments within a constructor that can be flattened, re-walk them, and replace
-// nested constructors with their individual components. Create a new constructor with the
-// flattened arguments and replace the original expression in the CFG and IR. Trigger a rescan
-// if necessary. Reference counts remain unchanged, as no new references are added or removed.
+// Creates a new Constructor expression with the optimized list of flattened arguments and
+// attempts to replace the current expression node with the optimized expression. Updates the
+// optimization context to reflect changes made, including setting the rescan flag if the
+// replacement failed. The fUsage count remains unchanged because no references are added or
+// removed during this process.

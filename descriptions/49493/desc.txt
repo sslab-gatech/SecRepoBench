@@ -1,6 +1,8 @@
-// Compare the absolute values of two multi-precision integers (mpz_t *x and mpz_t *y).
-// Return -1 if |y| < |x|, 1 if |y| > |x|, or 0 if |y| == |x|.
-// First, compare sizes (sz) of the integers; a smaller size indicates a smaller number.
-// If sizes are equal, compare each digit from the most significant to the least significant.
-// Return 1 if a digit from y is greater than the corresponding digit from x, -1 if it is less.
-// If all digits are equal, return 0.
+// Compare the absolute values of two multi-precision integers, x and y.
+// - If y has fewer digits than x, return -1 (indicating y is smaller).
+// - If y has more digits than x, return 1 (indicating y is larger).
+// - If they have the same number of digits, iterate from the most significant
+//   digit to the least significant digit:
+//   - If a digit of y is greater than the corresponding digit of x, return 1.
+//   - If a digit of y is less than the corresponding digit of x, return -1.
+// - If all corresponding digits are equal, return 0.

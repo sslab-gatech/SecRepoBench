@@ -1,4 +1,12 @@
-// Check if the number of decoded channels exceeds the number of requested channels.
-// If so, break out of the loop to prevent reading beyond the expected data.
-// In debug mode, continue processing to allow detection of potential data issues
-// such as mismatched configurations or extra unwanted bits following the audio data.
+// The masked section of the code handles different audio element types in an ALAC (Apple Lossless Audio Codec) stream. 
+// It uses a switch-case construct to interpret tags that identify various elements in the bitstream. 
+// For each element type, it performs different operations:
+// - `ID_SCE` and `ID_LFE`: Decode mono or LFE channels, including reading flags and potential partial frame sizes, 
+//   decompress data if needed, and handle uncompressed frames by reading data directly into buffers.
+// - `ID_CPE`: Decode stereo channel pairs, using a similar procedure as mono channels but handling two channels simultaneously.
+// - `ID_CCE` and `ID_PCE`: Unsupported element types, set an error status.
+// - `ID_DSE`: Data stream elements, which are parsed but ignored.
+// - `ID_FIL`: Fill elements, also parsed but ignored.
+// - `ID_END`: Marks the end of the frame, aligning the bit buffer if necessary.
+// The code includes error handling for invalid or unsupported configurations and ensures that all 
+// requested channels are processed by filling any missing channels with zeros.

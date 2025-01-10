@@ -1,8 +1,11 @@
-// Read matrix parameters from the bitstream for the specified substream.
-// This function determines the number of primitive matrices in the substream
-// and validates it against the maximum allowed for the codec type (MLP or TRUEHD).
-// For each matrix, it reads the output channel, fractional bits, and LSB bypass flag.
-// It checks if the output channel and fractional bits are within valid ranges.
-// If noise is used, it sets the matrix noise shift; otherwise, it sets it to zero.
-// It calculates and stores matrix coefficients for each channel, adjusting for 
-// fractional bits. If any validation fails, the function returns an error.
+// Validate the number of primitive matrices against the maximum allowed.
+// For each primitive matrix, read the output channel, fractional bits,
+// and whether LSBs should be bypassed. If the output channel exceeds the
+// max matrix channel or the fractional bits exceed 14, log an error and
+// return an error code. If the noise type is not set, adjust the max
+// channel to account for additional noise channels. For each channel,
+// read a coefficient value, multiplying it by a power of two based on
+// the fractional bits. If noise type is set, read and store the matrix
+// noise shift value, otherwise set it to zero. If any validation fails
+// in snippet 1, reset the number of matrices to zero and return an error.
+// In snippet 2, instead of resetting immediately, use a goto for cleanup.

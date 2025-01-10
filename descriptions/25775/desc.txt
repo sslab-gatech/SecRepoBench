@@ -1,6 +1,4 @@
-// This code block probes the input data buffer to identify if it is a 3DO STR format.
-// It reads chunks from the buffer, each identified by a tag and a size.
-// The function checks if the buffer has valid control and sound chunks with required size.
-// For the 'SNDS' chunk, it verifies the presence of a 'SHDR' subchunk and valid audio parameters.
-// If these conditions are met, it returns a high probe score indicating a match.
-// The loop handles unknown or unsupported chunks by skipping over them.
+// Check the validity of the 'size' field in the STR file format. 
+// Ensure 'size' is not less than 8 and the buffer contains enough 
+// data as indicated by 'size'. If not, return 0 to indicate failure. 
+// Then, increment the index 'i' by 8 to move past the header.

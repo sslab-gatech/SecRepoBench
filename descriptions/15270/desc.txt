@@ -1,8 +1,7 @@
-// Check and set the bit rate if it's not already specified. Validate the channel layout
-// based on the number of channels. If the channel layout doesn't match the number of
-// specified channels, issue a warning and reset the channel layout. Ensure the number 
-// of channels is within a valid range. For subtitle codecs, manage character encoding, 
-// ensuring only text-based subtitles attempt character encoding conversion. If iconv 
-// support is available and the character encoding mode is set to automatic, transition 
-// to the pre-decoder mode and validate the iconv context. Finally, adjust the time base 
-// according to the framerate if applicable.
+// Check if subtitle character encoding is set and handle accordingly.
+// Ensure that character encoding is only used with subtitle codecs.
+// If the codec is bitmap-based, character encoding is ignored with a warning.
+// For text-based subtitle codecs, set the character encoding mode to pre-decoder
+// if it is in automatic mode and validate the input encoding using iconv if available.
+// In Snippet 2, an additional check is included to ensure the bits per coded sample
+// is non-negative before proceeding with character encoding handling.

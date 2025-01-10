@@ -1,12 +1,7 @@
-// This code block sets the quantum depth and allocates the quantum pixel buffer
-// for image processing. It begins by asserting the validity of the input image
-// and quantum_info structures, ensuring they have the correct signatures and are
-// not NULL. The depth is set to a minimum of the given depth and 64. If the
-// quantum format is FloatingPoint, the depth is further adjusted to standard
-// floating-point sizes (16, 24, 32, or 64 bits). The quantum size is calculated
-// based on pixel channels, padding, and the quantum depth. The extent is
-// determined by the maximum of image columns and rows, multiplied by the quantum
-// size. It checks for overflow in the extent calculation and ensures the quantum
-// pixel buffer is allocated only if the required extent exceeds the existing
-// extent. If the buffer already exists and has sufficient size, it returns true;
-// otherwise, it destroys the existing buffer and acquires a new one.
+// Calculate the size of the quantum pixel buffer based on the image dimensions,
+// number of pixel channels, and quantum depth. The computation determines the
+// `quantum` variable by considering the number of pixel channels, padding, and
+// quantum depth, accounting for byte alignment. The `extent` is then calculated
+// as the product of the maximum of the image's columns and rows, and the 
+// `quantum`, optionally scaling by `sizeof(double)`, to ensure sufficient 
+// memory allocation for the pixel buffer.

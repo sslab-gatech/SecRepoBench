@@ -1,5 +1,7 @@
-// Check if there is enough data remaining in the auxiliary data buffer 
-// for processing a "B" type auxiliary field. This involves verifying 
-// the buffer contains the minimum required number of bytes (subtype and 
-// length fields) before attempting to read them. If insufficient data 
-// remains, an error is triggered by jumping to the "err" label.
+// Case handlers for auxiliary fields of types 'H' and 'B' in BAM records.
+// Handles 'H' type (hexadecimal string) by creating a new block if necessary,
+// and encoding the data from the auxiliary fields.
+// For 'B' type (byte array), computes the length based on the sub-type and count,
+// allocates blocks as needed, and encodes the data.
+// Checks for sufficient data remaining in the auxiliary field buffer before processing.
+// Updates the auxiliary field pointer appropriately after encoding.

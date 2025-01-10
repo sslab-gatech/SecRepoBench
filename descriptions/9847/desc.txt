@@ -1,9 +1,7 @@
-// Parses a JSON object by iterating through its fields. The function first
-// skips any leading whitespace and checks for an opening quote to ensure 
-// the start of a string key. It parses the string and expects a colon to 
-// separate the key and the value. It then recursively parses the value, 
-// which could be any valid JSON type. It continues parsing fields, 
-// expecting either a comma to separate fields or a closing brace to end 
-// the object. If parsing is successful, it updates the pointer position 
-// and returns a success flag. The function also includes debugging output 
-// to trace parsing steps and errors.
+// This section parses the continuation of a JSON object after a key-value pair.
+// It looks for a comma to continue parsing further key-value pairs or a closing
+// brace to complete the JSON object. If a closing brace is found, the parsing
+// of the object is considered successful, and control returns to the previous
+// level. If there is no more content to parse (in the second snippet), it
+// exits the parsing loop. Otherwise, it signals an error if the next character
+// is not a comma or closing brace.

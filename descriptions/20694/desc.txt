@@ -1,7 +1,7 @@
-// Decodes the reference sequence ID, start, and span fields from the slice header.
-// Uses different methods depending on whether LARGE_POS is defined, allowing for
-// the use of larger integer types if required. This section reads the fields from
-// the slice header and assigns the values to the hdr structure. If LARGE_POS is 
-// not defined, it uses the standard ITF8 format for these fields. Optionally, 
-// checks for negative values in ref_seq_start and ref_seq_span, logging an error 
-// and freeing the header if any are found.
+// Extract reference sequence ID, start, and span from the slice header.
+// This includes special handling for the LARGE_POS macro, which uses
+// larger data types for positions and spans. If LARGE_POS is defined,
+// use safe_ltf8_get to extract 64-bit values for ref_seq_start and
+// ref_seq_span; otherwise, use safe_itf8_get for standard 32-bit values.
+// The code ensures that the reference sequence start and span values
+// are correctly extracted based on the available size type.

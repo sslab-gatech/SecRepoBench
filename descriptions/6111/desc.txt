@@ -1,11 +1,10 @@
-// This code block is responsible for reading a Postscript image file
-// and returning it as an Image structure. It initializes necessary
-// variables and structures, handles file operations, and processes
-// Postscript comments and profiles. It also sets image properties like
-// resolution, dimensions, and color settings. The block interacts with
-// Ghostscript to render the Postscript content and creates a temporary
-// Ghostscript control file for processing. It considers various Postscript
-// elements such as bounding boxes, color spaces, and pages. The rendered
-// Postscript content is then used to generate images, handling different
-// profiles and properties as needed. The code block ensures cleanup of
-// temporary resources and proper error handling throughout its execution.
+// Initialize necessary variables and structures for processing Postscript images.
+// Open the input image file and create a symbolic link to it for processing.
+// Initialize an array to map hex characters to their integer values.
+// Set the page density for the image based on the provided resolution or default values.
+// Determine the page geometry using the Postscript bounding box comments.
+// Initialize various variables including color space, resolution, and page dimensions.
+// Create a control file for Ghostscript to render the Postscript image.
+// Use the Ghostscript delegate to render the Postscript into a raster format.
+// Read the rendered images and append them to the image list, handling profiles if necessary.
+// Clean up and return the processed image list, handling any errors that occur.

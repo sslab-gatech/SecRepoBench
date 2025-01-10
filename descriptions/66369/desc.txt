@@ -1,6 +1,11 @@
-// Iterate over auxiliary data from a BAM record to encode it into CRAM format.
-// Handles special tags like RG:Z, MD:Z, and NM:i for potential CRAM-specific
-// optimizations such as omitting data that can be reconstructed.
-// Creates or retrieves a codec for each unique tag type and uses it to encode
-// the data into CRAM blocks. Initializes and manages both container-level and
-// file-level tag metrics, ensuring efficient encoding and tracking of tag data.
+// This code block handles the processing of auxiliary tags during CRAM
+// encoding. It checks the presence of specific tags like RG (Read Group),
+// MD (Mismatch Description), and NM (Number of Mismatches) and applies
+// specific logic to either store them directly, append special markers,
+// or log warnings if expected header records are missing. The block also
+// manages the encoding of auxiliary data, creating and using codecs based
+// on the tag's type (e.g., string, integer, float). For container-level
+// tracking, it adds integer keys to a tag map and uses these keys to
+// initialize and configure the codecs, updating both slice-level and
+// global CRAM metrics as appropriate. Each auxiliary tag's data is then
+// appended to the corresponding blocks designated for external storage.
