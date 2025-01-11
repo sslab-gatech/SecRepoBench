@@ -2,6 +2,5 @@
 // It looks for a comma to continue parsing further key-value pairs or a closing
 // brace to complete the JSON object. If a closing brace is found, the parsing
 // of the object is considered successful, and control returns to the previous
-// level. If there is no more content to parse (in the second snippet), it
-// exits the parsing loop. Otherwise, it signals an error if the next character
+// level. Otherwise, it signals an error if the next character
 // is not a comma or closing brace.

@@ -1,5 +1,3 @@
 // Check for the end of a JSON array during parsing. The code verifies
 // if the current character being parsed is the closing bracket ']' 
-// indicating the end of the array. In one variant of the implementation,
-// it also checks if the parsing pointer has reached the end of the data
-// buffer before checking for ']', ensuring no out-of-bounds access.
+// indicating the end of the array.

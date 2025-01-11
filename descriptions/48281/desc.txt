@@ -1,5 +1,4 @@
 // Initialize variables for processing the second field offset and return value.
 // Check the buffer size and the width of the video context to ensure they meet minimum requirements.
-// In the second snippet, an additional check ensures that the width is a multiple of 8.
 // If the requirements are not met, return an error indicating invalid data.
 // Extract the quality value from the first byte of the buffer for further processing.

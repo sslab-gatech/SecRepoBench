@@ -2,5 +2,3 @@
 // The scale is determined by the quantum range divided by the maximum pixel
 // value determined by the precision of the component. The pixel value is
 // adjusted for signedness by adding an offset when the component is signed. 
-// Optionally, the index into the component's data array is validated to ensure 
-// it lies within the valid range, throwing an exception if out of bounds.

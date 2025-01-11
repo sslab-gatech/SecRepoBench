@@ -1,6 +1,4 @@
 // Parse a node information from the SMD file. First, it attempts to read an 
 // unsigned integer as the bone index, following by skipping any spaces. If 
 // the parsing fails, it logs an error message indicating an unexpected EOF 
-// or end of line while parsing the bone index. Depending on the chosen snippet,
-// it either logs the error and returns or throws a DeadlyImportError with the 
-// same message.
+// or end of line while parsing the bone index.

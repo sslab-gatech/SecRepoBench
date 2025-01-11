@@ -5,5 +5,4 @@
 // of 8 pixels, utilizing the AV_COPY64U function for optimized 64-bit 
 // unaligned memory copy operations. The loop handles the case where 
 // the memory addresses and strides are not aligned to 16-byte boundaries. 
-// Depending on the implementation choice, the block can either handle
-// remaining unaligned pixels within the loop or handle the remainder separately.
+// The block also handles remaining unaligned pixels.

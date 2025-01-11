@@ -1,2 +1,1 @@
-// Check if the decrypted string is valid UTF-8. If it is not, report an error and return an empty string.
-// Otherwise, return the decrypted string as the result.
+// return the decrypted string

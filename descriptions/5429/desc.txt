@@ -1,3 +1,1 @@
-// Allocate memory for the colormap index. If the image storage class is
-// PseudoClass, allocate memory based on the number of colors in the image.
-// Otherwise, use a default maximum colormap size.
+// Allocate memory for the colormap index based on the number of colors in the image.

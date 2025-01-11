@@ -1,4 +1,4 @@
-// Retrieve the next argument and convert it to a double precision float.
+// Retrieve the next argument and convert it to a float.
 // Check if the float value is finite. If the value is NaN (Not a Number) or
 // Infinity, prepare to format it as "NaN" or "Inf" respectively, 
 // including potential sign handling ('+' or ' ' for positive numbers if specified).

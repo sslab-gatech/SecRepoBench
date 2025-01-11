@@ -1,7 +1,5 @@
 // Handles the pre-behavior of LightWave envelopes by inserting additional keyframes
 // for pre-defined behaviors such as OffsetRepeat, Repeat, and Oscillate. This involves
 // calculating the time delta between keys and adjusting keyframe values accordingly.
-// Snippet 1 and Snippet 2 differ slightly; Snippet 2 includes an additional check
-// for zero delta to potentially skip processing if no time difference exists.
 // The logic uses the start time, end time, and value delta to calculate new keyframe
 // positions and values, adapting to the pre-behavior type.

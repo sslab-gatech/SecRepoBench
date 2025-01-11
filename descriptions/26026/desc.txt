@@ -1,5 +1,3 @@
-// Check if the chunk size is too large to be handled. Depending on the 
-// chosen implementation, the size check either considers the full size 
-// of the SF_CART_INFO_16K structure or excludes the 'tag_text_size' 
-// field. If the chunk size is deemed too large, log a message and skip 
+// Check if the chunk size is too large to be handled.
+// If the chunk size is deemed too large, log a message and skip 
 // over the chunk by reading and discarding its contents, then return 0.

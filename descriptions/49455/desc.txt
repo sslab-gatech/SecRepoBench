@@ -2,6 +2,5 @@
 // in an n-dimensional hypercube, represented by the Dims array. It iterates 
 // over each dimension (b) and multiplies the running total (rv) by the size 
 // of the current dimension. The function includes error handling by checking 
-// if the size of the dimension is valid (greater than 0 or 1, depending on 
-// the implementation) and ensures no overflow occurs by comparing the 
+// if the size of the dimension is valid and ensures no overflow occurs by comparing the 
 // running total with UINT_MAX divided by the current dimension.
