@@ -1,3 +1,2 @@
 // Strip leading whitespace characters from the data buffer.
 // Continue incrementing the pointer until the first character is not a whitespace.
-// Optionally, decrement the size of the remaining data buffer to reflect this change.

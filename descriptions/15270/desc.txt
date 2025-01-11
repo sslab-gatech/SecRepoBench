@@ -3,5 +3,3 @@
 // If the codec is bitmap-based, character encoding is ignored with a warning.
 // For text-based subtitle codecs, set the character encoding mode to pre-decoder
 // if it is in automatic mode and validate the input encoding using iconv if available.
-// In Snippet 2, an additional check is included to ensure the bits per coded sample
-// is non-negative before proceeding with character encoding handling.

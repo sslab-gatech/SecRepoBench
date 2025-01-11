@@ -1,4 +1,1 @@
-// Checks the size of the parent box against the size of the current box being parsed.
-// If the current box size exceeds the remaining parent box size, it sets the parent
-// box's size to zero. Optionally, when the 'no-check' option is not set, deletes the
-// current box and returns an error indicating the file is invalid.
+// Set the parent box's size to zero depending on the options.

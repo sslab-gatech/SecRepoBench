@@ -1,5 +1,3 @@
 // This code block is responsible for aligning the line sizes for video frames. 
 // It iterates over each of the data pointers (up to 4) and sets their alignment 
-// using the `STRIDE_ALIGN` constant. Additionally, in the second snippet, a check 
-// is included for the codec ID `AV_CODEC_ID_SVQ3` to ensure a minimum width of 32 pixels. 
-// This adjustment is specific to the SVQ3 codec to handle particular alignment requirements.
+// using the `STRIDE_ALIGN` constant.

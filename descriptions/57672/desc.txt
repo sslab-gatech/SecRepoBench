@@ -1,5 +1,4 @@
 // This section handles the case where an environment (`e`) is on the stack and needs to be "unshared."
 // It allocates memory for a new stack with the given length `len` and copies the existing stack contents to it.
 // The new stack is then assigned to the environment `e`, and the environment is marked as closed.
-// If the `mrb_write_barrier` function is called, it ensures proper garbage collection tracking for the modified environment.
 // The function returns `TRUE` to indicate the stack has been successfully unshared.

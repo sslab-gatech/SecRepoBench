@@ -3,6 +3,4 @@
 // falls within the bounds of the file. If a tag passes the checks, record its signature,
 // offset, and size in the Icc structure. Additionally, search for and record any links
 // between tags that share the same offset and size, indicating they are linked. Finally,
-// increment the tag count for each valid tag entry processed. If no valid tags are found,
-// signal an error indicating a corrupted profile. Return TRUE if the tags are successfully
-// read and processed; otherwise, return FALSE if any IO operation fails.
+// increment the tag count for each valid tag entry processed. Return TRUE if the tags are successfully read and processed.

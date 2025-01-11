@@ -7,5 +7,3 @@
 // read a coefficient value, multiplying it by a power of two based on
 // the fractional bits. If noise type is set, read and store the matrix
 // noise shift value, otherwise set it to zero. If any validation fails
-// in snippet 1, reset the number of matrices to zero and return an error.
-// In snippet 2, instead of resetting immediately, use a goto for cleanup.

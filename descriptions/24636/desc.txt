@@ -1,6 +1,2 @@
 // Extract the size of the tile-part header from the packed headers stream.
-// Depending on the implementation choice, the extraction can either:
-// 1. Directly read the next 32 bits as an unsigned integer to determine the size.
-// 2. Read the next 32 bits as an unsigned integer and then validate if the
-//    remaining bytes in the packed headers stream are sufficient for the header size.
-//    If not, return an error indicating invalid data.
+// Read the next 32 bits as an unsigned integer to determine the size.

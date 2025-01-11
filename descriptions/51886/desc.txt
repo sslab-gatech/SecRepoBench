@@ -1,4 +1,3 @@
 // Assign the given source data to the storage, updating the count and size as necessary.
 // If the count is greater than zero, ensure the storage can accommodate the new size.
-// Optionally reallocate memory if the current reserve is insufficient.
-// Copy the source data into storage if the source is non-null.
+// Copy the source data into storage.

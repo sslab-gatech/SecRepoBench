@@ -1,7 +1,2 @@
-// Depending on the platform, the code checks for the existence of a file 
-// at the given path. On Windows, it uses the `_wstat64` function to get 
-// the file status. On other platforms, there are two possible implementations:
-// 1. It attempts to open the file in read-binary mode using `fopen` and 
-//    returns false if the operation fails, or closes the file if it succeeds.
-// 2. It uses the `stat` function to retrieve the file status and checks 
-//    if the file is a regular file using `S_ISREG`.
+// The code checks for the existence of a file at the given path for 
+// non-Windows platforms.

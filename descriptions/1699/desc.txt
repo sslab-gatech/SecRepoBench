@@ -1,6 +1,5 @@
 // Check if the number of primitive matrices exceeds the maximum allowed.
-// If it does, log an error message and either set the number of matrices
-// to zero or not, then return an error. For each matrix, read the matrix
+// If it does, log an error message and then return an error. For each matrix, read the matrix
 // output channel, the number of fractional bits, and whether LSB bypass is
 // enabled. Validate matrix output channel and fractional bits. For each
 // channel up to the maximum matrix channel, read and store the matrix

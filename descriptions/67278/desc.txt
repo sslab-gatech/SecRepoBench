@@ -3,6 +3,4 @@
 // The loop reads LATM frames from a bitstream and checks if the sample rate index is valid.
 // It counts the number of frames read (`nb_frames`) while monitoring skipped bytes (`nb_skipped`).
 // If more than one frame is successfully parsed with a valid sample rate, the probe score is set
-// to indicate potential support for the stream. The differences between the two snippets are in the
-// condition checks for the base sample rate index (`acfg.base_sr_index`) validity, using either
-// `sizeof` with division or `GF_ARRAY_LENGTH` macro to determine array bounds.
+// to indicate potential support for the stream.

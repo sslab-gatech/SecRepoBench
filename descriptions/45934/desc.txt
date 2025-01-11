@@ -1,6 +1,4 @@
 // The masked region is responsible for copying the 'options' string into 
 // the 'id' buffer, which is used to store the image format identifier. 
 // It ensures that the 'id' buffer is filled with the correct identifier 
-// from the options provided. Additionally, in one implementation, it 
-// checks if 'id' is not empty and raises an exception for an improper 
-// image header before performing the copy.
+// from the options provided.

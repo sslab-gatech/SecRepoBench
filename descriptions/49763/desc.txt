@@ -3,4 +3,3 @@
 // For each digit, a trial quotient (qhat) is calculated and used to adjust the remainder.
 // It handles multi-digit divisions by scaling and adjusting the operands accordingly.
 // The loop iterates over the difference in digit count between the dividend and divisor, updating the quotient q.
-// An optional check ensures the loop executes only when the number of digits in the dividend is at least that of the divisor.

@@ -3,5 +3,4 @@
 // `quantum` variable by considering the number of pixel channels, padding, and
 // quantum depth, accounting for byte alignment. The `extent` is then calculated
 // as the product of the maximum of the image's columns and rows, and the 
-// `quantum`, optionally scaling by `sizeof(double)`, to ensure sufficient 
-// memory allocation for the pixel buffer.
+// `quantum` to ensure sufficient memory allocation for the pixel buffer.

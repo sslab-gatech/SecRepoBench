@@ -3,6 +3,3 @@
 // ensure the profile length is adequate for processing. If LCMS is defined,
 // open the ICC profile and extract profile information such as description,
 // manufacturer, model, and copyright. Store these as properties in the image.
-// The first snippet sets these properties while the second snippet also
-// attempts to retrieve existing property values from the image's properties
-// before proceeding with processing.
