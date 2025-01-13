@@ -1,4 +1,4 @@
-string_info->length=length;
+  string_info->length=length;
   if (string_info->datum == (unsigned char *) NULL)
     string_info->datum=(unsigned char *) AcquireQuantumMemory(length+
       MagickPathExtent,sizeof(*string_info->datum));

@@ -87,6 +87,8 @@ def get_vul_code_block(modified_source_code, sec_code_block, vul_source_file, di
             ln_num = deleted_lines.pop(0)
             if ln_num < start_row + 1:
                 start_row += 1
+            elif ln_num == start_row + 1:
+                start_col = 0
             if ln_num <= end_row + 2:  # possible to insert del line after sec code block, see sample 13180
                 end_row += 1
 
@@ -118,6 +120,8 @@ def get_vul_code_block(modified_source_code, sec_code_block, vul_source_file, di
             ln_num = deleted_lines.pop(0)
             if ln_num < start_row + 1:
                 start_row += 1
+            elif ln_num == start_row + 1:
+                start_col = 0
             if ln_num <= end_row + 2:  # possible to insert del line after sec code block, see sample 13180
                 end_row += 1
             added_lines = [ln+1 for ln in added_lines]
@@ -489,6 +493,9 @@ if __name__ == "__main__":
     with open('ids_good.txt', 'r') as f:
         ids_good = f.readlines()
     ids = [id.strip() for id in ids_good[1:]]
+
+    ids_manual = ['9370', '35712', '7123', '27503', '66135', '5646', '53340', '66108']
+    ids = [id for id in ids if id not in ids_manual]
 
     with open('filter_logs_all/cases.json', 'r') as f:
         cases = json.load(f)

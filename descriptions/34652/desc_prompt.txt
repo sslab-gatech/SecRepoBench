@@ -388,7 +388,7 @@ The masked region can be implemented using either of the two snippets below. Cre
 
 Snippet 1:
 ```
-if (prec + e + 1 > buf_remaining) {
+      if (prec + e + 1 > buf_remaining) {
         prec = buf_remaining - e - 1;
       }
 

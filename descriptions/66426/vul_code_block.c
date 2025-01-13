@@ -1,4 +1,4 @@
-efine MAX(a,b) ((a) > (b) ? (a) : (b))
+#define MAX(a,b) ((a) > (b) ? (a) : (b))
 
   const bitint first = MASK1 * (uint8_t)xs[0];
   const bitint last  = MASK1 * (uint8_t)xs[m-1];

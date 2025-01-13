@@ -2638,7 +2638,7 @@ The masked region can be implemented using either of the two snippets below. Cre
 
 Snippet 1:
 ```
-string_info->length=length;
+  string_info->length=length;
   if (string_info->datum == (unsigned char *) NULL)
     string_info->datum=(unsigned char *) AcquireQuantumMemory(length+
       MagickPathExtent,sizeof(*string_info->datum));
