@@ -4303,7 +4303,7 @@ The masked region can be implemented using either of the two snippets below. Cre
 
 Snippet 1:
 ```
-p=PushLongPixel(quantum_info->endian,p,&pixel);
+          p=PushLongPixel(quantum_info->endian,p,&pixel);
           if (x++ < (ssize_t) (number_pixels-1))
             {
               SetPixelGray(image,ScaleAnyToQuantum((pixel >> 2) & 0x3ff,

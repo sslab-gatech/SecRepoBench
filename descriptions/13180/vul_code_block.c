@@ -1,4 +1,4 @@
-unsigned long
+  unsigned long
     *tietz;
 
   if ((TIFFGetField(tiff,TIFFTAG_ARTIST,&text) == 1) &&

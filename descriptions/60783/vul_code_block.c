@@ -1,4 +1,4 @@
-int flv_codecid = flags & FLV_VIDEO_CODECID_MASK;
+    int flv_codecid = flags & FLV_VIDEO_CODECID_MASK;
     FLVContext *flv = s->priv_data;
 
     if (!vpar->codec_id && !vpar->codec_tag)

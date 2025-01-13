@@ -5787,7 +5787,7 @@ The masked region can be implemented using either of the two snippets below. Cre
 
 Snippet 1:
 ```
-nEntries = Tables->TheCurves[0]->nEntries;
+    nEntries = Tables->TheCurves[0]->nEntries;
 
     for (i=0; i < Tables ->nCurves; i++) {
 

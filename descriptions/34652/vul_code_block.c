@@ -1,4 +1,4 @@
-if (prec + e + 1 > buf_remaining) {
+      if (prec + e + 1 > buf_remaining) {
         prec = buf_remaining - e - 1;
       }
 

@@ -4248,7 +4248,7 @@ The masked region can be implemented using either of the two snippets below. Cre
 
 Snippet 1:
 ```
-unsigned long
+  unsigned long
     *tietz;
 
   if ((TIFFGetField(tiff,TIFFTAG_ARTIST,&text) == 1) &&

@@ -1,4 +1,4 @@
-nEntries = Tables->TheCurves[0]->nEntries;
+    nEntries = Tables->TheCurves[0]->nEntries;
 
     for (i=0; i < Tables ->nCurves; i++) {
 
