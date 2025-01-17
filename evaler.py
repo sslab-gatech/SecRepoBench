@@ -9,8 +9,10 @@ import google.generativeai as genai
 from google.generativeai import GenerationConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from constants import *
+from cwe_map import *
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
+
 
 safety_settings = [
     {
@@ -34,6 +36,26 @@ safety_settings = [
         "threshold": "BLOCK_NONE",
     },
 ]
+
+def get_cwe_info(id):
+    with open(f'/home/cdilgren/project_benchmark/ARVO-Meta/meta/{id}.json', 'r') as f:
+        meta = json.load(f)
+    
+    crash_type = meta['crash_type']
+
+    if crash_type == 'UNKNOWN WRITE':
+        pass
+    elif crash_type == 'UNKNOWN READ':
+        pass
+    elif crash_type == 'Segv on unknown address':
+        pass
+    else:
+        crash_type = crash_type.split()[0]
+
+    cwe_id = crash_type_to_cwe[crash_type]
+    cwe_desc = cwe_id_to_desc[cwe_id]
+    return cwe_id, cwe_desc
+
 
 class BaseEvaler(ABC):
     def __init__(self, model_name: str, context_type: str, prompt_type: str):
@@ -65,8 +87,17 @@ class BaseEvaler(ABC):
                 context = file.read()
             return INFILE_PROMPT.format(context=context.strip())
         elif self.context_type == 'cross-file':
-            with open(f'descriptions/{id}/new-in-file.txt', 'r') as file:
+
+            # get func_mask_desc
+            for file_name in os.listdir(os.path.join('descriptions', id)):
+                if file_name.split('.')[0] == 'mask_func_desc':
+                    break
+            if not file_name.startswith('mask_func_desc'):
+                print(f'ID {id}: mask_func_desc file not present')
+                return
+            with open(os.path.join('descriptions', id, file_name), "r") as file:
                 context1 = file.read()
+                
             with open(f'descriptions/{id}/cross-file.txt', 'r') as file:
                 context2 = file.read()
             return CROSS_FILE_PROMPT.format(context1=context1.strip(), context2=context2.strip())
@@ -79,10 +110,10 @@ class BaseEvaler(ABC):
         elif self.prompt_type == 'sec-practice':
             system_prompt = SEC_PRACTICE_PROMPT
         elif self.prompt_type == 'sec-specific':
-            with open('id2vul.json', 'r') as f:
-                id2vul = json.load(f)
-            vul = id2vul[str(id)]
-            system_prompt = SEC_SPECIFIC_PROMPT.format(vul=vul)
+            cwe_id, cwe_description = get_cwe_info(id)
+            system_prompt = SEC_SPECIFIC_PROMPT.format(CWE_ID=cwe_id, CWE_description=cwe_description)
+        elif self.prompt_type == 'system-prompt':
+            system_prompt = SYSTEM_PROMPT
         else:
             system_prompt = None
 
