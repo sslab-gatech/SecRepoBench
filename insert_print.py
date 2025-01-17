@@ -6,7 +6,13 @@ import json
 import lizard
 from utils import *
 from filter import make_mangled_name
+import tree_sitter_c as tsc
+import tree_sitter_cpp as tscpp
 from tree_sitter import Language, Parser
+
+
+C_LANGUAGE = Language(tsc.language())
+CPP_LANGUAGE = Language(tscpp.language())
 
 
 def remove_comments(input_string):
@@ -109,8 +115,7 @@ def insert_print(id, file_name, diff, source_code):
     mod_func = mod_funcs[0]
 
     # Parse the source code with Tree-sitter
-    parser = Parser()
-    parser.set_language(LANGUAGE)
+    parser = Parser(LANGUAGE)
     tree = parser.parse(bytes(source_code, 'utf8'))
     root_node = tree.root_node
 
