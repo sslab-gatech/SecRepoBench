@@ -1,1 +1,0 @@
-PRIV (dst_ptr_offsets_count) = location + 1;

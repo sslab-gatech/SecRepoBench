@@ -1,2 +1,0 @@
-tmp);
-		xmlTextReaderFreeNode(reader, tmp);

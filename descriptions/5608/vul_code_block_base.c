@@ -1,1 +1,0 @@
-(void) ReadBlob(image,ldblk,BImgBuff);

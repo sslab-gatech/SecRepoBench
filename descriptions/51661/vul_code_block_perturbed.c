@@ -1,1 +1,0 @@
-return _bfd_no_cleanup;

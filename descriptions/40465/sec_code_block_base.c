@@ -1,1 +1,0 @@
-return xmemdup (in, len, len + 1);
