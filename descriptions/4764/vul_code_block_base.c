@@ -1,1 +1,0 @@
-UA_ByteString_deleteMembers(&mc->messageBuffer);

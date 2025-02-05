@@ -1278,10 +1278,10 @@ set_test_type(struct magic *mstart, struct magic *m)
 }
 
 private int
-addentry(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself,
+addentry(struct magic_set *ms, struct magic_entry *me,
    struct magic_entry_set *mset)
 {
-	size_t i = Thenewvariablenameformeshouldbemyself->mp->type == FILE_NAME ? 1 : 0;
+	size_t i = me->mp->type == FILE_NAME ? 1 : 0;
 	if (mset[i].me == NULL || mset[i].count == mset[i].max) {
 		struct magic_entry *mp;
 
@@ -1298,8 +1298,8 @@ addentry(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshould
 		mset[i].max = CAST(uint32_t, incr);
 		assert(mset[i].max == incr);
 	}
-	mset[i].me[mset[i].count++] = *Thenewvariablenameformeshouldbemyself;
-	memset(Thenewvariablenameformeshouldbemyself, 0, sizeof(*Thenewvariablenameformeshouldbemyself));
+	mset[i].me[mset[i].count++] = *me;
+	memset(me, 0, sizeof(*me));
 	return 0;
 }
 
@@ -1313,7 +1313,7 @@ load_1(struct magic_set *ms, int action, const char *fn, int *errs,
 	size_t lineno = 0, llen = 0;
 	char *line = NULL;
 	ssize_t len;
-	struct magic_entry Thenewvariablenameformeshouldbemyself;
+	struct magic_entry me;
 
 	FILE *f = fopen(ms->file = fn, "r");
 	if (f == NULL) {
@@ -1324,7 +1324,7 @@ load_1(struct magic_set *ms, int action, const char *fn, int *errs,
 		return;
 	}
 
-	memset(&Thenewvariablenameformeshouldbemyself, 0, sizeof(Thenewvariablenameformeshouldbemyself));
+	memset(&me, 0, sizeof(me));
 	/* read and parse this file */
 	for (ms->line = 1; (len = getline(&line, &llen, f)) != -1;
 	    ms->line++) {
@@ -1354,14 +1354,14 @@ load_1(struct magic_set *ms, int action, const char *fn, int *errs,
 					(*errs)++;
 					continue;
 				}
-				if (Thenewvariablenameformeshouldbemyself.mp == NULL) {
+				if (me.mp == NULL) {
 					file_error(ms, 0,
 					    "No current entry for :!%s type",
 						bang[i].name);
 					(*errs)++;
 					continue;
 				}
-				if ((*bang[i].fun)(ms, &Thenewvariablenameformeshouldbemyself,
+				if ((*bang[i].fun)(ms, &me,
 				    line + bang[i].len + 2, 
 				    len - bang[i].len - 2) != 0) {
 					(*errs)++;
@@ -1372,11 +1372,11 @@ load_1(struct magic_set *ms, int action, const char *fn, int *errs,
 			/*FALLTHROUGH*/
 		default:
 		again:
-			switch (parse(ms, &Thenewvariablenameformeshouldbemyself, line, lineno, action)) {
+			switch (parse(ms, &me, line, lineno, action)) {
 			case 0:
 				continue;
 			case 1:
-				(void)addentry(ms, &Thenewvariablenameformeshouldbemyself, mset);
+				(void)addentry(ms, &me, mset);
 				goto again;
 			default:
 				(*errs)++;
@@ -1384,8 +1384,8 @@ load_1(struct magic_set *ms, int action, const char *fn, int *errs,
 			}
 		}
 	}
-	if (Thenewvariablenameformeshouldbemyself.mp)
-		(void)addentry(ms, &Thenewvariablenameformeshouldbemyself, mset);
+	if (me.mp)
+		(void)addentry(ms, &me, mset);
 	free(line);
 	(void)fclose(f);
 }
@@ -1402,7 +1402,7 @@ cmpstrp(const void *p1, const void *p2)
 
 
 private uint32_t
-set_text_binary(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, uint32_t nme,
+set_text_binary(struct magic_set *ms, struct magic_entry *me, uint32_t nme,
     uint32_t starttest)
 {
 	static const char text[] = "text";
@@ -1412,41 +1412,41 @@ set_text_binary(struct magic_set *ms, struct magic_entry *Thenewvariablenameform
 	uint32_t i = starttest;
 
 	do {
-		set_test_type(Thenewvariablenameformeshouldbemyself[starttest].mp, Thenewvariablenameformeshouldbemyself[i].mp);
+		set_test_type(me[starttest].mp, me[i].mp);
 		if ((ms->flags & MAGIC_DEBUG) == 0)
 			continue;
 		(void)fprintf(stderr, "%s%s%s: %s\n",
-		    Thenewvariablenameformeshouldbemyself[i].mp->mimetype,
-		    Thenewvariablenameformeshouldbemyself[i].mp->mimetype[0] == '\0' ? "" : "; ",
-		    Thenewvariablenameformeshouldbemyself[i].mp->desc[0] ? Thenewvariablenameformeshouldbemyself[i].mp->desc : "(no description)",
-		    Thenewvariablenameformeshouldbemyself[i].mp->flag & BINTEST ? binary : text);
-		if (Thenewvariablenameformeshouldbemyself[i].mp->flag & BINTEST) {
-			char *p = strstr(Thenewvariablenameformeshouldbemyself[i].mp->desc, text);
-			if (p && (p == Thenewvariablenameformeshouldbemyself[i].mp->desc ||
+		    me[i].mp->mimetype,
+		    me[i].mp->mimetype[0] == '\0' ? "" : "; ",
+		    me[i].mp->desc[0] ? me[i].mp->desc : "(no description)",
+		    me[i].mp->flag & BINTEST ? binary : text);
+		if (me[i].mp->flag & BINTEST) {
+			char *p = strstr(me[i].mp->desc, text);
+			if (p && (p == me[i].mp->desc ||
 			    isspace(CAST(unsigned char, p[-1]))) &&
-			    (p + len - Thenewvariablenameformeshouldbemyself[i].mp->desc == MAXstring
+			    (p + len - me[i].mp->desc == MAXstring
 			    || (p[len] == '\0' ||
 			    isspace(CAST(unsigned char, p[len])))))
 				(void)fprintf(stderr, "*** Possible "
 				    "binary test for text type\n");
 		}
-	} while (++i < nme && Thenewvariablenameformeshouldbemyself[i].mp->cont_level != 0);
+	} while (++i < nme && me[i].mp->cont_level != 0);
 	return i;
 }
 
 private void
-set_last_default(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, uint32_t nme)
+set_last_default(struct magic_set *ms, struct magic_entry *me, uint32_t nme)
 {
 	uint32_t i;
 	for (i = 0; i < nme; i++) {
-		if (Thenewvariablenameformeshouldbemyself[i].mp->cont_level == 0 &&
-		    Thenewvariablenameformeshouldbemyself[i].mp->type == FILE_DEFAULT) {
+		if (me[i].mp->cont_level == 0 &&
+		    me[i].mp->type == FILE_DEFAULT) {
 			while (++i < nme)
-				if (Thenewvariablenameformeshouldbemyself[i].mp->cont_level == 0)
+				if (me[i].mp->cont_level == 0)
 					break;
 			if (i != nme) {
 				/* XXX - Ugh! */
-				ms->line = Thenewvariablenameformeshouldbemyself[i].mp->lineno;
+				ms->line = me[i].mp->lineno;
 				file_magwarn(ms,
 				    "level 0 \"default\" did not sort last");
 			}
@@ -1456,14 +1456,14 @@ set_last_default(struct magic_set *ms, struct magic_entry *Thenewvariablenamefor
 }
 
 private int
-coalesce_entries(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, uint32_t nme,
+coalesce_entries(struct magic_set *ms, struct magic_entry *me, uint32_t nme,
     struct magic **ma, uint32_t *nma)
 {
 	uint32_t i, mentrycount = 0;
 	size_t slen;
 
 	for (i = 0; i < nme; i++)
-		mentrycount += Thenewvariablenameformeshouldbemyself[i].cont_count;
+		mentrycount += me[i].cont_count;
 
 	if (mentrycount == 0) {
 		*ma = NULL;
@@ -1479,23 +1479,23 @@ coalesce_entries(struct magic_set *ms, struct magic_entry *Thenewvariablenamefor
 
 	mentrycount = 0;
 	for (i = 0; i < nme; i++) {
-		(void)memcpy(*ma + mentrycount, Thenewvariablenameformeshouldbemyself[i].mp,
-		    Thenewvariablenameformeshouldbemyself[i].cont_count * sizeof(**ma));
-		mentrycount += Thenewvariablenameformeshouldbemyself[i].cont_count;
+		(void)memcpy(*ma + mentrycount, me[i].mp,
+		    me[i].cont_count * sizeof(**ma));
+		mentrycount += me[i].cont_count;
 	}
 	*nma = mentrycount;
 	return 0;
 }
 
 private void
-magic_entry_free(struct magic_entry *Thenewvariablenameformeshouldbemyself, uint32_t nme)
+magic_entry_free(struct magic_entry *me, uint32_t nme)
 {
 	uint32_t i;
-	if (Thenewvariablenameformeshouldbemyself == NULL)
+	if (me == NULL)
 		return;
 	for (i = 0; i < nme; i++)
-		free(Thenewvariablenameformeshouldbemyself[i].mp);
-	free(Thenewvariablenameformeshouldbemyself);
+		free(me[i].mp);
+	free(me);
 }
 
 private struct magic_map *
@@ -2011,7 +2011,7 @@ out:
  * parse one line from magic file, put into magic[index++] if valid
  */
 private int
-parse(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, const char *line,
+parse(struct magic_set *ms, struct magic_entry *me, const char *line,
     size_t lineno, int action)
 {
 #ifdef ENABLE_CONDITIONALS
@@ -2041,48 +2041,48 @@ parse(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbem
 	last_cont_level = cont_level;
 #endif
 	if (cont_level != 0) {
-		if (Thenewvariablenameformeshouldbemyself->mp == NULL) {
+		if (me->mp == NULL) {
 			file_magerror(ms, "No current entry for continuation");
 			return -1;
 		}
-		if (Thenewvariablenameformeshouldbemyself->cont_count == 0) {
+		if (me->cont_count == 0) {
 			file_magerror(ms, "Continuations present with 0 count");
 			return -1;
 		}
-		m = &Thenewvariablenameformeshouldbemyself->mp[Thenewvariablenameformeshouldbemyself->cont_count - 1];
+		m = &me->mp[me->cont_count - 1];
 		diff = CAST(int32_t, cont_level) - CAST(int32_t, m->cont_level);
 		if (diff > 1)
 			file_magwarn(ms, "New continuation level %u is more "
 			    "than one larger than current level %u", cont_level,
 			    m->cont_level);
-		if (Thenewvariablenameformeshouldbemyself->cont_count == Thenewvariablenameformeshouldbemyself->max_count) {
+		if (me->cont_count == me->max_count) {
 			struct magic *nm;
-			size_t cnt = Thenewvariablenameformeshouldbemyself->max_count + ALLOC_CHUNK;
-			if ((nm = CAST(struct magic *, realloc(Thenewvariablenameformeshouldbemyself->mp,
+			size_t cnt = me->max_count + ALLOC_CHUNK;
+			if ((nm = CAST(struct magic *, realloc(me->mp,
 			    sizeof(*nm) * cnt))) == NULL) {
 				file_oomem(ms, sizeof(*nm) * cnt);
 				return -1;
 			}
-			Thenewvariablenameformeshouldbemyself->mp = nm;
-			Thenewvariablenameformeshouldbemyself->max_count = CAST(uint32_t, cnt);
+			me->mp = nm;
+			me->max_count = CAST(uint32_t, cnt);
 		}
-		m = &Thenewvariablenameformeshouldbemyself->mp[Thenewvariablenameformeshouldbemyself->cont_count++];
+		m = &me->mp[me->cont_count++];
 		(void)memset(m, 0, sizeof(*m));
 		m->cont_level = cont_level;
 	} else {
 		static const size_t len = sizeof(*m) * ALLOC_CHUNK;
-		if (Thenewvariablenameformeshouldbemyself->mp != NULL)
+		if (me->mp != NULL)
 			return 1;
 		if ((m = CAST(struct magic *, malloc(len))) == NULL) {
 			file_oomem(ms, len);
 			return -1;
 		}
-		Thenewvariablenameformeshouldbemyself->mp = m;
-		Thenewvariablenameformeshouldbemyself->max_count = ALLOC_CHUNK;
+		me->mp = m;
+		me->max_count = ALLOC_CHUNK;
 		(void)memset(m, 0, sizeof(*m));
 		m->factor_op = FILE_FACTOR_OP_NONE;
 		m->cont_level = 0;
-		Thenewvariablenameformeshouldbemyself->cont_count = 1;
+		me->cont_count = 1;
 	}
 	m->lineno = CAST(uint32_t, lineno);
 
@@ -2431,7 +2431,31 @@ private int
 parse_strength(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, const char *line,
     size_t len __attribute__((__unused__)))
 {
+	const char *l = line;
+	char *el;
+	unsigned long factor;
 	// <MASK>
+	EATAB;
+	factor = strtoul(l, &el, 0);
+	if (factor > 255) {
+		file_magwarn(ms, "Too large factor `%lu'", factor);
+		goto out;
+	}
+	if (*el && !isspace(CAST(unsigned char, *el))) {
+		file_magwarn(ms, "Bad factor `%s'", l);
+		goto out;
+	}
+	m->factor = CAST(uint8_t, factor);
+	if (m->factor == 0 && m->factor_op == FILE_FACTOR_OP_DIV) {
+		file_magwarn(ms, "Cannot have factor op `%c' and factor %u",
+		    m->factor_op, m->factor);
+		goto out;
+	}
+	return 0;
+out:
+	m->factor_op = FILE_FACTOR_OP_NONE;
+	m->factor = 0;
+	return -1;
 }
 
 private int
@@ -2441,13 +2465,13 @@ goodchar(unsigned char x, const char *extra)
 }
 
 private int
-parse_extra(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, const char *line,
+parse_extra(struct magic_set *ms, struct magic_entry *me, const char *line,
     size_t llen, off_t off, size_t len, const char *name, const char *extra,
     int nt)
 {
 	size_t i;
 	const char *l = line;
-	struct magic *m = &Thenewvariablenameformeshouldbemyself->mp[Thenewvariablenameformeshouldbemyself->cont_count == 0 ? 0 : Thenewvariablenameformeshouldbemyself->cont_count - 1];
+	struct magic *m = &me->mp[me->cont_count == 0 ? 0 : me->cont_count - 1];
 	char *buf = CAST(char *, CAST(void *, m)) + off;
 
 	if (buf[0] != '\0') {
@@ -2494,24 +2518,24 @@ parse_extra(struct magic_set *ms, struct magic_entry *Thenewvariablenameformesho
  * magic[index - 1]
  */
 private int
-parse_apple(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, const char *line,
+parse_apple(struct magic_set *ms, struct magic_entry *me, const char *line,
     size_t len)
 {
-	return parse_extra(ms, Thenewvariablenameformeshouldbemyself, line, len,
+	return parse_extra(ms, me, line, len,
 	    CAST(off_t, offsetof(struct magic, apple)),
-	    sizeof(Thenewvariablenameformeshouldbemyself->mp[0].apple), "APPLE", "!+-./?", 0);
+	    sizeof(me->mp[0].apple), "APPLE", "!+-./?", 0);
 }
 
 /*
  * Parse a comma-separated list of extensions
  */
 private int
-parse_ext(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, const char *line,
+parse_ext(struct magic_set *ms, struct magic_entry *me, const char *line,
     size_t len)
 {
-	return parse_extra(ms, Thenewvariablenameformeshouldbemyself, line, len,
+	return parse_extra(ms, me, line, len,
 	    CAST(off_t, offsetof(struct magic, ext)),
-	    sizeof(Thenewvariablenameformeshouldbemyself->mp[0].ext), "EXTENSION", ",!+-/@?_$&", 0); /* & for b&w */
+	    sizeof(me->mp[0].ext), "EXTENSION", ",!+-/@?_$&", 0); /* & for b&w */
 }
 
 /*
@@ -2519,12 +2543,12 @@ parse_ext(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshoul
  * if valid
  */
 private int
-parse_mime(struct magic_set *ms, struct magic_entry *Thenewvariablenameformeshouldbemyself, const char *line,
+parse_mime(struct magic_set *ms, struct magic_entry *me, const char *line,
     size_t len)
 {
-	return parse_extra(ms, Thenewvariablenameformeshouldbemyself, line, len,
+	return parse_extra(ms, me, line, len,
 	    CAST(off_t, offsetof(struct magic, mimetype)),
-	    sizeof(Thenewvariablenameformeshouldbemyself->mp[0].mimetype), "MIME", "+-/.$?:{}", 1);
+	    sizeof(me->mp[0].mimetype), "MIME", "+-/.$?:{}", 1);
 }
 
 private int

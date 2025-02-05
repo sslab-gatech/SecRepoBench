@@ -1,2 +1,0 @@
-if( !bOK )
-            return FALSE;

@@ -1,1 +1,0 @@
-int pointCount = fLastMoveToIndex > 0 ? fLastMoveToIndex : this->countPoints();

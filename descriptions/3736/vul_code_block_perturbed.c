@@ -1,1 +1,0 @@
-foundServerFilteredPointer[foundServersSize++] = &current->registeredServer;

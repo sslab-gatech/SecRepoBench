@@ -1,1 +1,0 @@
-this->bind<T>(abuilder, jprop, &fValue);
