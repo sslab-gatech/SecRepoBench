@@ -240,5 +240,7 @@ int av_aes_init(AVAES *a, const uint8_t *key, int key_bits, int decrypt)
     memcpy(a->round_key[0].u8, key, KC * 4);
 
     // <MASK>
+
+    return 0;
 }
 

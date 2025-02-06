@@ -130,4 +130,8 @@ MagickExport void GetNextToken(const char *start,const char **end,
     }
   }
   // <MASK>
+  while (isspace((int) ((unsigned char) *p)) != 0)
+    p++;
+  if (end != (const char **) NULL)
+    *end=(const char *) p;
 }

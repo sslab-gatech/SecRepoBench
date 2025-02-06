@@ -4218,6 +4218,19 @@ GF_Err audio_sample_entry_box_read(GF_Box *s, GF_BitStream *bs)
 			GF_BitStream *mybs = gf_bs_new(data + i, buffersize - i, GF_BITSTREAM_READ);
 			gf_bs_set_cookie(mybs, GF_ISOM_BS_COOKIE_NO_LOGS);
 			// <MASK>
+			ptr->esd = NULL;
+			e = gf_isom_box_parse((GF_Box **)&ptr->esd, mybs);
+			gf_bs_del(mybs);
+
+			if ((e==GF_OK) && ptr->esd && (ptr->esd->type == GF_ISOM_BOX_TYPE_ESDS)) {
+				if (!ptr->child_boxes) ptr->child_boxes = gf_list_new();
+				gf_list_add(ptr->child_boxes, ptr->esd);
+			} else if (ptr->esd) {
+				gf_isom_box_del((GF_Box *)ptr->esd);
+				ptr->esd = NULL;
+			}
+			e = GF_OK;
+			break;
 		}
 	}
 	gf_free(data);

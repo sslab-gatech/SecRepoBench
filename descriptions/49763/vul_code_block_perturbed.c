@@ -27,9 +27,3 @@ for (size_t j=xd-ydigits;; j--) {
     q.p[j] = (mp_limb)qhat;
     if (j == 0) break;
   }
-  x.sz = yy->sz;
-  urshift(mrb, rr, &x, ns);
-  trim(&q);
-  mpz_move(mrb, qq, &q);
-  mpz_clear(mrb, &x);
-  mpz_clear(mrb, &y);

@@ -29,9 +29,3 @@ if (xd>=ydigits) {
       if (j == 0) break;
     }
   }
-  x.sz = yy->sz;
-  urshift(mrb, rr, &x, ns);
-  trim(&q);
-  mpz_move(mrb, qq, &q);
-  mpz_clear(mrb, &x);
-  mpz_clear(mrb, &y);

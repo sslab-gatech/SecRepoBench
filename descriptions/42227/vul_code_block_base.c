@@ -1,4 +1,9 @@
-NextCh(it8);
+int sng;
+
+        sng = it8->ch;
+        StringClear(it8->str);
+
+        NextCh(it8);
 
         while (it8->ch != sng) {
 

@@ -5031,6 +5031,7 @@ RestoreMSCWarning
 static inline double ConstrainCoordinate(double x)
 {
   // <MASK>
+  return(x);
 }
 
 static void LogPrimitiveInfo(const PrimitiveInfo *primitive_info)

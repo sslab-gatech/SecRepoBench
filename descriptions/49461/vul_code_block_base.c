@@ -8,6 +8,3 @@
             if (!_cmsWriteUInt16Number(io, val)) return FALSE;
         }
     }
-    return TRUE;
-
-    cmsUNUSED_PARAMETER(ContextID);

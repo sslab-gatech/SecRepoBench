@@ -1724,14 +1724,7 @@ GF_Err gf_isom_box_array_read_ex(GF_Box *parent, GF_BitStream *bs, u32 parent_ty
 		//sub box parsing aborted with no error
 		if (!a) return GF_OK;
 
-		if (parent->size < a->size) {
-			if (!skip_logs) {
-				GF_LOG(GF_LOG_WARNING, GF_LOG_CONTAINER, ("[iso file] Box \"%s\" is larger than container box\n", gf_4cc_to_str(a->type)));
-			}
-			// <MASK>
-		} else {
-			parent->size -= a->size;
-		}
+		// <MASK>
 
 		//check container validity
 		if (strlen(a->registry->parents_4cc)) {

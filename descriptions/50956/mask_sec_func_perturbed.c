@@ -30,11 +30,6 @@ cmsBool OptimizeMatrixShaper(cmsPipeline** Lut, cmsUInt32Number Intent, cmsUInt3
               cmsSigCurveSetElemType, cmsSigMatrixElemType, cmsSigMatrixElemType, cmsSigCurveSetElemType,
               &Curve1, &Matrix1, &Matrix2, &Curve2)) {
 
-              // Get both matrices
-              _cmsStageMatrixData* Data1 = (_cmsStageMatrixData*)cmsStageData(Matrix1);
-              _cmsStageMatrixData* Data2 = (_cmsStageMatrixData*)cmsStageData(Matrix2);
-
-              // Only RGB to RGB
               // <MASK>
 
        }

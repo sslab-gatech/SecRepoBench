@@ -460,6 +460,12 @@ udiv(mrb_state *mrb, mpz_t *qq, mpz_t *rr, mpz_t *xx, mpz_t *yy)
   mpz_realloc(mrb, &q, xd);
   mp_dbl_limb z = y.p[ydigits-1];
   // <MASK>
+  x.sz = yy->sz;
+  urshift(mrb, rr, &x, ns);
+  trim(&q);
+  mpz_move(mrb, qq, &q);
+  mpz_clear(mrb, &x);
+  mpz_clear(mrb, &y);
 }
 
 static void

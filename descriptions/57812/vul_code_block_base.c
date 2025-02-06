@@ -24,9 +24,3 @@ for (int i = 0; i < pps->num_ref_loc_offsets; i++) {
             pps->phase_ver_chroma_plus8[pps->ref_loc_offset_layer_id[i]] = get_ue_golomb_long(gb);
         }
     }
-
-    pps->colour_mapping_enabled_flag = get_bits1(gb);
-    if (pps->colour_mapping_enabled_flag)
-        colour_mapping_table(gb, pps);
-
-    return 0;

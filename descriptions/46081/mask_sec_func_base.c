@@ -29,4 +29,14 @@ MagickExport MagickBooleanType SetQuantumDepth(const Image *image,
             quantum_info->depth=16;
     }
   // <MASK>
+  if ((MagickMax(image->columns,image->rows) != 0) &&
+      (quantum != (extent/MagickMax(image->columns,image->rows))))
+    return(MagickFalse);
+  if (quantum_info->pixels != (MemoryInfo **) NULL)
+    {
+      if (extent <= quantum_info->extent)
+        return(MagickTrue);
+      DestroyQuantumPixels(quantum_info);
+    }
+  return(AcquireQuantumPixels(quantum_info,extent));
 }

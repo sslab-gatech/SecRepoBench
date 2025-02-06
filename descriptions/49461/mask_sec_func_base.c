@@ -9,4 +9,7 @@ cmsBool Write16bitTables(cmsContext ContextID, cmsIOHANDLER* io, _cmsStageToneCu
     _cmsAssert(Tables != NULL);
    
     // <MASK>
+    return TRUE;
+
+    cmsUNUSED_PARAMETER(ContextID);
 }

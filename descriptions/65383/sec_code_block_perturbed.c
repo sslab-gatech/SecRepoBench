@@ -68,6 +68,3 @@ case 'H': {
             aux += blen;
             break;
         }
-        default:
-            hts_log_error("Unknown aux type '%c'", aux_end - aux < 2 ? '?' : aux[2]);
-            goto err;

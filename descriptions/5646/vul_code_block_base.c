@@ -11,7 +11,3 @@ token[i]='\0';
       (void) CopyMagickString(token,token+offset,MagickPathExtent);
       token[i-offset-1]='\0';
     }
-  while (isspace((int) ((unsigned char) *p)) != 0)
-    p++;
-  if (end != (const char **) NULL)
-    *end=(const char *) p;

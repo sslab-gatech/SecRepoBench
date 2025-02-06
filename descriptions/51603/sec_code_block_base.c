@@ -1,4 +1,7 @@
-char sbuf[512];
+const char *l = line;
+	char *el;
+	unsigned long factor;
+	char sbuf[512];
 	struct magic *m = &me->mp[0];
 
 	if (m->factor_op != FILE_FACTOR_OP_NONE) {
@@ -28,3 +31,24 @@ char sbuf[512];
 		file_magwarn(ms, "Unknown factor op `%c'", *l);
 		return -1;
 	}
+	EATAB;
+	factor = strtoul(l, &el, 0);
+	if (factor > 255) {
+		file_magwarn(ms, "Too large factor `%lu'", factor);
+		goto out;
+	}
+	if (*el && !isspace(CAST(unsigned char, *el))) {
+		file_magwarn(ms, "Bad factor `%s'", l);
+		goto out;
+	}
+	m->factor = CAST(uint8_t, factor);
+	if (m->factor == 0 && m->factor_op == FILE_FACTOR_OP_DIV) {
+		file_magwarn(ms, "Cannot have factor op `%c' and factor %u",
+		    m->factor_op, m->factor);
+		goto out;
+	}
+	return 0;
+out:
+	m->factor_op = FILE_FACTOR_OP_NONE;
+	m->factor = 0;
+	return -1;

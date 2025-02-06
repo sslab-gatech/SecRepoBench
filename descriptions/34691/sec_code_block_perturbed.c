@@ -1,4 +1,6 @@
-;
+if (mrb_get_args(mrbstateptr, "|i", &n) == 0) {
+    return mrb_ary_shift(mrbstateptr, self);
+  };
   ary_modify_check(mrbstateptr, a);
   if (len == 0 || n == 0) return mrb_ary_new(mrbstateptr);
   if (n < 0) mrb_raise(mrbstateptr, E_ARGUMENT_ERROR, "negative array shift");
