@@ -27,5 +27,3 @@ for (t = KC * 4; t < (rounds + 1) * 16; t += KC * 4) {
         for (i = 0; i < (rounds + 1) >> 1; i++)
             FFSWAP(av_aes_block, a->round_key[i], a->round_key[rounds - i]);
     }
-
-    return 0;

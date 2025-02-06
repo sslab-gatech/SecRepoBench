@@ -1,4 +1,8 @@
-// Input offset should be zero
+// Get both matrices
+              _cmsStageMatrixData* Data1 = (_cmsStageMatrixData*)cmsStageData(Matrix1);
+              _cmsStageMatrixData* Data2 = (_cmsStageMatrixData*)cmsStageData(Matrix2);
+
+              // Input offset should be zero
               if (Data1->Offset != NULL) return FALSE;
 
               // Multiply both matrices to get the result

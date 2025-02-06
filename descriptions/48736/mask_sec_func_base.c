@@ -7,4 +7,6 @@ json_parse_const(const unsigned char **ucp, const unsigned char *ue,
 	DPRINTF("Parse const: ", uc, *ucp);
 	*ucp += --len - 1;
 	// <MASK>
+	DPRINTF("Good const: ", uc, *ucp);
+	return 1;
 }

@@ -750,11 +750,6 @@ void InStringSymbol(cmsIT8* it8)
 
     if (it8->ch == '\'' || it8->ch == '\"')
     {
-        int sng;
-
-        sng = it8->ch;
-        StringClear(it8->str);
-
         // <MASK>        
     }
     else

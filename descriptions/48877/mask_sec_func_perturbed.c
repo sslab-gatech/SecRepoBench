@@ -1,7 +1,7 @@
 static mrb_int
 cmpnum(mrb_state *mrb, mrb_value v1, mrb_value value)
 {
-#ifdef // <MASK>
+// <MASK>
 
 #ifdef MRB_NO_FLOAT
   mrb_int x, y;

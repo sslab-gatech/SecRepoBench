@@ -328,6 +328,9 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
             break;
 
         case 'Z': // <MASK>
+        default:
+            hts_log_error("Unknown aux type '%c'", aux_end - aux < 2 ? '?' : aux[2]);
+            goto err;
         }
         tm->blk->m = tm->m;
     }

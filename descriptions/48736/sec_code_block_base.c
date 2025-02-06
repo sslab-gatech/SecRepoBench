@@ -6,5 +6,3 @@ if (*ucp > ue)
 			return 0;
 		}
 	}
-	DPRINTF("Good const: ", uc, *ucp);
-	return 1;

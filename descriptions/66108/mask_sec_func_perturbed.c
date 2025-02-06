@@ -131,6 +131,9 @@ restart:
 		}
 		sync = start + bytes_skipped;
 
+		size = gf_mp3_frame_size(ctx->hdr);
+
+
 		// <MASK>
 		//ready to send packet
 		mp3_dmx_check_pid(filter, ctx);

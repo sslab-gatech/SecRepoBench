@@ -8,6 +8,3 @@ for (index=0; index < Tables ->nCurves; index++) {
             if (!_cmsWriteUInt16Number(io, val)) return FALSE;
         }
     }
-    return TRUE;
-
-    cmsUNUSED_PARAMETER(ContextID);

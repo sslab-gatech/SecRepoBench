@@ -2160,6 +2160,13 @@ static void ImportGrayQuantum(const Image *img,QuantumInfo *quantum_info,
             q+=GetPixelChannels(img);
           }
           // <MASK>
+          if (x++ < (ssize_t) number_pixels)
+            {
+              SetPixelGray(img,ScaleAnyToQuantum((pixel >> 12) & 0x3ff,
+                range),q);
+              q+=GetPixelChannels(img);
+            }
+          break;
         }
       for (x=0; x < (ssize_t) number_pixels; x++)
       {

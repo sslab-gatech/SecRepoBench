@@ -8,4 +8,10 @@ static int pps_multilayer_extension(GetBitContext *gb, AVCodecContext *codecctx,
 
     pps->num_ref_loc_offsets = get_ue_golomb_long(gb);
     // <MASK>
+
+    pps->colour_mapping_enabled_flag = get_bits1(gb);
+    if (pps->colour_mapping_enabled_flag)
+        colour_mapping_table(gb, pps);
+
+    return 0;
 }

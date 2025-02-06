@@ -422,6 +422,11 @@ FF_ENABLE_DEPRECATION_WARNINGS
             goto free_and_end;
         }
         // <MASK>
+
+#if FF_API_AVCTX_TIMEBASE
+        if (avctx->framerate.num > 0 && avctx->framerate.den > 0)
+            avctx->time_base = av_inv_q(av_mul_q(avctx->framerate, (AVRational){avctx->ticks_per_frame, 1}));
+#endif
     }
     if (codec->priv_data_size > 0 && avctx->priv_data && codec->priv_class) {
         av_assert0(*(const AVClass **)avctx->priv_data == codec->priv_class);

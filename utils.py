@@ -232,10 +232,10 @@ def find_code_block(node, x, y, total_lines, modified_section, consider_sibling=
 
             # get last node whose end is after y
             end_node_i = len(statements) - 1
-            for j in range(len(statements)-1, i-1, -1):
-                current_end_line = statements[j].end_point[0] + 1
-                if current_end_line < y:
-                    end_node_i = j + 1
+            for j in range(start_node_i + 1, len(statements)):
+                current_start_line = statements[j].start_point[0] + 1
+                if current_start_line > y:
+                    end_node_i = j - 1
                     break
 
             selected_nodes = statements[start_node_i:end_node_i+1]

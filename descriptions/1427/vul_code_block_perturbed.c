@@ -14,25 +14,3 @@ if (c->video_size < aligned_width * avctx->height * (int64_t)c->bpp / 8)
                               encoding, c->bpp, c->format);
         return AVERROR_PATCHWELCOME;
     }
-
-    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
-        return ret;
-    p->pict_type = AV_PICTURE_TYPE_I;
-
-    if (encoding) {
-        av_fast_padded_malloc(&c->new_video, &c->new_video_size,
-                              height * w + AV_INPUT_BUFFER_PADDING_SIZE);
-        if (!c->new_video)
-            return AVERROR(ENOMEM);
-        if (c->bpp == 8)
-            cdxl_decode_ham8(c, p);
-        else
-            cdxl_decode_ham6(c, p);
-    } else if (avctx->pix_fmt == AV_PIX_FMT_PAL8) {
-        cdxl_decode_rgb(c, p);
-    } else {
-        cdxl_decode_raw(c, p);
-    }
-    *got_frame = 1;
-
-    return buf_size;

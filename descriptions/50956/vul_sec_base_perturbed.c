@@ -1695,7 +1695,6 @@ cmsBool OptimizeMatrixShaper(cmsPipeline** Lut, cmsUInt32Number Intent, cmsUInt3
               _cmsStageMatrixData* Data1 = (_cmsStageMatrixData*)cmsStageData(Matrix1);
               _cmsStageMatrixData* Data2 = (_cmsStageMatrixData*)cmsStageData(Matrix2);
 
-              // Only RGB to RGB
               // Input offset should be zero
               if (Data1->Offset != NULL) return FALSE;
 

@@ -276,6 +276,28 @@ static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
         aligned_width = FFALIGN(c->avctx->width, 16);
     c->padded_bits  = aligned_width - c->avctx->width;
     // <MASK>
+
+    if ((ret = ff_get_buffer(avctx, p, 0)) < 0)
+        return ret;
+    p->pict_type = AV_PICTURE_TYPE_I;
+
+    if (encoding) {
+        av_fast_padded_malloc(&c->new_video, &c->new_video_size,
+                              h * w + AV_INPUT_BUFFER_PADDING_SIZE);
+        if (!c->new_video)
+            return AVERROR(ENOMEM);
+        if (c->bpp == 8)
+            cdxl_decode_ham8(c, p);
+        else
+            cdxl_decode_ham6(c, p);
+    } else if (avctx->pix_fmt == AV_PIX_FMT_PAL8) {
+        cdxl_decode_rgb(c, p);
+    } else {
+        cdxl_decode_raw(c, p);
+    }
+    *got_frame = 1;
+
+    return buf_size;
 }
 
 static av_cold int cdxl_decode_end(AVCodecContext *avctx)

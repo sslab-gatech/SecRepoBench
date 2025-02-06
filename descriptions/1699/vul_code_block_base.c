@@ -40,5 +40,3 @@ if (s->num_primitive_matrices > max_primitive_matrices) {
         else
             s->matrix_noise_shift[mat] = 0;
     }
-
-    return 0;

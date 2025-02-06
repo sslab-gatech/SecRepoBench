@@ -14,4 +14,6 @@ static int read_matrix_params(MLPDecodeContext *m, unsigned int substr, GetBitCo
     s->num_primitive_matrices = get_bits(gbp, 4);
 
     // <MASK>
+
+    return 0;
 }

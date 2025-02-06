@@ -1,4 +1,6 @@
-size_t nt = 0, nr = 0;
+uint32_t nbytes, cbytes;
+	const unsigned char *orig_uc = uc;
+	size_t nt = 0, nr = 0;
 
 	(void)memcpy(simh_bo.s, "\01\02\03\04", 4);
 
@@ -24,3 +26,8 @@ size_t nt = 0, nr = 0;
 			return 0;
 		nr++;
 	}
+	if (nt * sizeof(uint32_t) == CAST(size_t, uc - orig_uc))
+		return 0;	/* All examined data was tapemarks (0) */
+	if (nr == 0 && nt == 0)
+		return 0;	/* No records and no tapemarks */
+	return 1;

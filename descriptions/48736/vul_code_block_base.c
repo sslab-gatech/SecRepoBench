@@ -4,5 +4,3 @@ for (; uc < ue && --len;) {
 			return 0;
 		}
 	}
-	DPRINTF("Good const: ", uc, *ucp);
-	return 1;

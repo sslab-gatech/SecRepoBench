@@ -843,6 +843,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
                 if (LocaleCompare(keyword,"id") == 0)
                   {
                     // <MASK>
+                    break;
                   }
                 if (LocaleCompare(keyword,"iterations") == 0)
                   {
