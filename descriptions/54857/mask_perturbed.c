@@ -138,8 +138,8 @@ int ff_side_data_update_matrix_encoding(AVFrame *frame,
     return 0;
 }
 
-void avcodec_align_dimensions2(AVCodecContext *s, int *width, int *height,
-                               int linesize_align[NUMDATAPOINTERS])
+void avcodec_align_dimensions2(AVCodecContext *s, int *framewidth, int *height,
+                               int linesize_align[AV_NUM_DATA_POINTERS])
 {
     int i;
     int w_align = 1;

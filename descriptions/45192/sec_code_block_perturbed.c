@@ -1,4 +1,4 @@
-const unsigned char *p = src;
+const unsigned char *p = sourcedata;
   const unsigned char *e = p + srclen;
 
   if (srclen == 0) return 0;

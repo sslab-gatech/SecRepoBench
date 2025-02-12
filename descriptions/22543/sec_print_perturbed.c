@@ -251,7 +251,7 @@ static OPJ_SIZE_T JP2WriteHandler(void *buffer,OPJ_SIZE_T length,void *context)
   return((OPJ_SIZE_T) count);
 }
 
-static Image *ReadJP2Image(const ImageInfo *imginfo,ExceptionInfo *exception)
+static Image *ReadJP2Image(const ImageInfo *image_info,ExceptionInfo *exception)
 {
   const char
     *option;
@@ -290,15 +290,15 @@ static Image *ReadJP2Image(const ImageInfo *imginfo,ExceptionInfo *exception)
   /*
     Open image file.
   */
-  assert(imginfo != (const ImageInfo *) NULL);
-  assert(imginfo->signature == MagickCoreSignature);
-  if (imginfo->debug != MagickFalse)
+  assert(image_info != (const ImageInfo *) NULL);
+  assert(image_info->signature == MagickCoreSignature);
+  if (image_info->debug != MagickFalse)
     (void) LogMagickEvent(TraceEvent,GetMagickModule(),"%s",
-      imginfo->filename);
+      image_info->filename);
   assert(exception != (ExceptionInfo *) NULL);
   assert(exception->signature == MagickCoreSignature);
-  image=AcquireImage(imginfo,exception);
-  status=OpenBlob(imginfo,image,ReadBinaryBlobMode,exception);
+  image=AcquireImage(image_info,exception);
+  status=OpenBlob(image_info,image,ReadBinaryBlobMode,exception);
   if (status == MagickFalse)
     {
       image=DestroyImageList(image);
@@ -313,7 +313,7 @@ static Image *ReadJP2Image(const ImageInfo *imginfo,ExceptionInfo *exception)
       return((Image *) NULL);
     }
   (void) SeekBlob(image,SEEK_SET,0);
-  if (LocaleCompare(imginfo->magick,"JPT") == 0)
+  if (LocaleCompare(image_info->magick,"JPT") == 0)
     jp2_codec=opj_create_decompress(OPJ_CODEC_JPT);
   else
     if (IsJ2K(sans,4) != MagickFalse)
@@ -323,10 +323,10 @@ static Image *ReadJP2Image(const ImageInfo *imginfo,ExceptionInfo *exception)
   opj_set_warning_handler(jp2_codec,JP2WarningHandler,exception);
   opj_set_error_handler(jp2_codec,JP2ErrorHandler,exception);
   opj_set_default_decoder_parameters(&parameters);
-  option=GetImageOption(imginfo,"jp2:reduce-factor");
+  option=GetImageOption(image_info,"jp2:reduce-factor");
   if (option != (const char *) NULL)
     parameters.cp_reduce=StringToInteger(option);
-  option=GetImageOption(imginfo,"jp2:quality-layers");
+  option=GetImageOption(image_info,"jp2:quality-layers");
   if (option != (const char *) NULL)
     parameters.cp_layer=StringToInteger(option);
   if (opj_setup_decoder(jp2_codec,&parameters) == 0)
@@ -377,9 +377,9 @@ static Image *ReadJP2Image(const ImageInfo *imginfo,ExceptionInfo *exception)
       opj_image_destroy(jp2_image);
       ThrowReaderException(DelegateError,"UnableToDecodeImageFile");
     }
-  if ((imginfo->number_scenes != 0) && (imginfo->scene != 0))
+  if ((image_info->number_scenes != 0) && (image_info->scene != 0))
     jp2_status=opj_get_decoded_tile(jp2_codec,jp2_stream,jp2_image,
-      (unsigned int) imginfo->scene-1);
+      (unsigned int) image_info->scene-1);
   else
     if (image->ping == MagickFalse)
       {
@@ -460,12 +460,12 @@ static Image *ReadJP2Image(const ImageInfo *imginfo,ExceptionInfo *exception)
       *magick_restrict q;
 
     register ssize_t
-      x;
+      columnindex;
 
     q=GetAuthenticPixels(image,0,y,image->columns,1,exception);
     if (q == (Quantum *) NULL)
       break;
-    for (x=0; x < (ssize_t) image->columns; x++)
+    for (columnindex=0; columnindex < (ssize_t) image->columns; columnindex++)
     {
       for (i=0; i < (ssize_t) jp2_image->numcomps; i++)
       {
@@ -475,7 +475,7 @@ static Image *ReadJP2Image(const ImageInfo *imginfo,ExceptionInfo *exception)
 
         ssize_t data_index = y/jp2_image->comps[i].dy*
                              image->columns/jp2_image->comps[i].dx+
-                             x/jp2_image->comps[i].dx;
+                             columnindex/jp2_image->comps[i].dx;
         if(data_index < 0 ||
            data_index >= (jp2_image->comps[i].h * jp2_image->comps[i].w))
         {
@@ -541,7 +541,7 @@ static Image *ReadJP2Image(const ImageInfo *imginfo,ExceptionInfo *exception)
   opj_destroy_codec(jp2_codec);
   opj_image_destroy(jp2_image);
   (void) CloseBlob(image);
-  if ((imginfo->number_scenes != 0) && (imginfo->scene != 0))
+  if ((image_info->number_scenes != 0) && (image_info->scene != 0))
     AppendImageToList(&image,CloneImage(image,0,0,MagickTrue,exception));
   return(GetFirstImageInList(image));
 }

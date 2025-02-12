@@ -2460,7 +2460,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
     proceed;
 
   MagickStatusType
-    statuscode;
+    status;
 
   MVGInfo
     mvg_info;
@@ -2496,7 +2496,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
     defsDepth,
     j,
     k,
-    n,
+    graphiccontextindex,
     symbolDepth;
 
   StopInfo
@@ -2525,8 +2525,8 @@ static MagickBooleanType RenderMVGContent(Image *image,
     return(MagickFalse);
   if (image->alpha_trait == UndefinedPixelTrait)
     {
-      statuscode=SetImageAlphaChannel(image,OpaqueAlphaChannel,exception);
-      if (statuscode == MagickFalse)
+      status=SetImageAlphaChannel(image,OpaqueAlphaChannel,exception);
+      if (status == MagickFalse)
         return(MagickFalse);
     }
   if ((*draw_info->primitive == '@') && (strlen(draw_info->primitive) > 1) &&
@@ -2538,7 +2538,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
     return(MagickFalse);
   primitive_extent=(double) strlen(primitive);
   (void) SetImageArtifact(image,"mvg:vector-graphics",primitive);
-  n=0;
+  graphiccontextindex=0;
   number_stops=0;
   stops=(StopInfo *) NULL;
   /*
@@ -2557,8 +2557,8 @@ static MagickBooleanType RenderMVGContent(Image *image,
   if (primitive_info == (PrimitiveInfo *) NULL)
     {
       primitive=DestroyString(primitive);
-      for ( ; n >= 0; n--)
-        graphic_context[n]=DestroyDrawInfo(graphic_context[n]);
+      for ( ; graphiccontextindex >= 0; graphiccontextindex--)
+        graphic_context[graphiccontextindex]=DestroyDrawInfo(graphic_context[graphiccontextindex]);
       graphic_context=(DrawInfo **) RelinquishMagickMemory(graphic_context);
       ThrowBinaryException(ResourceLimitError,"MemoryAllocationFailed",
         image->filename);
@@ -2569,12 +2569,12 @@ static MagickBooleanType RenderMVGContent(Image *image,
   mvg_info.primitive_info=(&primitive_info);
   mvg_info.extent=(&number_points);
   mvg_info.exception=exception;
-  graphic_context[n]=CloneDrawInfo((ImageInfo *) NULL,draw_info);
-  graphic_context[n]->viewbox=image->page;
+  graphic_context[graphiccontextindex]=CloneDrawInfo((ImageInfo *) NULL,draw_info);
+  graphic_context[graphiccontextindex]->viewbox=image->page;
   if ((image->page.width == 0) || (image->page.height == 0))
     {
-      graphic_context[n]->viewbox.width=image->columns;
-      graphic_context[n]->viewbox.height=image->rows;
+      graphic_context[graphiccontextindex]->viewbox.width=image->columns;
+      graphic_context[graphiccontextindex]->viewbox.height=image->rows;
     }
   token=AcquireString(primitive);
   extent=strlen(token)+MagickPathExtent;
@@ -2582,7 +2582,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
   symbolDepth=0;
   cursor=0.0;
   macros=GetMVGMacros(primitive);
-  statuscode=MagickTrue;
+  status=MagickTrue;
   for (q=primitive; *q != '\0'; )
   {
     /*
@@ -2603,7 +2603,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
       }
     p=q-strlen(keyword)-1;
     primitive_type=UndefinedPrimitive;
-    current=graphic_context[n]->affine;
+    current=graphic_context[graphiccontextindex]->affine;
     GetAffineMatrix(&affine);
     *token='\0';
     switch (*keyword)
@@ -2661,7 +2661,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
             primitive_type=ArcPrimitive;
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'b':
@@ -2675,11 +2675,11 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("border-color",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            statuscode&=QueryColorCompliance(token,AllCompliance,
-              &graphic_context[n]->border_color,exception);
+            status&=QueryColorCompliance(token,AllCompliance,
+              &graphic_context[graphiccontextindex]->border_color,exception);
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'c':
@@ -2693,10 +2693,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
             (void) GetNextToken(q,&q,extent,token);
             if (*token == '\0')
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            if (LocaleCompare(token,graphic_context[n]->id) == 0)
+            if (LocaleCompare(token,graphic_context[graphiccontextindex]->id) == 0)
               break;
             mvg_class=(const char *) GetValueFromSplayTree(macros,token);
             if (mvg_class != (const char *) NULL)
@@ -2733,27 +2733,27 @@ static MagickBooleanType RenderMVGContent(Image *image,
             (void) GetNextToken(q,&q,extent,token);
             if (*token == '\0')
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            (void) CloneString(&graphic_context[n]->clip_mask,token);
+            (void) CloneString(&graphic_context[graphiccontextindex]->clip_mask,token);
             clip_path=(const char *) GetValueFromSplayTree(macros,token);
             if (clip_path != (const char *) NULL)
               {
-                if (graphic_context[n]->clipping_mask != (Image *) NULL)
-                  graphic_context[n]->clipping_mask=
-                    DestroyImage(graphic_context[n]->clipping_mask);
-                graphic_context[n]->clipping_mask=DrawClippingMask(image,
-                  graphic_context[n],token,clip_path,exception);
-                if (graphic_context[n]->compliance != SVGCompliance)
+                if (graphic_context[graphiccontextindex]->clipping_mask != (Image *) NULL)
+                  graphic_context[graphiccontextindex]->clipping_mask=
+                    DestroyImage(graphic_context[graphiccontextindex]->clipping_mask);
+                graphic_context[graphiccontextindex]->clipping_mask=DrawClippingMask(image,
+                  graphic_context[graphiccontextindex],token,clip_path,exception);
+                if (graphic_context[graphiccontextindex]->compliance != SVGCompliance)
                   {
                     clip_path=(const char *) GetValueFromSplayTree(macros,
-                      graphic_context[n]->clip_mask);
+                      graphic_context[graphiccontextindex]->clip_mask);
                     if (clip_path != (const char *) NULL)
                       (void) SetImageArtifact(image,
-                        graphic_context[n]->clip_mask,clip_path);
-                    statuscode&=DrawClipPath(image,graphic_context[n],
-                      graphic_context[n]->clip_mask,exception);
+                        graphic_context[graphiccontextindex]->clip_mask,clip_path);
+                    status&=DrawClipPath(image,graphic_context[graphiccontextindex],
+                      graphic_context[graphiccontextindex]->clip_mask,exception);
                   }
               }
             break;
@@ -2768,10 +2768,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
               token);
             if (fill_rule == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->fill_rule=(FillRule) fill_rule;
+            graphic_context[graphiccontextindex]->fill_rule=(FillRule) fill_rule;
             break;
           }
         if (LocaleCompare("clip-units",keyword) == 0)
@@ -2784,10 +2784,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
               token);
             if (clip_units == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->clip_units=(ClipPathUnits) clip_units;
+            graphic_context[graphiccontextindex]->clip_units=(ClipPathUnits) clip_units;
             if (clip_units == ObjectBoundingBox)
               {
                 GetAffineMatrix(&current);
@@ -2816,11 +2816,11 @@ static MagickBooleanType RenderMVGContent(Image *image,
               compliance associates a clipping mask with a graphics context.
             */
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->compliance=(ComplianceType) ParseCommandOption(
+            graphic_context[graphiccontextindex]->compliance=(ComplianceType) ParseCommandOption(
               MagickComplianceOptions,MagickFalse,token);
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'd':
@@ -2836,16 +2836,16 @@ static MagickBooleanType RenderMVGContent(Image *image,
               token);
             if (decorate == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->decorate=(DecorationType) decorate;
+            graphic_context[graphiccontextindex]->decorate=(DecorationType) decorate;
             break;
           }
         if (LocaleCompare("density",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            (void) CloneString(&graphic_context[n]->density,token);
+            (void) CloneString(&graphic_context[graphiccontextindex]->density,token);
             break;
           }
         if (LocaleCompare("direction",keyword) == 0)
@@ -2857,12 +2857,12 @@ static MagickBooleanType RenderMVGContent(Image *image,
             direction=ParseCommandOption(MagickDirectionOptions,MagickFalse,
               token);
             if (direction == -1)
-              statuscode=MagickFalse;
+              status=MagickFalse;
             else
-              graphic_context[n]->direction=(DirectionType) direction;
+              graphic_context[graphiccontextindex]->direction=(DirectionType) direction;
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'e':
@@ -2876,10 +2876,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("encoding",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            (void) CloneString(&graphic_context[n]->encoding,token);
+            (void) CloneString(&graphic_context[graphiccontextindex]->encoding,token);
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'f':
@@ -2888,18 +2888,18 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("fill",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            if (graphic_context[n]->clip_path != MagickFalse)
+            if (graphic_context[graphiccontextindex]->clip_path != MagickFalse)
               break;
             (void) FormatLocaleString(pattern,MagickPathExtent,"%s",token);
             if (GetImageArtifact(image,pattern) != (const char *) NULL)
               (void) DrawPatternPath(image,draw_info,token,
-                &graphic_context[n]->fill_pattern,exception);
+                &graphic_context[graphiccontextindex]->fill_pattern,exception);
             else
               {
-                statuscode&=QueryColorCompliance(token,AllCompliance,
-                  &graphic_context[n]->fill,exception);
-                if (graphic_context[n]->fill_alpha != OpaqueAlpha)
-                  graphic_context[n]->fill.alpha=graphic_context[n]->fill_alpha;
+                status&=QueryColorCompliance(token,AllCompliance,
+                  &graphic_context[graphiccontextindex]->fill,exception);
+                if (graphic_context[graphiccontextindex]->fill_alpha != OpaqueAlpha)
+                  graphic_context[graphiccontextindex]->fill.alpha=graphic_context[graphiccontextindex]->fill_alpha;
               }
             break;
           }
@@ -2909,21 +2909,21 @@ static MagickBooleanType RenderMVGContent(Image *image,
               opacity;
 
             (void) GetNextToken(q,&q,extent,token);
-            if (graphic_context[n]->clip_path != MagickFalse)
+            if (graphic_context[graphiccontextindex]->clip_path != MagickFalse)
               break;
             factor=strchr(token,'%') != (char *) NULL ? 0.01 : 1.0;
             opacity=MagickMin(MagickMax(factor*
               GetDrawValue(token,&next_token),0.0),1.0);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
-            if (graphic_context[n]->compliance == SVGCompliance)
-              graphic_context[n]->fill_alpha*=opacity;
+            if (graphic_context[graphiccontextindex]->compliance == SVGCompliance)
+              graphic_context[graphiccontextindex]->fill_alpha*=opacity;
             else
-              graphic_context[n]->fill_alpha=QuantumRange*opacity;
-            if (graphic_context[n]->fill.alpha != TransparentAlpha)
-              graphic_context[n]->fill.alpha=graphic_context[n]->fill_alpha;
+              graphic_context[graphiccontextindex]->fill_alpha=QuantumRange*opacity;
+            if (graphic_context[graphiccontextindex]->fill.alpha != TransparentAlpha)
+              graphic_context[graphiccontextindex]->fill.alpha=graphic_context[graphiccontextindex]->fill_alpha;
             else
-              graphic_context[n]->fill.alpha=(MagickRealType)
+              graphic_context[graphiccontextindex]->fill.alpha=(MagickRealType)
                 ClampToQuantum(QuantumRange*(1.0-opacity));
             break;
           }
@@ -2937,31 +2937,31 @@ static MagickBooleanType RenderMVGContent(Image *image,
               token);
             if (fill_rule == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->fill_rule=(FillRule) fill_rule;
+            graphic_context[graphiccontextindex]->fill_rule=(FillRule) fill_rule;
             break;
           }
         if (LocaleCompare("font",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            (void) CloneString(&graphic_context[n]->font,token);
+            (void) CloneString(&graphic_context[graphiccontextindex]->font,token);
             if (LocaleCompare("none",token) == 0)
-              graphic_context[n]->font=(char *) RelinquishMagickMemory(
-                graphic_context[n]->font);
+              graphic_context[graphiccontextindex]->font=(char *) RelinquishMagickMemory(
+                graphic_context[graphiccontextindex]->font);
             break;
           }
         if (LocaleCompare("font-family",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            (void) CloneString(&graphic_context[n]->family,token);
+            (void) CloneString(&graphic_context[graphiccontextindex]->family,token);
             break;
           }
         if (LocaleCompare("font-size",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->pointsize=GetDrawValue(token,&next_token);
+            graphic_context[graphiccontextindex]->pointsize=GetDrawValue(token,&next_token);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             break;
@@ -2975,10 +2975,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
             stretch=ParseCommandOption(MagickStretchOptions,MagickFalse,token);
             if (stretch == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->stretch=(StretchType) stretch;
+            graphic_context[graphiccontextindex]->stretch=(StretchType) stretch;
             break;
           }
         if (LocaleCompare("font-style",keyword) == 0)
@@ -2990,10 +2990,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
             style=ParseCommandOption(MagickStyleOptions,MagickFalse,token);
             if (style == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->style=(StyleType) style;
+            graphic_context[graphiccontextindex]->style=(StyleType) style;
             break;
           }
         if (LocaleCompare("font-weight",keyword) == 0)
@@ -3005,10 +3005,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
             weight=ParseCommandOption(MagickWeightOptions,MagickFalse,token);
             if (weight == -1)
               weight=(ssize_t) StringToUnsignedLong(token);
-            graphic_context[n]->weight=(size_t) weight;
+            graphic_context[graphiccontextindex]->weight=(size_t) weight;
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'g':
@@ -3028,13 +3028,13 @@ static MagickBooleanType RenderMVGContent(Image *image,
             gravity=ParseCommandOption(MagickGravityOptions,MagickFalse,token);
             if (gravity == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->gravity=(GravityType) gravity;
+            graphic_context[graphiccontextindex]->gravity=(GravityType) gravity;
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'i':
@@ -3050,16 +3050,16 @@ static MagickBooleanType RenderMVGContent(Image *image,
             compose=ParseCommandOption(MagickComposeOptions,MagickFalse,token);
             if (compose == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->compose=(CompositeOperator) compose;
+            graphic_context[graphiccontextindex]->compose=(CompositeOperator) compose;
             break;
           }
         if (LocaleCompare("interline-spacing",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->interline_spacing=GetDrawValue(token,
+            graphic_context[graphiccontextindex]->interline_spacing=GetDrawValue(token,
               &next_token);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
@@ -3068,13 +3068,13 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("interword-spacing",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->interword_spacing=GetDrawValue(token,
+            graphic_context[graphiccontextindex]->interword_spacing=GetDrawValue(token,
               &next_token);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'k':
@@ -3083,12 +3083,12 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("kerning",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->kerning=GetDrawValue(token,&next_token);
+            graphic_context[graphiccontextindex]->kerning=GetDrawValue(token,&next_token);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'l':
@@ -3099,10 +3099,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
             (void) GetNextToken(q,&q,extent,token);
             if (IsPoint(token) == MagickFalse)
               break;
-            clone_info=CloneDrawInfo((ImageInfo *) NULL,graphic_context[n]);
+            clone_info=CloneDrawInfo((ImageInfo *) NULL,graphic_context[graphiccontextindex]);
             clone_info->text=AcquireString(" ");
-            statuscode&=GetTypeMetrics(image,clone_info,&metrics,exception);
-            graphic_context[n]->kerning=metrics.width*
+            status&=GetTypeMetrics(image,clone_info,&metrics,exception);
+            graphic_context[graphiccontextindex]->kerning=metrics.width*
               GetDrawValue(token,&next_token);
             clone_info=DestroyDrawInfo(clone_info);
             if (token == next_token)
@@ -3114,7 +3114,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
             primitive_type=LinePrimitive;
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'm':
@@ -3132,18 +3132,18 @@ static MagickBooleanType RenderMVGContent(Image *image,
             mask_path=(const char *) GetValueFromSplayTree(macros,token);
             if (mask_path != (const char *) NULL)
               {
-                if (graphic_context[n]->composite_mask != (Image *) NULL)
-                  graphic_context[n]->composite_mask=
-                    DestroyImage(graphic_context[n]->composite_mask);
-                graphic_context[n]->composite_mask=DrawCompositeMask(image,
-                  graphic_context[n],token,mask_path,exception);
-                if (graphic_context[n]->compliance != SVGCompliance)
-                  statuscode=SetImageMask(image,CompositePixelMask,
-                    graphic_context[n]->composite_mask,exception);
+                if (graphic_context[graphiccontextindex]->composite_mask != (Image *) NULL)
+                  graphic_context[graphiccontextindex]->composite_mask=
+                    DestroyImage(graphic_context[graphiccontextindex]->composite_mask);
+                graphic_context[graphiccontextindex]->composite_mask=DrawCompositeMask(image,
+                  graphic_context[graphiccontextindex],token,mask_path,exception);
+                if (graphic_context[graphiccontextindex]->compliance != SVGCompliance)
+                  status=SetImageMask(image,CompositePixelMask,
+                    graphic_context[graphiccontextindex]->composite_mask,exception);
               }
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'o':
@@ -3160,26 +3160,26 @@ static MagickBooleanType RenderMVGContent(Image *image,
               opacity;
 
             (void) GetNextToken(q,&q,extent,token);
-            if (graphic_context[n]->clip_path != MagickFalse)
+            if (graphic_context[graphiccontextindex]->clip_path != MagickFalse)
               break;
             factor=strchr(token,'%') != (char *) NULL ? 0.01 : 1.0;
             opacity=MagickMin(MagickMax(factor*
               GetDrawValue(token,&next_token),0.0),1.0);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
-            if (graphic_context[n]->compliance == SVGCompliance)
+            if (graphic_context[graphiccontextindex]->compliance == SVGCompliance)
               {
-                graphic_context[n]->fill_alpha*=opacity;
-                graphic_context[n]->stroke_alpha*=opacity;
+                graphic_context[graphiccontextindex]->fill_alpha*=opacity;
+                graphic_context[graphiccontextindex]->stroke_alpha*=opacity;
               }
             else
               {
-                graphic_context[n]->fill_alpha=QuantumRange*opacity;
-                graphic_context[n]->stroke_alpha=QuantumRange*opacity;
+                graphic_context[graphiccontextindex]->fill_alpha=QuantumRange*opacity;
+                graphic_context[graphiccontextindex]->stroke_alpha=QuantumRange*opacity;
               }
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'p':
@@ -3216,7 +3216,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
             if (LocaleCompare("defs",token) == 0)
               {
                 defsDepth--;
-                graphic_context[n]->render=defsDepth > 0 ? MagickFalse :
+                graphic_context[graphiccontextindex]->render=defsDepth > 0 ? MagickFalse :
                   MagickTrue;
                 break;
               }
@@ -3224,22 +3224,22 @@ static MagickBooleanType RenderMVGContent(Image *image,
               break;
             if (LocaleCompare("graphic-context",token) == 0)
               {
-                if (n <= 0)
+                if (graphiccontextindex <= 0)
                   {
                     (void) ThrowMagickException(exception,GetMagickModule(),
                       DrawError,"UnbalancedGraphicContextPushPop","`%s'",token);
-                    statuscode=MagickFalse;
-                    n=0;
+                    status=MagickFalse;
+                    graphiccontextindex=0;
                     break;
                   }
-                if ((graphic_context[n]->clip_mask != (char *) NULL) &&
-                    (graphic_context[n]->compliance != SVGCompliance))
-                  if (LocaleCompare(graphic_context[n]->clip_mask,
-                      graphic_context[n-1]->clip_mask) != 0)
-                    statuscode=SetImageMask(image,WritePixelMask,(Image *) NULL,
+                if ((graphic_context[graphiccontextindex]->clip_mask != (char *) NULL) &&
+                    (graphic_context[graphiccontextindex]->compliance != SVGCompliance))
+                  if (LocaleCompare(graphic_context[graphiccontextindex]->clip_mask,
+                      graphic_context[graphiccontextindex-1]->clip_mask) != 0)
+                    status=SetImageMask(image,WritePixelMask,(Image *) NULL,
                       exception);
-                graphic_context[n]=DestroyDrawInfo(graphic_context[n]);
-                n--;
+                graphic_context[graphiccontextindex]=DestroyDrawInfo(graphic_context[graphiccontextindex]);
+                graphiccontextindex--;
                 break;
               }
             if (LocaleCompare("mask",token) == 0)
@@ -3249,11 +3249,11 @@ static MagickBooleanType RenderMVGContent(Image *image,
             if (LocaleCompare("symbol",token) == 0)
               {
                 symbolDepth--;
-                graphic_context[n]->render=symbolDepth > 0 ? MagickFalse :
+                graphic_context[graphiccontextindex]->render=symbolDepth > 0 ? MagickFalse :
                   MagickTrue;
                 break;
               }
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         if (LocaleCompare("push",keyword) == 0)
@@ -3295,7 +3295,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
                 }
                 if ((q == (char *) NULL) || (p == (char *) NULL) || ((q-4) < p))
                   {
-                    statuscode=MagickFalse;
+                    status=MagickFalse;
                     break;
                   }
                 (void) GetNextToken(q,&q,extent,token);
@@ -3304,7 +3304,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
             if (LocaleCompare("defs",token) == 0)
               {
                 defsDepth++;
-                graphic_context[n]->render=defsDepth > 0 ? MagickFalse :
+                graphic_context[graphiccontextindex]->render=defsDepth > 0 ? MagickFalse :
                   MagickTrue;
                 break;
               }
@@ -3363,22 +3363,22 @@ static MagickBooleanType RenderMVGContent(Image *image,
                 }
                 if ((q == (char *) NULL) || (p == (char *) NULL) || ((q-4) < p))
                   {
-                    statuscode=MagickFalse;
+                    status=MagickFalse;
                     break;
                   }
                 (void) CopyMagickString(token,p,(size_t) (q-p-4+1));
-                bounds.x1=graphic_context[n]->affine.sx*segment.x1+
-                  graphic_context[n]->affine.ry*segment.y1+
-                  graphic_context[n]->affine.tx;
-                bounds.y1=graphic_context[n]->affine.rx*segment.x1+
-                  graphic_context[n]->affine.sy*segment.y1+
-                  graphic_context[n]->affine.ty;
-                bounds.x2=graphic_context[n]->affine.sx*segment.x2+
-                  graphic_context[n]->affine.ry*segment.y2+
-                  graphic_context[n]->affine.tx;
-                bounds.y2=graphic_context[n]->affine.rx*segment.x2+
-                  graphic_context[n]->affine.sy*segment.y2+
-                  graphic_context[n]->affine.ty;
+                bounds.x1=graphic_context[graphiccontextindex]->affine.sx*segment.x1+
+                  graphic_context[graphiccontextindex]->affine.ry*segment.y1+
+                  graphic_context[graphiccontextindex]->affine.tx;
+                bounds.y1=graphic_context[graphiccontextindex]->affine.rx*segment.x1+
+                  graphic_context[graphiccontextindex]->affine.sy*segment.y1+
+                  graphic_context[graphiccontextindex]->affine.ty;
+                bounds.x2=graphic_context[graphiccontextindex]->affine.sx*segment.x2+
+                  graphic_context[graphiccontextindex]->affine.ry*segment.y2+
+                  graphic_context[graphiccontextindex]->affine.tx;
+                bounds.y2=graphic_context[graphiccontextindex]->affine.rx*segment.x2+
+                  graphic_context[graphiccontextindex]->affine.sy*segment.y2+
+                  graphic_context[graphiccontextindex]->affine.ty;
                 (void) FormatLocaleString(key,MagickPathExtent,"%s",name);
                 (void) SetImageArtifact(image,key,token);
                 (void) FormatLocaleString(key,MagickPathExtent,"%s-type",name);
@@ -3396,9 +3396,9 @@ static MagickBooleanType RenderMVGContent(Image *image,
               }
             if (LocaleCompare("graphic-context",token) == 0)
               {
-                n++;
+                graphiccontextindex++;
                 graphic_context=(DrawInfo **) ResizeQuantumMemory(
-                  graphic_context,(size_t) (n+1),sizeof(*graphic_context));
+                  graphic_context,(size_t) (graphiccontextindex+1),sizeof(*graphic_context));
                 if (graphic_context == (DrawInfo **) NULL)
                   {
                     (void) ThrowMagickException(exception,GetMagickModule(),
@@ -3406,12 +3406,12 @@ static MagickBooleanType RenderMVGContent(Image *image,
                       image->filename);
                     break;
                   }
-                graphic_context[n]=CloneDrawInfo((ImageInfo *) NULL,
-                  graphic_context[n-1]);
+                graphic_context[graphiccontextindex]=CloneDrawInfo((ImageInfo *) NULL,
+                  graphic_context[graphiccontextindex-1]);
                 if (*q == '"')
                   {
                     (void) GetNextToken(q,&q,extent,token);
-                    (void) CloneString(&graphic_context[n]->id,token);
+                    (void) CloneString(&graphic_context[graphiccontextindex]->id,token);
                   }
                 break;
               }
@@ -3468,7 +3468,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
                 }
                 if ((q == (char *) NULL) || (p == (char *) NULL) || ((q-4) < p))
                   {
-                    statuscode=MagickFalse;
+                    status=MagickFalse;
                     break;
                   }
                 (void) CopyMagickString(token,p,(size_t) (q-p-4+1));
@@ -3486,14 +3486,14 @@ static MagickBooleanType RenderMVGContent(Image *image,
             if (LocaleCompare("symbol",token) == 0)
               {
                 symbolDepth++;
-                graphic_context[n]->render=symbolDepth > 0 ? MagickFalse :
+                graphic_context[graphiccontextindex]->render=symbolDepth > 0 ? MagickFalse :
                   MagickTrue;
                 break;
               }
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'r':
@@ -3521,7 +3521,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
             primitive_type=RoundRectanglePrimitive;
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 's':
@@ -3579,7 +3579,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
                 break;
               }
             (void) GetNextToken(q,&q,extent,token);
-            statuscode&=QueryColorCompliance(token,AllCompliance,&stop_color,
+            status&=QueryColorCompliance(token,AllCompliance,&stop_color,
               exception);
             stops[number_stops-1].color=stop_color;
             (void) GetNextToken(q,&q,extent,token);
@@ -3593,34 +3593,34 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("stroke",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            if (graphic_context[n]->clip_path != MagickFalse)
+            if (graphic_context[graphiccontextindex]->clip_path != MagickFalse)
               break;
             (void) FormatLocaleString(pattern,MagickPathExtent,"%s",token);
             if (GetImageArtifact(image,pattern) != (const char *) NULL)
               (void) DrawPatternPath(image,draw_info,token,
-                &graphic_context[n]->stroke_pattern,exception);
+                &graphic_context[graphiccontextindex]->stroke_pattern,exception);
             else
               {
-                statuscode&=QueryColorCompliance(token,AllCompliance,
-                  &graphic_context[n]->stroke,exception);
-                if (graphic_context[n]->stroke_alpha != OpaqueAlpha)
-                  graphic_context[n]->stroke.alpha=
-                    graphic_context[n]->stroke_alpha;
+                status&=QueryColorCompliance(token,AllCompliance,
+                  &graphic_context[graphiccontextindex]->stroke,exception);
+                if (graphic_context[graphiccontextindex]->stroke_alpha != OpaqueAlpha)
+                  graphic_context[graphiccontextindex]->stroke.alpha=
+                    graphic_context[graphiccontextindex]->stroke_alpha;
                }
             break;
           }
         if (LocaleCompare("stroke-antialias",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->stroke_antialias=StringToLong(token) != 0 ?
+            graphic_context[graphiccontextindex]->stroke_antialias=StringToLong(token) != 0 ?
               MagickTrue : MagickFalse;
             break;
           }
         if (LocaleCompare("stroke-dasharray",keyword) == 0)
           {
-            if (graphic_context[n]->dash_pattern != (double *) NULL)
-              graphic_context[n]->dash_pattern=(double *)
-                RelinquishMagickMemory(graphic_context[n]->dash_pattern);
+            if (graphic_context[graphiccontextindex]->dash_pattern != (double *) NULL)
+              graphic_context[graphiccontextindex]->dash_pattern=(double *)
+                RelinquishMagickMemory(graphic_context[graphiccontextindex]->dash_pattern);
             if (IsPoint(q) != MagickFalse)
               {
                 const char
@@ -3636,36 +3636,36 @@ static MagickBooleanType RenderMVGContent(Image *image,
                   if (*token == ',')
                     (void) GetNextToken(r,&r,extent,token);
                 }
-                graphic_context[n]->dash_pattern=(double *)
+                graphic_context[graphiccontextindex]->dash_pattern=(double *)
                   AcquireQuantumMemory((size_t) (2*x+2),
-                  sizeof(*graphic_context[n]->dash_pattern));
-                if (graphic_context[n]->dash_pattern == (double *) NULL)
+                  sizeof(*graphic_context[graphiccontextindex]->dash_pattern));
+                if (graphic_context[graphiccontextindex]->dash_pattern == (double *) NULL)
                   {
                     (void) ThrowMagickException(exception,GetMagickModule(),
                       ResourceLimitError,"MemoryAllocationFailed","`%s'",
                       image->filename);
-                    statuscode=MagickFalse;
+                    status=MagickFalse;
                     break;
                   }
-                (void) memset(graphic_context[n]->dash_pattern,0,(size_t)
-                  (2*x+2)*sizeof(*graphic_context[n]->dash_pattern));
+                (void) memset(graphic_context[graphiccontextindex]->dash_pattern,0,(size_t)
+                  (2*x+2)*sizeof(*graphic_context[graphiccontextindex]->dash_pattern));
                 for (j=0; j < x; j++)
                 {
                   (void) GetNextToken(q,&q,extent,token);
                   if (*token == ',')
                     (void) GetNextToken(q,&q,extent,token);
-                  graphic_context[n]->dash_pattern[j]=GetDrawValue(token,
+                  graphic_context[graphiccontextindex]->dash_pattern[j]=GetDrawValue(token,
                     &next_token);
                   if (token == next_token)
                     ThrowPointExpectedException(token,exception);
-                  if (graphic_context[n]->dash_pattern[j] < 0.0)
-                    statuscode=MagickFalse;
+                  if (graphic_context[graphiccontextindex]->dash_pattern[j] < 0.0)
+                    status=MagickFalse;
                 }
                 if ((x & 0x01) != 0)
                   for ( ; j < (2*x); j++)
-                    graphic_context[n]->dash_pattern[j]=
-                      graphic_context[n]->dash_pattern[j-x];
-                graphic_context[n]->dash_pattern[j]=0.0;
+                    graphic_context[graphiccontextindex]->dash_pattern[j]=
+                      graphic_context[graphiccontextindex]->dash_pattern[j-x];
+                graphic_context[graphiccontextindex]->dash_pattern[j]=0.0;
                 break;
               }
             (void) GetNextToken(q,&q,extent,token);
@@ -3674,7 +3674,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("stroke-dashoffset",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->dash_offset=GetDrawValue(token,&next_token);
+            graphic_context[graphiccontextindex]->dash_offset=GetDrawValue(token,&next_token);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             break;
@@ -3688,10 +3688,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
             linecap=ParseCommandOption(MagickLineCapOptions,MagickFalse,token);
             if (linecap == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->linecap=(LineCap) linecap;
+            graphic_context[graphiccontextindex]->linecap=(LineCap) linecap;
             break;
           }
         if (LocaleCompare("stroke-linejoin",keyword) == 0)
@@ -3704,16 +3704,16 @@ static MagickBooleanType RenderMVGContent(Image *image,
               token);
             if (linejoin == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->linejoin=(LineJoin) linejoin;
+            graphic_context[graphiccontextindex]->linejoin=(LineJoin) linejoin;
             break;
           }
         if (LocaleCompare("stroke-miterlimit",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->miterlimit=StringToUnsignedLong(token);
+            graphic_context[graphiccontextindex]->miterlimit=StringToUnsignedLong(token);
             break;
           }
         if (LocaleCompare("stroke-opacity",keyword) == 0)
@@ -3722,35 +3722,35 @@ static MagickBooleanType RenderMVGContent(Image *image,
               opacity;
 
             (void) GetNextToken(q,&q,extent,token);
-            if (graphic_context[n]->clip_path != MagickFalse)
+            if (graphic_context[graphiccontextindex]->clip_path != MagickFalse)
               break;
             factor=strchr(token,'%') != (char *) NULL ? 0.01 : 1.0;
             opacity=MagickMin(MagickMax(factor*
               GetDrawValue(token,&next_token),0.0),1.0);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
-            if (graphic_context[n]->compliance == SVGCompliance)
-              graphic_context[n]->stroke_alpha*=opacity;
+            if (graphic_context[graphiccontextindex]->compliance == SVGCompliance)
+              graphic_context[graphiccontextindex]->stroke_alpha*=opacity;
             else
-              graphic_context[n]->stroke_alpha=QuantumRange*opacity;
-            if (graphic_context[n]->stroke.alpha != TransparentAlpha)
-              graphic_context[n]->stroke.alpha=graphic_context[n]->stroke_alpha;
+              graphic_context[graphiccontextindex]->stroke_alpha=QuantumRange*opacity;
+            if (graphic_context[graphiccontextindex]->stroke.alpha != TransparentAlpha)
+              graphic_context[graphiccontextindex]->stroke.alpha=graphic_context[graphiccontextindex]->stroke_alpha;
             else
-              graphic_context[n]->stroke.alpha=(MagickRealType)
+              graphic_context[graphiccontextindex]->stroke.alpha=(MagickRealType)
                 ClampToQuantum(QuantumRange*(1.0-opacity));
             break;
           }
         if (LocaleCompare("stroke-width",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            if (graphic_context[n]->clip_path != MagickFalse)
+            if (graphic_context[graphiccontextindex]->clip_path != MagickFalse)
               break;
-            graphic_context[n]->stroke_width=GetDrawValue(token,&next_token);
+            graphic_context[graphiccontextindex]->stroke_width=GetDrawValue(token,&next_token);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 't':
@@ -3771,10 +3771,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
             align=ParseCommandOption(MagickAlignOptions,MagickFalse,token);
             if (align == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->align=(AlignType) align;
+            graphic_context[graphiccontextindex]->align=(AlignType) align;
             break;
           }
         if (LocaleCompare("text-anchor",keyword) == 0)
@@ -3786,24 +3786,24 @@ static MagickBooleanType RenderMVGContent(Image *image,
             align=ParseCommandOption(MagickAlignOptions,MagickFalse,token);
             if (align == -1)
               {
-                statuscode=MagickFalse;
+                status=MagickFalse;
                 break;
               }
-            graphic_context[n]->align=(AlignType) align;
+            graphic_context[graphiccontextindex]->align=(AlignType) align;
             break;
           }
         if (LocaleCompare("text-antialias",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->text_antialias=StringToLong(token) != 0 ?
+            graphic_context[graphiccontextindex]->text_antialias=StringToLong(token) != 0 ?
               MagickTrue : MagickFalse;
             break;
           }
         if (LocaleCompare("text-undercolor",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            statuscode&=QueryColorCompliance(token,AllCompliance,
-              &graphic_context[n]->undercolor,exception);
+            status&=QueryColorCompliance(token,AllCompliance,
+              &graphic_context[graphiccontextindex]->undercolor,exception);
             break;
           }
         if (LocaleCompare("translate",keyword) == 0)
@@ -3821,7 +3821,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
             cursor=0.0;
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'u':
@@ -3839,14 +3839,14 @@ static MagickBooleanType RenderMVGContent(Image *image,
             use=(const char *) GetValueFromSplayTree(macros,token);
             if (use != (const char *) NULL)
               {
-                clone_info=CloneDrawInfo((ImageInfo *) NULL,graphic_context[n]);
+                clone_info=CloneDrawInfo((ImageInfo *) NULL,graphic_context[graphiccontextindex]);
                 (void) CloneString(&clone_info->primitive,use);
-                statuscode=RenderMVGContent(image,clone_info,depth+1,exception);
+                status=RenderMVGContent(image,clone_info,depth+1,exception);
                 clone_info=DestroyDrawInfo(clone_info);
               }
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'v':
@@ -3855,34 +3855,34 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("viewbox",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->viewbox.x=(ssize_t) ceil(GetDrawValue(token,
+            graphic_context[graphiccontextindex]->viewbox.x=(ssize_t) ceil(GetDrawValue(token,
               &next_token)-0.5);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             (void) GetNextToken(q,&q,extent,token);
             if (*token == ',')
               (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->viewbox.y=(ssize_t) ceil(GetDrawValue(token,
+            graphic_context[graphiccontextindex]->viewbox.y=(ssize_t) ceil(GetDrawValue(token,
               &next_token)-0.5);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             (void) GetNextToken(q,&q,extent,token);
             if (*token == ',')
               (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->viewbox.width=(size_t) floor(GetDrawValue(
+            graphic_context[graphiccontextindex]->viewbox.width=(size_t) floor(GetDrawValue(
               token,&next_token)+0.5);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             (void) GetNextToken(q,&q,extent,token);
             if (*token == ',')
               (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->viewbox.height=(size_t) floor(GetDrawValue(
+            graphic_context[graphiccontextindex]->viewbox.height=(size_t) floor(GetDrawValue(
               token,&next_token)+0.5);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       case 'w':
@@ -3891,35 +3891,35 @@ static MagickBooleanType RenderMVGContent(Image *image,
         if (LocaleCompare("word-spacing",keyword) == 0)
           {
             (void) GetNextToken(q,&q,extent,token);
-            graphic_context[n]->interword_spacing=GetDrawValue(token,
+            graphic_context[graphiccontextindex]->interword_spacing=GetDrawValue(token,
               &next_token);
             if (token == next_token)
               ThrowPointExpectedException(token,exception);
             break;
           }
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
       default:
       {
-        statuscode=MagickFalse;
+        status=MagickFalse;
         break;
       }
     }
-    if (statuscode == MagickFalse)
+    if (status == MagickFalse)
       break;
     if ((fabs(affine.sx-1.0) >= MagickEpsilon) ||
         (fabs(affine.rx) >= MagickEpsilon) || (fabs(affine.ry) >= MagickEpsilon) ||
         (fabs(affine.sy-1.0) >= MagickEpsilon) ||
         (fabs(affine.tx) >= MagickEpsilon) || (fabs(affine.ty) >= MagickEpsilon))
       {
-        graphic_context[n]->affine.sx=current.sx*affine.sx+current.ry*affine.rx;
-        graphic_context[n]->affine.rx=current.rx*affine.sx+current.sy*affine.rx;
-        graphic_context[n]->affine.ry=current.sx*affine.ry+current.ry*affine.sy;
-        graphic_context[n]->affine.sy=current.rx*affine.ry+current.sy*affine.sy;
-        graphic_context[n]->affine.tx=current.sx*affine.tx+current.ry*affine.ty+
+        graphic_context[graphiccontextindex]->affine.sx=current.sx*affine.sx+current.ry*affine.rx;
+        graphic_context[graphiccontextindex]->affine.rx=current.rx*affine.sx+current.sy*affine.rx;
+        graphic_context[graphiccontextindex]->affine.ry=current.sx*affine.ry+current.ry*affine.sy;
+        graphic_context[graphiccontextindex]->affine.sy=current.rx*affine.ry+current.sy*affine.sy;
+        graphic_context[graphiccontextindex]->affine.tx=current.sx*affine.tx+current.ry*affine.ty+
           current.tx;
-        graphic_context[n]->affine.ty=current.rx*affine.tx+current.sy*affine.ty+
+        graphic_context[graphiccontextindex]->affine.ty=current.rx*affine.tx+current.sy*affine.ty+
           current.ty;
       }
     if (primitive_type == UndefinedPrimitive)
@@ -3990,9 +3990,9 @@ static MagickBooleanType RenderMVGContent(Image *image,
       mvg_info.offset=i;
       if (i < (ssize_t) number_points)
         continue;
-      statuscode&=CheckPrimitiveExtent(&mvg_info,number_points);
+      status&=CheckPrimitiveExtent(&mvg_info,number_points);
     }
-    if (statuscode == MagickFalse)
+    if (status == MagickFalse)
       break;
     if ((primitive_info[j].primitive == TextPrimitive) ||
         (primitive_info[j].primitive == ImagePrimitive))
@@ -4054,7 +4054,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
           {
             (void) ThrowMagickException(exception,GetMagickModule(),DrawError,
               "TooManyBezierCoordinates","`%s'",token);
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         break;
@@ -4104,7 +4104,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
           {
             (void) ThrowMagickException(exception,GetMagickModule(),DrawError,
               "TooManyBezierCoordinates","`%s'",token);
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         break;
@@ -4112,7 +4112,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
       default:
         break;
     }
-    if (statuscode == MagickFalse)
+    if (status == MagickFalse)
       break;
     if (((size_t) (i+coordinates)) >= number_points)
       {
@@ -4128,10 +4128,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
             break;
           }
         mvg_info.offset=i;
-        statuscode&=CheckPrimitiveExtent(&mvg_info,number_points);
+        status&=CheckPrimitiveExtent(&mvg_info,number_points);
       }
-    statuscode&=CheckPrimitiveExtent(&mvg_info,PrimitiveExtentPad);
-    if (statuscode == MagickFalse)
+    status&=CheckPrimitiveExtent(&mvg_info,PrimitiveExtentPad);
+    if (status == MagickFalse)
       break;
     mvg_info.offset=j;
     switch (primitive_type)
@@ -4141,10 +4141,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates != 1)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
-        statuscode&=TracePoint(primitive_info+j,primitive_info[j].point);
+        status&=TracePoint(primitive_info+j,primitive_info[j].point);
         i=(ssize_t) (j+primitive_info[j].coordinates);
         break;
       }
@@ -4157,7 +4157,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
 
         if (primitive_info[j].coordinates != 2)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         dx=primitive_info[i].point.x-primitive_info[i-1].point.x;
@@ -4165,7 +4165,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
         maximum_length=hypot(dx,dy);
         if (maximum_length > (MaxBezierCoordinates/100.0))
           ThrowPointExpectedException(keyword,exception);
-        statuscode&=TraceLine(primitive_info+j,primitive_info[j].point,
+        status&=TraceLine(primitive_info+j,primitive_info[j].point,
           primitive_info[j+1].point);
         i=(ssize_t) (j+primitive_info[j].coordinates);
         break;
@@ -4174,10 +4174,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates != 2)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
-        statuscode&=TraceRectangle(primitive_info+j,primitive_info[j].point,
+        status&=TraceRectangle(primitive_info+j,primitive_info[j].point,
           primitive_info[j+1].point);
         i=(ssize_t) (j+primitive_info[j].coordinates);
         break;
@@ -4186,26 +4186,26 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates != 3)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         if ((primitive_info[j+2].point.x < 0.0) ||
             (primitive_info[j+2].point.y < 0.0))
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         if ((primitive_info[j+1].point.x-primitive_info[j].point.x) < 0.0)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         if ((primitive_info[j+1].point.y-primitive_info[j].point.y) < 0.0)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
-        statuscode&=TraceRoundRectangle(&mvg_info,primitive_info[j].point,
+        status&=TraceRoundRectangle(&mvg_info,primitive_info[j].point,
           primitive_info[j+1].point,primitive_info[j+2].point);
         i=(ssize_t) (j+primitive_info[j].coordinates);
         break;
@@ -4214,10 +4214,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates != 3)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
-        statuscode&=TraceArc(&mvg_info,primitive_info[j].point,
+        status&=TraceArc(&mvg_info,primitive_info[j].point,
           primitive_info[j+1].point,primitive_info[j+2].point);
         i=(ssize_t) (j+primitive_info[j].coordinates);
         break;
@@ -4226,16 +4226,16 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates != 3)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         if ((primitive_info[j+1].point.x < 0.0) ||
             (primitive_info[j+1].point.y < 0.0))
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
-        statuscode&=TraceEllipse(&mvg_info,primitive_info[j].point,
+        status&=TraceEllipse(&mvg_info,primitive_info[j].point,
           primitive_info[j+1].point,primitive_info[j+2].point);
         i=(ssize_t) (j+primitive_info[j].coordinates);
         break;
@@ -4244,10 +4244,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates != 2)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
-        statuscode&=TraceCircle(&mvg_info,primitive_info[j].point,
+        status&=TraceCircle(&mvg_info,primitive_info[j].point,
           primitive_info[j+1].point);
         i=(ssize_t) (j+primitive_info[j].coordinates);
         break;
@@ -4256,7 +4256,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates < 1)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         break;
@@ -4265,7 +4265,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates < 3)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         primitive_info[i]=primitive_info[j];
@@ -4279,10 +4279,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates < 3)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
-        statuscode&=TraceBezier(&mvg_info,primitive_info[j].coordinates);
+        status&=TraceBezier(&mvg_info,primitive_info[j].coordinates);
         i=(ssize_t) (j+primitive_info[j].coordinates);
         break;
       }
@@ -4291,7 +4291,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
         coordinates=(double) TracePath(&mvg_info,token,exception);
         if (coordinates < 0.0)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         i=(ssize_t) (j+coordinates);
@@ -4305,14 +4305,14 @@ static MagickBooleanType RenderMVGContent(Image *image,
 
         if (primitive_info[j].coordinates != 1)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         (void) GetNextToken(q,&q,extent,token);
         method=ParseCommandOption(MagickMethodOptions,MagickFalse,token);
         if (method == -1)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         primitive_info[j].method=(PaintMethod) method;
@@ -4325,7 +4325,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
 
         if (primitive_info[j].coordinates != 1)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         if (*token != ',')
@@ -4334,7 +4334,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
         /*
           Compute text cursor offset.
         */
-        clone_info=CloneDrawInfo((ImageInfo *) NULL,graphic_context[n]);
+        clone_info=CloneDrawInfo((ImageInfo *) NULL,graphic_context[graphiccontextindex]);
         if ((fabs(mvg_info.point.x-primitive_info->point.x) < MagickEpsilon) &&
             (fabs(mvg_info.point.y-primitive_info->point.y) < MagickEpsilon))
           {
@@ -4350,10 +4350,10 @@ static MagickBooleanType RenderMVGContent(Image *image,
           primitive_info->point.x,primitive_info->point.y);
         clone_info->render=MagickFalse;
         clone_info->text=AcquireString(token);
-        statuscode&=GetTypeMetrics(image,clone_info,&metrics,exception);
+        status&=GetTypeMetrics(image,clone_info,&metrics,exception);
         clone_info=DestroyDrawInfo(clone_info);
         cursor+=metrics.width;
-        if (graphic_context[n]->compliance != SVGCompliance)
+        if (graphic_context[graphiccontextindex]->compliance != SVGCompliance)
           cursor=0.0;
         break;
       }
@@ -4361,7 +4361,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
       {
         if (primitive_info[j].coordinates != 2)
           {
-            statuscode=MagickFalse;
+            status=MagickFalse;
             break;
           }
         (void) GetNextToken(q,&q,extent,token);
@@ -4370,7 +4370,7 @@ static MagickBooleanType RenderMVGContent(Image *image,
       }
     }
     mvg_info.offset=i;
-    if (statuscode == 0)
+    if (status == 0)
       break;
     primitive_info[i].primitive=UndefinedPrimitive;
     if ((image->debug != MagickFalse) && (q > p))
@@ -4379,12 +4379,12 @@ static MagickBooleanType RenderMVGContent(Image *image,
     /*
       Sanity check.
     */
-    statuscode&=CheckPrimitiveExtent(&mvg_info,
-      ExpandAffine(&graphic_context[n]->affine));
-    if (statuscode == 0)
+    status&=CheckPrimitiveExtent(&mvg_info,
+      ExpandAffine(&graphic_context[graphiccontextindex]->affine));
+    if (status == 0)
       break;
-    statuscode&=CheckPrimitiveExtent(&mvg_info,graphic_context[n]->stroke_width);
-    if (statuscode == 0)
+    status&=CheckPrimitiveExtent(&mvg_info,graphic_context[graphiccontextindex]->stroke_width);
+    if (status == 0)
       break;
     if (i == 0)
       continue;
@@ -4394,50 +4394,50 @@ static MagickBooleanType RenderMVGContent(Image *image,
     for (i=0; primitive_info[i].primitive != UndefinedPrimitive; i++)
     {
       point=primitive_info[i].point;
-      primitive_info[i].point.x=graphic_context[n]->affine.sx*point.x+
-        graphic_context[n]->affine.ry*point.y+graphic_context[n]->affine.tx;
-      primitive_info[i].point.y=graphic_context[n]->affine.rx*point.x+
-        graphic_context[n]->affine.sy*point.y+graphic_context[n]->affine.ty;
+      primitive_info[i].point.x=graphic_context[graphiccontextindex]->affine.sx*point.x+
+        graphic_context[graphiccontextindex]->affine.ry*point.y+graphic_context[graphiccontextindex]->affine.tx;
+      primitive_info[i].point.y=graphic_context[graphiccontextindex]->affine.rx*point.x+
+        graphic_context[graphiccontextindex]->affine.sy*point.y+graphic_context[graphiccontextindex]->affine.ty;
       point=primitive_info[i].point;
-      if (point.x < graphic_context[n]->bounds.x1)
-        graphic_context[n]->bounds.x1=point.x;
-      if (point.y < graphic_context[n]->bounds.y1)
-        graphic_context[n]->bounds.y1=point.y;
-      if (point.x > graphic_context[n]->bounds.x2)
-        graphic_context[n]->bounds.x2=point.x;
-      if (point.y > graphic_context[n]->bounds.y2)
-        graphic_context[n]->bounds.y2=point.y;
+      if (point.x < graphic_context[graphiccontextindex]->bounds.x1)
+        graphic_context[graphiccontextindex]->bounds.x1=point.x;
+      if (point.y < graphic_context[graphiccontextindex]->bounds.y1)
+        graphic_context[graphiccontextindex]->bounds.y1=point.y;
+      if (point.x > graphic_context[graphiccontextindex]->bounds.x2)
+        graphic_context[graphiccontextindex]->bounds.x2=point.x;
+      if (point.y > graphic_context[graphiccontextindex]->bounds.y2)
+        graphic_context[graphiccontextindex]->bounds.y2=point.y;
       if (primitive_info[i].primitive == ImagePrimitive)
         break;
       if (i >= (ssize_t) number_points)
         ThrowFatalException(ResourceLimitFatalError,"MemoryAllocationFailed");
     }
-    if (graphic_context[n]->render != MagickFalse)
+    if (graphic_context[graphiccontextindex]->render != MagickFalse)
       {
-        if ((n != 0) && (graphic_context[n]->compliance != SVGCompliance) &&
-            (graphic_context[n]->clip_mask != (char *) NULL) &&
-            (LocaleCompare(graphic_context[n]->clip_mask,
-             graphic_context[n-1]->clip_mask) != 0))
+        if ((graphiccontextindex != 0) && (graphic_context[graphiccontextindex]->compliance != SVGCompliance) &&
+            (graphic_context[graphiccontextindex]->clip_mask != (char *) NULL) &&
+            (LocaleCompare(graphic_context[graphiccontextindex]->clip_mask,
+             graphic_context[graphiccontextindex-1]->clip_mask) != 0))
           {
             const char
               *clip_path;
 
             clip_path=(const char *) GetValueFromSplayTree(macros,
-              graphic_context[n]->clip_mask);
+              graphic_context[graphiccontextindex]->clip_mask);
             if (clip_path != (const char *) NULL)
-              (void) SetImageArtifact(image,graphic_context[n]->clip_mask,
+              (void) SetImageArtifact(image,graphic_context[graphiccontextindex]->clip_mask,
                 clip_path);
-            statuscode&=DrawClipPath(image,graphic_context[n],
-              graphic_context[n]->clip_mask,exception);
+            status&=DrawClipPath(image,graphic_context[graphiccontextindex],
+              graphic_context[graphiccontextindex]->clip_mask,exception);
           }
-        statuscode&=DrawPrimitive(image,graphic_context[n],primitive_info,
+        status&=DrawPrimitive(image,graphic_context[graphiccontextindex],primitive_info,
           exception);
       }
     proceed=SetImageProgress(image,RenderImageTag,q-primitive,(MagickSizeType)
       primitive_extent);
     if (proceed == MagickFalse)
       break;
-    if (statuscode == 0)
+    if (status == 0)
       break;
   }
   if (image->debug != MagickFalse)
@@ -4459,13 +4459,13 @@ static MagickBooleanType RenderMVGContent(Image *image,
   primitive=DestroyString(primitive);
   if (stops != (StopInfo *) NULL)
     stops=(StopInfo *) RelinquishMagickMemory(stops);
-  for ( ; n >= 0; n--)
-    graphic_context[n]=DestroyDrawInfo(graphic_context[n]);
+  for ( ; graphiccontextindex >= 0; graphiccontextindex--)
+    graphic_context[graphiccontextindex]=DestroyDrawInfo(graphic_context[graphiccontextindex]);
   graphic_context=(DrawInfo **) RelinquishMagickMemory(graphic_context);
-  if (statuscode == MagickFalse)
+  if (status == MagickFalse)
     ThrowBinaryException(DrawError,"NonconformingDrawingPrimitiveDefinition",
       keyword);
-  return(statuscode != 0 ? MagickTrue : MagickFalse);
+  return(status != 0 ? MagickTrue : MagickFalse);
 }
 
 MagickExport MagickBooleanType DrawImage(Image *image,const DrawInfo *draw_info,

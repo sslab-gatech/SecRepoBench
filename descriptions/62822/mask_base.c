@@ -916,9 +916,7 @@ pack_bstr(mrb_state *mrb, mrb_value src, mrb_value dst, mrb_int didx, int count,
 
 static int
 unpack_bstr(mrb_state *mrb, const void *src, int slen, mrb_value ary, int count, unsigned int flags)
-{
-  // <MASK>
-}
+{// <MASK>}
 
 static int
 pack_base64(mrb_state *mrb, mrb_value src, mrb_value dst, mrb_int didx, int count)

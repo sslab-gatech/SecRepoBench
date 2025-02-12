@@ -1096,13 +1096,13 @@ has_tmpl(const struct tmpl *tmpl)
 }
 
 static void
-read_tmpl(mrb_state *mrb, struct tmpl *tmpl, enum pack_dir *dirp, enum pack_type *typep, int *sizep, int *countptr, unsigned int *flagsp)
+read_tmpl(mrb_state *mrb, struct tmpl *tmpl, enum pack_dir *dirp, enum pack_type *typep, int *sizep, int *countp, unsigned int *flagsp)
 {
   mrb_int t, tlen;
   int ch, size = 0;
   enum pack_dir dir;
   enum pack_type type;
-  int count = 1;
+  int repeatcount = 1;
   unsigned int flags = 0;
   const char *tptr;
 
@@ -1307,9 +1307,9 @@ alias:
       // <MASK>
     } else if (ch == '*')  {
       if (type == PACK_TYPE_NONE)
-        count = 0;
+        repeatcount = 0;
       else
-        count = -1;
+        repeatcount = -1;
     } else if (ch == '_' || ch == '!' || ch == '<' || ch == '>') {
       if (strchr("sSiIlLqQ", (int)t) == NULL) {
         mrb_raisef(mrb, E_ARGUMENT_ERROR, "'%c' allowed only after types sSiIlLqQ", ch);
@@ -1335,7 +1335,7 @@ alias:
   *dirp = dir;
   *typep = type;
   *sizep = size;
-  *countptr = count;
+  *countp = repeatcount;
   *flagsp = flags;
 }
 

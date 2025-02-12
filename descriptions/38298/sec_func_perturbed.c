@@ -1,8 +1,8 @@
 MRB_API mrb_value
-mrb_ary_splice(mrb_state *mrb, mrb_value array, mrb_int head, mrb_int len, mrb_value rpl)
+mrb_ary_splice(mrb_state *mrb, mrb_value ary, mrb_int head, mrb_int len, mrb_value rpl)
 {
-  struct RArray *a = mrb_ary_ptr(array);
-  mrb_int alen = ARY_LEN(a);
+  struct RArray *a = mrb_ary_ptr(ary);
+  mrb_int arraylength = ARY_LEN(a);
   const mrb_value *argv;
   mrb_int argc;
   mrb_int tail;
@@ -14,7 +14,7 @@ mrb_ary_splice(mrb_state *mrb, mrb_value array, mrb_int head, mrb_int len, mrb_v
 
   /* range check */
   if (head < 0) {
-    head += alen;
+    head += arraylength;
     if (head < 0) goto out_of_range;
   }
   if (head > ARY_MAX_SIZE - len) {
@@ -22,8 +22,8 @@ mrb_ary_splice(mrb_state *mrb, mrb_value array, mrb_int head, mrb_int len, mrb_v
     mrb_raisef(mrb, E_INDEX_ERROR, "index %i is out of array", head);
   }
   tail = head + len;
-  if (alen < len || alen < tail) {
-    len = alen - head;
+  if (arraylength < len || arraylength < tail) {
+    len = arraylength - head;
     tail = head + len;
   }
 
@@ -49,13 +49,13 @@ mrb_ary_splice(mrb_state *mrb, mrb_value array, mrb_int head, mrb_int len, mrb_v
     argc = 1;
     argv = &rpl;
   }
-  if (head >= alen) {
+  if (head >= arraylength) {
     if (head > ARY_MAX_SIZE - argc) goto out_of_range;
     len = head + argc;
     if (len > ARY_CAPA(a)) {
       ary_expand_capa(mrb, a, len);
     }
-    ary_fill_with_nil(ARY_PTR(a) + alen, head - alen);
+    ary_fill_with_nil(ARY_PTR(a) + arraylength, head - arraylength);
     if (argc > 0) {
       array_copy(ARY_PTR(a) + head, argv, argc);
     }
@@ -64,18 +64,18 @@ mrb_ary_splice(mrb_state *mrb, mrb_value array, mrb_int head, mrb_int len, mrb_v
   else {
     mrb_int newlen;
 
-    if (alen - len > ARY_MAX_SIZE - argc) {
-      head = alen + argc - len;
+    if (arraylength - len > ARY_MAX_SIZE - argc) {
+      head = arraylength + argc - len;
       goto out_of_range;
     }
-    newlen = alen + argc - len;
+    newlen = arraylength + argc - len;
     if (newlen > ARY_CAPA(a)) {
       ary_expand_capa(mrb, a, newlen);
     }
 
     if (len != argc) {
       mrb_value *ptr = ARY_PTR(a);
-      value_move(ptr + head + argc, ptr + tail, alen - tail);
+      value_move(ptr + head + argc, ptr + tail, arraylength - tail);
       ARY_SET_LEN(a, newlen);
     }
     if (argc > 0) {
@@ -83,5 +83,5 @@ mrb_ary_splice(mrb_state *mrb, mrb_value array, mrb_int head, mrb_int len, mrb_v
     }
   }
   mrb_write_barrier(mrb, (struct RBasic*)a);
-  return array;
+  return ary;
 }

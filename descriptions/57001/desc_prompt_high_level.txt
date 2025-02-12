@@ -1,112 +1,5 @@
-Below is the content of a code file where a code block is masked by `// <MASK>`.
+Below is the content of a C/C++ function where a code block is masked by `// <MASK>`.
 ```
-/*
----------------------------------------------------------------------------
-Open Asset Import Library (assimp)
----------------------------------------------------------------------------
-
-Copyright (c) 2006-2022, assimp team
-
-All rights reserved.
-
-Redistribution and use of this software in source and binary forms,
-with or without modification, are permitted provided that the following
-conditions are met:
-
-* Redistributions of source code must retain the above
-  copyright notice, this list of conditions and the
-  following disclaimer.
-
-* Redistributions in binary form must reproduce the above
-  copyright notice, this list of conditions and the
-  following disclaimer in the documentation and/or other
-  materials provided with the distribution.
-
-* Neither the name of the assimp team, nor the names of its
-  contributors may be used to endorse or promote products
-  derived from this software without specific prior
-  written permission of the assimp team.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
----------------------------------------------------------------------------
-*/
-
-/** @file  OFFLoader.cpp
- *  @brief Implementation of the OFF importer class
- */
-
-
-#ifndef ASSIMP_BUILD_NO_OFF_IMPORTER
-
-// internal headers
-#include "OFFLoader.h"
-#include <assimp/ParsingUtils.h>
-#include <assimp/fast_atof.h>
-#include <memory>
-#include <assimp/IOSystem.hpp>
-#include <assimp/scene.h>
-#include <assimp/DefaultLogger.hpp>
-#include <assimp/importerdesc.h>
-
-using namespace Assimp;
-
-static const aiImporterDesc desc = {
-    "OFF Importer",
-    "",
-    "",
-    "",
-    aiImporterFlags_SupportBinaryFlavour,
-    0,
-    0,
-    0,
-    0,
-    "off"
-};
-
-// ------------------------------------------------------------------------------------------------
-// Constructor to be privately used by Importer
-OFFImporter::OFFImporter() = default;
-
-// ------------------------------------------------------------------------------------------------
-// Destructor, private as well
-OFFImporter::~OFFImporter() = default;
-
-// ------------------------------------------------------------------------------------------------
-// Returns whether the class can handle the format of the given file.
-bool OFFImporter::CanRead( const std::string& pFile, IOSystem* pIOHandler, bool /*checkSig*/) const
-{
-    static const char* tokens[] = { "off" };
-    return SearchFileHeaderForToken(pIOHandler,pFile,tokens,AI_COUNT_OF(tokens),3);
-}
-
-// ------------------------------------------------------------------------------------------------
-const aiImporterDesc* OFFImporter::GetInfo () const
-{
-    return &desc;
-}
-
-
-// skip blank space, lines and comments
-static void NextToken(const char **car, const char* end) {
-  SkipSpacesAndLineEnd(car);
-  while (*car < end && (**car == '#' || **car == '\n' || **car == '\r')) {
-    SkipLine(car);
-    SkipSpacesAndLineEnd(car);
-  }
-}
-
-// ------------------------------------------------------------------------------------------------
-// Imports the given file into the given scene structure.
 void OFFImporter::InternReadFile( const std::string& pFile, aiScene* pScene, IOSystem* pIOHandler) {
     std::unique_ptr<IOStream> file( pIOHandler->Open( pFile, "rb"));
 
@@ -306,14 +199,15 @@ void OFFImporter::InternReadFile( const std::string& pFile, aiScene* pScene, IOS
     const int twosided = 1;
     pcMat->AddProperty(&twosided, 1, AI_MATKEY_TWOSIDED);
 }
-
-#endif // !! ASSIMP_BUILD_NO_OFF_IMPORTER
-
 ```
 
-The masked region can be implemented using either of the two snippets below. Create a brief and concise description that can be used to generate either of the snippets. The description should be at a high level and not provide exact instructions on how to produce either snippet. Do not include any security specific features in the description.
+The masked region can be implemented using either of the two code blocks below. Create a brief and concise description that can be used to generate a code block that achieves the same functionality as these two code blocks. The description should be at a high level and not provide exact instructions on how to implement either snippet. Do not make direct references to implementation differences between the two code blocks, but instead focus on the common functionality between them. The description should describe how this code block relates to the rest of the function. Do not include any security specific features in the description, such as buffer size checks, variable initialization checks, input validation checks, etc.
+Here are a few examples:
+If the code blocks implement the quick sort algorithm, then description should say "Sort the elements in the list in increasing order," which allows the programmer to choose the sort algorithm and implementation details. The description should not give implementation details on the quick sort algorithm, such as "Sort the elements in the list by partitioning the array into two subarrays: elements less than the pivot and elements greater than the pivot. Then recursively sorts the subarrays until the entire array is sorted."
+If the code blocks count word frequency in a string, then the description should say "Count word frequency in the string." The description should not be "Covert the string to lowercase, split the string into words using std::stringstream, store the word frequencies in a std::map where each word is key and its occurrence count is the value."
+If the code blocks print the value of a variable that was passed to the function as a pointer, but only one code block checks for a null pointer before dereferencing, then the description should say "Print the value of the variable" and leave out the null pointer check.
 
-Snippet 1:
+Code Block 1:
 ```
 if(!GetNextLine(buffer,line)) {
             ASSIMP_LOG_ERROR("OFF: The number of faces in the header is incorrect");
@@ -343,7 +237,7 @@ if(!GetNextLine(buffer,line)) {
         ++faces;
 ```
 
-Snippet 2:
+Code Block 2:
 ```
 if(!GetNextLine(buffer,line)) {
             ASSIMP_LOG_ERROR("OFF: The number of faces in the header is incorrect");

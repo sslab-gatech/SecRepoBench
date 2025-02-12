@@ -182,13 +182,13 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
               break;
             case DWG_TYPE_BLOCK_r11:
               {
-                BITCODE_RL currentoffset;
+                BITCODE_RL cur_offset;
                 BITCODE_RL cur_offset_prefix = 0;
                 if (dat->version > R_2_22)
                   cur_offset_prefix += 0x40000000;
                 // search current offset in block_offset_r11 in BLOCK_HEADER's
                 // and set new _hdr
-                currentoffset = (((dat->byte - 1) - start) | cur_offset_prefix)
+                cur_offset = (((dat->byte - 1) - start) | cur_offset_prefix)
                              & 0xFFFFFFFF;
                 error |= dwg_decode_BLOCK (dat, obj);
                 if (!_hdr && entity_section == BLOCKS_SECTION_INDEX)
@@ -198,7 +198,7 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
                         Dwg_Object *o = &dwg->object[i];
                         if (o->fixedtype == DWG_TYPE_BLOCK_HEADER
                             && o->tio.object && o->tio.object->tio.BLOCK_HEADER
-                            && currentoffset
+                            && cur_offset
                                    == o->tio.object->tio.BLOCK_HEADER
                                           ->block_offset_r11)
                           {
@@ -206,7 +206,7 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
                                        "block_offset_r11 "
                                        "0x%x\n",
                                        o->tio.object->tio.BLOCK_HEADER->name,
-                                       currentoffset);
+                                       cur_offset);
                             hdr = o;
                             hdr_handle = hdr->handle.value;
                             hdr_index = o->index;
@@ -246,7 +246,7 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
                                   : "(null)";
                         LOG_WARN (
                             "found no BLOCK_HEADER %s block_offset_r11 0x%x\n",
-                            name, currentoffset);
+                            name, cur_offset);
                         hdr = NULL;
                       }
                   }

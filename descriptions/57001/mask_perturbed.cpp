@@ -114,16 +114,16 @@ void OFFImporter::InternReadFile( const std::string& pFile, aiScene* pScene, IOS
     }
 
     // allocate storage and copy the contents of the file to a memory buffer
-    std::vector<char> fileBuffer;
-    TextFileToBuffer(file.get(),fileBuffer);
-    const char* buffer = &fileBuffer[0];
+    std::vector<char> mBuffer2;
+    TextFileToBuffer(file.get(),mBuffer2);
+    const char* buffer = &mBuffer2[0];
 
     // Proper OFF header parser. We only implement normal loading for now.
     bool hasTexCoord = false, hasNormals = false, hasColors = false;
     bool hasHomogenous = false, hasDimension = false;
     unsigned int dimensions = 3;
     const char* car = buffer;
-    const char* end = buffer + fileBuffer.size();
+    const char* end = buffer + mBuffer2.size();
     NextToken(&car, end);
 
     if (car < end - 2 && car[0] == 'S' && car[1] == 'T') {
@@ -167,14 +167,14 @@ void OFFImporter::InternReadFile( const std::string& pFile, aiScene* pScene, IOS
     }
 
     NextToken(&car, end);
-    const unsigned int numVertices = strtoul10(car, &car);
+    const unsigned int vertexCount = strtoul10(car, &car);
     NextToken(&car, end);
     const unsigned int numFaces = strtoul10(car, &car);
     NextToken(&car, end);
     strtoul10(car, &car);  // skip edge count
     NextToken(&car, end);
 
-    if (!numVertices) {
+    if (!vertexCount) {
         throw DeadlyImportError("OFF: There are no valid vertices");
     }
     if (!numFaces) {
@@ -191,21 +191,21 @@ void OFFImporter::InternReadFile( const std::string& pFile, aiScene* pScene, IOS
     aiFace* faces = new aiFace[mesh->mNumFaces];
     mesh->mFaces = faces;
 
-    mesh->mNumVertices = numVertices;
-    mesh->mVertices = new aiVector3D[numVertices];
-    mesh->mNormals = hasNormals ? new aiVector3D[numVertices] : nullptr;
-    mesh->mColors[0] = hasColors ? new aiColor4D[numVertices] : nullptr;
+    mesh->mNumVertices = vertexCount;
+    mesh->mVertices = new aiVector3D[vertexCount];
+    mesh->mNormals = hasNormals ? new aiVector3D[vertexCount] : nullptr;
+    mesh->mColors[0] = hasColors ? new aiColor4D[vertexCount] : nullptr;
 
     if (hasTexCoord) {
         mesh->mNumUVComponents[0] = 2;
-        mesh->mTextureCoords[0] = new aiVector3D[numVertices];
+        mesh->mTextureCoords[0] = new aiVector3D[vertexCount];
     }
     char line[4096];
     buffer = car;
     const char *sz = car;
 
     // now read all vertex lines
-    for (unsigned int i = 0; i < numVertices; ++i) {
+    for (unsigned int i = 0; i < vertexCount; ++i) {
         if(!GetNextLine(buffer, line)) {
             ASSIMP_LOG_ERROR("OFF: The number of verts in the header is incorrect");
             break;

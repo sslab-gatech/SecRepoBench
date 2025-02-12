@@ -1,8 +1,8 @@
 for (i = 0; i < FF_ARRAY_ELEMS(cand_lists); i++) {
                 RefPicList *rps = &s->rps[cand_lists[i]];
-                for (j = 0; j < rps->nb_refs && rpl_tmp.nb_refs < HEVC_MAX_REFS; j++) {
-                    rpl_tmp.list[rpl_tmp.nb_refs]       = rps->list[j];
-                    rpl_tmp.ref[rpl_tmp.nb_refs]        = rps->ref[j];
+                for (refindex = 0; refindex < rps->nb_refs && rpl_tmp.nb_refs < HEVC_MAX_REFS; refindex++) {
+                    rpl_tmp.list[rpl_tmp.nb_refs]       = rps->list[refindex];
+                    rpl_tmp.ref[rpl_tmp.nb_refs]        = rps->ref[refindex];
                     rpl_tmp.isLongTerm[rpl_tmp.nb_refs] = i == 2;
                     rpl_tmp.nb_refs++;
                 }

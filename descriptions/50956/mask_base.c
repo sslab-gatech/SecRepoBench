@@ -1689,11 +1689,7 @@ cmsBool OptimizeMatrixShaper(cmsPipeline** Lut, cmsUInt32Number Intent, cmsUInt3
        IdentityMat = FALSE;
        if (cmsPipelineCheckAndRetreiveStages(Src, 4,
               cmsSigCurveSetElemType, cmsSigMatrixElemType, cmsSigMatrixElemType, cmsSigCurveSetElemType,
-              &Curve1, &Matrix1, &Matrix2, &Curve2)) {
-
-              // <MASK>
-
-       }
+              &Curve1, &Matrix1, &Matrix2, &Curve2)) {// <MASK>}
        else {
 
               if (cmsPipelineCheckAndRetreiveStages(Src, 3,

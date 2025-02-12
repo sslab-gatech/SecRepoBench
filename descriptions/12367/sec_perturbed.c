@@ -1209,16 +1209,16 @@ static int decode_slice(AVCodecContext *avctx, AVFrame *p, int height,
     return 0;
 }
 
-static int decode_frame(AVCodecContext *avctx, void *framedata, int *got_frame,
-                        AVPacket *avpkt)
+static int decode_frame(AVCodecContext *avctx, void *data, int *got_frame,
+                        AVPacket *packet)
 {
-    const uint8_t *buf = avpkt->data;
-    int buf_size       = avpkt->size;
+    const uint8_t *buf = packet->data;
+    int buf_size       = packet->size;
     HYuvContext *s = avctx->priv_data;
     const int width  = s->width;
     const int height = s->height;
-    ThreadFrame frame = { .f = framedata };
-    AVFrame *const p = framedata;
+    ThreadFrame frame = { .f = data };
+    AVFrame *const p = data;
     int slice, table_size = 0, ret, nb_slices;
     unsigned slices_info_offset;
     int slice_height;
@@ -1250,10 +1250,10 @@ static int decode_frame(AVCodecContext *avctx, void *framedata, int *got_frame,
     s->last_slice_end = 0;
 
     if (avctx->codec_id == AV_CODEC_ID_HYMT &&
-        (buf_size > 32 && AV_RL32(avpkt->data + buf_size - 16) == 0)) {
-        slices_info_offset = AV_RL32(avpkt->data + buf_size - 4);
-        slice_height = AV_RL32(avpkt->data + buf_size - 8);
-        nb_slices = AV_RL32(avpkt->data + buf_size - 12);
+        (buf_size > 32 && AV_RL32(packet->data + buf_size - 16) == 0)) {
+        slices_info_offset = AV_RL32(packet->data + buf_size - 4);
+        slice_height = AV_RL32(packet->data + buf_size - 8);
+        nb_slices = AV_RL32(packet->data + buf_size - 12);
         if (nb_slices * 8LL + slices_info_offset > buf_size - 16 ||
             slice_height <= 0 || nb_slices * (uint64_t)slice_height > height)
             return AVERROR_INVALIDDATA;
@@ -1266,8 +1266,8 @@ static int decode_frame(AVCodecContext *avctx, void *framedata, int *got_frame,
         int y_offset, slice_offset, slice_size;
 
         if (nb_slices > 1) {
-            slice_offset = AV_RL32(avpkt->data + slices_info_offset + slice * 8);
-            slice_size = AV_RL32(avpkt->data + slices_info_offset + slice * 8 + 4);
+            slice_offset = AV_RL32(packet->data + slices_info_offset + slice * 8);
+            slice_size = AV_RL32(packet->data + slices_info_offset + slice * 8 + 4);
             y_offset = height - (slice + 1) * slice_height;
             s->bdsp.bswap_buf((uint32_t *)s->bitstream_buffer,
                               (const uint32_t *)(buf + slice_offset), slice_size / 4);

@@ -1,4 +1,4 @@
-*width  = FFALIGN(*width, w_align);
+*framewidth  = FFALIGN(*framewidth, w_align);
     *height = FFALIGN(*height, h_align);
     if (s->codec_id == AV_CODEC_ID_H264 || s->lowres ||
         s->codec_id == AV_CODEC_ID_VC1  || s->codec_id == AV_CODEC_ID_WMV3 ||
@@ -13,5 +13,5 @@
         // it requires a temporary area large enough to hold a 21x21 block,
         // increasing witdth ensure that the temporary area is large enough,
         // the next rounded up width is 32
-        *width = FFMAX(*width, 32);
+        *framewidth = FFMAX(*framewidth, 32);
     }

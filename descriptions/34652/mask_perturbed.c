@@ -77,8 +77,8 @@ static const mrb_float g_neg_pow[] = {
  */
 
 int
-mrb_format_float(mrb_float f, char *buffer, size_t buf_size, char fmt, int prec, char sign) {
-  char *s = buffer;
+mrb_format_float(mrb_float f, char *buf, size_t buf_size, char fmt, int prec, char sign) {
+  char *s = buf;
   int buf_remaining = buf_size - 1;
   int alt_form = 0;
 
@@ -104,7 +104,7 @@ mrb_format_float(mrb_float f, char *buffer, size_t buf_size, char fmt, int prec,
   } else if (sign) {
     *s++ = sign;
   }
-  buf_remaining -= (s - buffer); // Adjust for sign
+  buf_remaining -= (s - buf); // Adjust for sign
 
   {
     char uc = fmt & 0x20;
@@ -119,7 +119,7 @@ mrb_format_float(mrb_float f, char *buffer, size_t buf_size, char fmt, int prec,
       *s++ = 'N' ^ uc;
     ret:
       *s = '\0';
-      return s - buffer;
+      return s - buf;
     }
   }
 
@@ -128,7 +128,7 @@ mrb_format_float(mrb_float f, char *buffer, size_t buf_size, char fmt, int prec,
   }
   char e_char = 'E' | (fmt & 0x20);   // e_char will match case of fmt
   fmt |= 0x20; // Force fmt to be lowercase
-  char org_fmt = fmt;
+  char originalformat = fmt;
   if (fmt == 'g' && prec == 0) {
     prec = 1;
   }
@@ -299,7 +299,7 @@ mrb_format_float(mrb_float f, char *buffer, size_t buf_size, char fmt, int prec,
         break;
       }
       *rs = '0';
-      if (rs == buffer) {
+      if (rs == buf) {
         break;
       }
       rs--;
@@ -331,7 +331,7 @@ mrb_format_float(mrb_float f, char *buffer, size_t buf_size, char fmt, int prec,
     }
   }
 
-  if (org_fmt == 'g' && prec > 0 && !alt_form) {
+  if (originalformat == 'g' && prec > 0 && !alt_form) {
     // Remove trailing zeros and a trailing decimal point
     while (s[-1] == '0') {
       s--;
@@ -353,7 +353,7 @@ mrb_format_float(mrb_float f, char *buffer, size_t buf_size, char fmt, int prec,
   }
   *s = '\0';
 
-  return s - buffer;
+  return s - buf;
 }
 
 MRB_API mrb_value

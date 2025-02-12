@@ -2,7 +2,7 @@ if (xmlCheckUTF8(ret) == 0) {
 	xsltTransformError(tctxt, NULL, tctxt->inst,
 	    "exsltCryptoRc4DecryptFunction: Invalid UTF-8\n");
         xmlFree(ret);
-	xmlXPathReturnEmptyString(ctxt);
+	xmlXPathReturnEmptyString(parsercontext);
     } else {
-        xmlXPathReturnString(ctxt, ret);
+        xmlXPathReturnString(parsercontext, ret);
     }

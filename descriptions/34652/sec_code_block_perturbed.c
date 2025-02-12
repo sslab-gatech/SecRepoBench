@@ -1,4 +1,4 @@
-if (org_fmt == 'g') {
+if (originalformat == 'g') {
         prec += (e - 1);
       }
       // truncate precision to prevent buffer overflow

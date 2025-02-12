@@ -1,0 +1,3 @@
+// Check if the current character indicates the end of the array.
+// If the array end marker is detected, proceed to successfully finish parsing the array.
+// Otherwise, continue with parsing the next element.

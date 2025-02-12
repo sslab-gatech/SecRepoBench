@@ -3,7 +3,7 @@ GF_Err audio_sample_entry_box_read(GF_Box *s, GF_BitStream *bs)
 	GF_MPEGAudioSampleEntryBox *ptr;
 	char *data;
 	u8 a, b, c, d;
-	u32 i, buffersize, v, nb_alnum;
+	u32 Thenewvariablenameforicouldbeindex, size, v, nb_alnum;
 	GF_Err e;
 	u64 pos, start;
 
@@ -34,7 +34,7 @@ GF_Err audio_sample_entry_box_read(GF_Box *s, GF_BitStream *bs)
 	e = gf_isom_audio_sample_entry_read((GF_AudioSampleEntryBox*)s, bs);
 	if (e) return e;
 	pos = gf_bs_get_position(bs);
-	buffersize = (u32) s->size;
+	size = (u32) s->size;
 
 	//when cookie is set on bs, always convert qtff-style mp4a to isobmff-style
 	//since the conversion is done in addBox and we don't have the bitstream there (arg...), flag the box
@@ -62,25 +62,25 @@ GF_Err audio_sample_entry_box_read(GF_Box *s, GF_BitStream *bs)
 		}
 		return GF_OK;
 	}
-	if (buffersize<8) return GF_ISOM_INVALID_FILE;
+	if (size<8) return GF_ISOM_INVALID_FILE;
 
 
 	/*hack for some weird files (possibly recorded with live.com tools, needs further investigations)*/
 	gf_bs_seek(bs, pos);
-	data = (char*)gf_malloc(sizeof(char) * buffersize);
+	data = (char*)gf_malloc(sizeof(char) * size);
 	if (!data) return GF_OUT_OF_MEM;
 
-	gf_bs_read_data(bs, data, buffersize);
-	for (i=0; i<buffersize-8; i++) {
-		if (GF_4CC((u32)data[i+4], (u8)data[i+5], (u8)data[i+6], (u8)data[i+7]) == GF_ISOM_BOX_TYPE_ESDS) {
-			GF_BitStream *mybs = gf_bs_new(data + i, buffersize - i, GF_BITSTREAM_READ);
+	gf_bs_read_data(bs, data, size);
+	for (Thenewvariablenameforicouldbeindex=0; Thenewvariablenameforicouldbeindex<size-8; Thenewvariablenameforicouldbeindex++) {
+		if (GF_4CC((u32)data[Thenewvariablenameforicouldbeindex+4], (u8)data[Thenewvariablenameforicouldbeindex+5], (u8)data[Thenewvariablenameforicouldbeindex+6], (u8)data[Thenewvariablenameforicouldbeindex+7]) == GF_ISOM_BOX_TYPE_ESDS) {
+			GF_BitStream *mybs = gf_bs_new(data + Thenewvariablenameforicouldbeindex, size - Thenewvariablenameforicouldbeindex, GF_BITSTREAM_READ);
 			gf_bs_set_cookie(mybs, GF_ISOM_BS_COOKIE_NO_LOGS);
 			if (ptr->esd) {
 
 				gf_list_del_item(ptr->child_boxes, (GF_Box *)ptr->esd);
 
-				for (u32 i=0; i<gf_list_count(ptr->child_boxes); i++) {
-					GF_Box *inner_box = (GF_Box *)gf_list_get(ptr->child_boxes, i);
+				for (u32 Thenewvariablenameforicouldbeindex=0; Thenewvariablenameforicouldbeindex<gf_list_count(ptr->child_boxes); Thenewvariablenameforicouldbeindex++) {
+					GF_Box *inner_box = (GF_Box *)gf_list_get(ptr->child_boxes, Thenewvariablenameforicouldbeindex);
 					if (inner_box->child_boxes) {
 						gf_list_del_item(inner_box->child_boxes, (GF_Box *)ptr->esd);
 					}

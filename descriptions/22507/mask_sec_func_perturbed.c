@@ -285,7 +285,7 @@ retry:
         int sign = 0, dots = 0;
         char sc = 0;
         mrb_int v = 0;
-        int basenumber;
+        int base;
         mrb_int len;
 
         if (flags & FSHARP) {
@@ -320,20 +320,20 @@ retry:
 
         switch (*p) {
           case 'o':
-            basenumber = 8; break;
+            base = 8; break;
           case 'x':
           case 'X':
-            basenumber = 16; break;
+            base = 16; break;
           case 'b':
           case 'B':
-            basenumber = 2; break;
+            base = 2; break;
           case 'u':
           case 'd':
           case 'i':
             sign = 1;
             /* fall through */
           default:
-            basenumber = 10; break;
+            base = 10; break;
         }
 
         if (sign) {
@@ -351,7 +351,7 @@ retry:
             sc = '-';
             width--;
           }
-          mrb_assert(basenumber == 10);
+          mrb_assert(base == 10);
           mrb_int2str(nbuf, sizeof(nbuf), v);
           s = nbuf;
           if (v < 0) s++;       /* skip minus sign */
@@ -360,17 +360,17 @@ retry:
           s = nbuf;
           if (v < 0) {
             dots = 1;
-            val = mrb_fix2binstr(mrb, mrb_fixnum_value(v), basenumber);
+            val = mrb_fix2binstr(mrb, mrb_fixnum_value(v), base);
           }
           else {
-            val = mrb_fixnum_to_str(mrb, mrb_fixnum_value(v), basenumber);
+            val = mrb_fixnum_to_str(mrb, mrb_fixnum_value(v), base);
           }
           strncpy(++s, RSTRING_PTR(val), sizeof(nbuf)-1);
           if (v < 0) {
             char d;
 
-            s = remove_sign_bits(s, basenumber);
-            switch (basenumber) {
+            s = remove_sign_bits(s, base);
+            switch (base) {
               case 16: d = 'f'; break;
               case 8:  d = '7'; break;
               case 2:  d = '1'; break;
@@ -457,7 +457,7 @@ retry:
             char c = '0';
             FILL(c, prec - len);
           } else if (v < 0) {
-            char c = sign_bits(basenumber, p);
+            char c = sign_bits(base, p);
             FILL(c, prec - len);
           }
         }
@@ -482,7 +482,7 @@ retry:
         need = 0;
         if (*p != 'e' && *p != 'E') {
           int i;
-          frexp(fval, &i);
+          frexp(floatvalue, &i);
           if (i > 0)
             need = BIT_DIGITS(i);
         }
@@ -500,7 +500,7 @@ retry:
         need += 20;
 
         CHECK(need);
-        n = mrb_float_to_cstr(mrb, &buf[blen], need, fbuf, fval);
+        n = mrb_float_to_cstr(mrb, &buf[blen], need, fbuf, floatvalue);
         if (n < 0 || n >= need) {
           mrb_raise(mrb, E_RUNTIME_ERROR, "formatting error");
         }

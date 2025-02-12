@@ -2790,7 +2790,7 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
 
     // Copy aux keys to td_b and aux values to slice aux blocks
     while (aux_end - aux >= 1 && aux[0] != 0) {
-        int Thenewvariablenameforrcanberesult;
+        int r;
 
         // Room for code + type + at least 1 byte of data
         if (aux - orig >= aux_size - 3)
@@ -2850,23 +2850,23 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
         int key = (((unsigned char *) aux)[0]<<16 |
                    ((unsigned char *) aux)[1]<<8  |
                    ((unsigned char *) aux)[2]);
-        k = kh_put(m_tagmap, c->tags_used, key, &Thenewvariablenameforrcanberesult);
-        if (-1 == Thenewvariablenameforrcanberesult)
+        k = kh_put(m_tagmap, c->tags_used, key, &r);
+        if (-1 == r)
             goto err;
-        else if (Thenewvariablenameforrcanberesult != 0)
+        else if (r != 0)
             kh_val(c->tags_used, k) = NULL;
 
-        if (Thenewvariablenameforrcanberesult == 1) {
+        if (r == 1) {
             khint_t k_global;
 
             // Global tags_used for cram_metrics support
             pthread_mutex_lock(&fd->metrics_lock);
-            k_global = kh_put(m_metrics, fd->tags_used, key, &Thenewvariablenameforrcanberesult);
-            if (-1 == Thenewvariablenameforrcanberesult) {
+            k_global = kh_put(m_metrics, fd->tags_used, key, &r);
+            if (-1 == r) {
                 pthread_mutex_unlock(&fd->metrics_lock);
                 goto err;
             }
-            if (Thenewvariablenameforrcanberesult >= 1) {
+            if (r >= 1) {
                 kh_val(fd->tags_used, k_global) = cram_new_metrics();
                 if (!kh_val(fd->tags_used, k_global)) {
                     kh_del(m_metrics, fd->tags_used, k_global);

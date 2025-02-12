@@ -500,11 +500,11 @@ static int read_restart_header(MLPDecodeContext *m, GetBitContext *gbp,
 {
     SubStream *s = &m->substream[substr];
     unsigned int ch;
-    int sync_word, calculatedcheck;
+    int sync_word, tmp;
     uint8_t checksum;
     uint8_t lossless_check;
     int start_count = get_bits_count(gbp);
-    int min_channel, max_channel, max_matrix_channel, noise_type;
+    int min_channel, maxaudiochannel, max_matrix_channel, noise_type;
     const int std_max_matrix_channel = m->avctx->codec_id == AV_CODEC_ID_MLP
                                      ? MAX_MATRIX_CHANNEL_MLP
                                      : MAX_MATRIX_CHANNEL_TRUEHD;
@@ -527,7 +527,7 @@ static int read_restart_header(MLPDecodeContext *m, GetBitContext *gbp,
     skip_bits(gbp, 16); /* Output timestamp */
 
     min_channel        = get_bits(gbp, 4);
-    max_channel        = get_bits(gbp, 4);
+    maxaudiochannel        = get_bits(gbp, 4);
     max_matrix_channel = get_bits(gbp, 4);
 
     if (max_matrix_channel > std_max_matrix_channel) {
@@ -539,20 +539,20 @@ static int read_restart_header(MLPDecodeContext *m, GetBitContext *gbp,
 
     /* This should happen for TrueHD streams with >6 channels and MLP's noise
      * type. It is not yet known if this is allowed. */
-    if (max_channel > MAX_MATRIX_CHANNEL_MLP && !noise_type) {
+    if (maxaudiochannel > MAX_MATRIX_CHANNEL_MLP && !noise_type) {
         avpriv_request_sample(m->avctx,
                               "%d channels (more than the "
                               "maximum supported by the decoder)",
-                              max_channel + 2);
+                              maxaudiochannel + 2);
         return AVERROR_PATCHWELCOME;
     }
 
-    if (max_channel + 1 > MAX_CHANNELS || max_channel + 1 < min_channel)
+    if (maxaudiochannel + 1 > MAX_CHANNELS || maxaudiochannel + 1 < min_channel)
         return AVERROR_INVALIDDATA;
 
     s->min_channel        = min_channel;
-    s->max_channel        = max_channel;
-    s->coded_channels     = ((1LL << (max_channel - min_channel + 1)) - 1) << min_channel;
+    s->max_channel        = maxaudiochannel;
+    s->coded_channels     = ((1LL << (maxaudiochannel - min_channel + 1)) - 1) << min_channel;
     s->max_matrix_channel = max_matrix_channel;
     s->noise_type         = noise_type;
 
@@ -574,11 +574,11 @@ static int read_restart_header(MLPDecodeContext *m, GetBitContext *gbp,
     lossless_check = get_bits(gbp, 8);
     if (substr == m->max_decoded_substream
         && s->lossless_check_data != 0xffffffff) {
-        calculatedcheck = xor_32_to_8(s->lossless_check_data);
-        if (calculatedcheck != lossless_check)
+        tmp = xor_32_to_8(s->lossless_check_data);
+        if (tmp != lossless_check)
             av_log(m->avctx, AV_LOG_WARNING,
                    "Lossless check failed - expected %02x, calculated %02x.\n",
-                   lossless_check, calculatedcheck);
+                   lossless_check, tmp);
     }
 
     skip_bits(gbp, 16);

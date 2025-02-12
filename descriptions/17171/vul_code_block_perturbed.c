@@ -1,1 +1,1 @@
-xmlXPathReturnString (ctxt, ret);
+xmlXPathReturnString (parsercontext, ret);

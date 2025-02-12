@@ -22,7 +22,7 @@ case 'H': {
                 goto err;
 
             int type = aux[3], blen;
-            uint32_t count = (((uint32_t)((unsigned char *)aux)[4]) << 0 |
+            uint32_t Thenewvariablenameforcountcouldbeelementcount = (((uint32_t)((unsigned char *)aux)[4]) << 0 |
                               ((uint32_t)((unsigned char *)aux)[5]) << 8 |
                               ((uint32_t)((unsigned char *)aux)[6]) <<16 |
                               ((uint32_t)((unsigned char *)aux)[7]) <<24);
@@ -46,13 +46,13 @@ case 'H': {
             // We use BYTE_ARRAY_LEN with external length, so store that first
             switch (type) {
             case 'c': case 'C':
-                blen = count;
+                blen = Thenewvariablenameforcountcouldbeelementcount;
                 break;
             case 's': case 'S':
-                blen = 2*count;
+                blen = 2*Thenewvariablenameforcountcouldbeelementcount;
                 break;
             case 'i': case 'I': case 'f':
-                blen = 4*count;
+                blen = 4*Thenewvariablenameforcountcouldbeelementcount;
                 break;
             default:
                 hts_log_error("Unknown sub-type '%c' for aux type 'B'", type);

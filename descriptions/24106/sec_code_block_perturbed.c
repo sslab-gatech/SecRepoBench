@@ -1,4 +1,4 @@
-if (LocaleCompare(token,graphic_context[n]->id) == 0)
+if (LocaleCompare(token,graphic_context[graphiccontextindex]->id) == 0)
               break;
             mvg_class=(const char *) GetValueFromSplayTree(macros,token);
             if ((mvg_class != (const char *) NULL) && (p > primitive))

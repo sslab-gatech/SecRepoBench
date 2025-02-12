@@ -11,6 +11,6 @@ if (max_matrix_channel > std_max_matrix_channel) {
         avpriv_request_sample(m->avctx,
                               "%d channels (more than the "
                               "maximum supported by the decoder)",
-                              max_channel + 2);
+                              maxaudiochannel + 2);
         return AVERROR_PATCHWELCOME;
     }

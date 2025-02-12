@@ -1,4 +1,4 @@
-if (uc == ue)
+if (uc == end)
 			goto out;
 		switch (*uc++) {
 		case ',':

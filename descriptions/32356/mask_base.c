@@ -1725,7 +1725,7 @@ GF_Err gf_isom_box_array_read_ex(GF_Box *parent, GF_BitStream *bs, u32 parent_ty
 		if (!a) return GF_OK;
 
 		// <MASK>
-
+		
 		//check container validity
 		if (strlen(a->registry->parents_4cc)) {
 			Bool parent_OK = GF_FALSE;

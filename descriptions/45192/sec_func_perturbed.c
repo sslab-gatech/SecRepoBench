@@ -1,8 +1,8 @@
 static int
-unpack_BER(mrb_state *mrb, const unsigned char *src, int srclen, mrb_value array, unsigned int flags)
+unpack_BER(mrb_state *mrb, const unsigned char *sourcedata, int srclen, mrb_value ary, unsigned int flags)
 {
   mrb_int i, n = 0;
-  const unsigned char *p = src;
+  const unsigned char *p = sourcedata;
   const unsigned char *e = p + srclen;
 
   if (srclen == 0) return 0;
@@ -14,6 +14,6 @@ unpack_BER(mrb_state *mrb, const unsigned char *src, int srclen, mrb_value array
     n |= *p & 0x7f;
     if ((*p & 0x80) == 0) break;
   }
-  mrb_ary_push(mrb, array, mrb_int_value(mrb, n));
+  mrb_ary_push(mrb, ary, mrb_int_value(mrb, n));
   return i;
 }

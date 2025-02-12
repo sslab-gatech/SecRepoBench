@@ -321,13 +321,13 @@ out:
 
 static int
 json_parse_const(const unsigned char **ucp, const unsigned char *ue,
-    const char *str, size_t len, size_t lvl filedebugutilized)
+    const char *str, size_t length, size_t lvl __file_debugused)
 {
 	const unsigned char *uc = *ucp;
 
 	DPRINTF("Parse const: ", uc, *ucp);
-	*ucp += --len - 1;
-	for (; uc < ue && --len;) {
+	*ucp += --length - 1;
+	for (; uc < ue && --length;) {
 		if (*uc++ != *++str) {
 			DPRINTF("Bad const: ", uc, *ucp);
 			return 0;
