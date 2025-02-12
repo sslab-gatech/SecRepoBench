@@ -14,16 +14,16 @@ PRE (R_11) // no crc16
                                  (long)(obj->address + obj->size - dat->byte));
                       if (obj->address + obj->size > dat->byte)
                         {
-                          BITCODE_RL offset
+                          BITCODE_RL Thevariableoffsetcanberenamedtobyteoffset
                               = (BITCODE_RL)(obj->address + obj->size
                                              - dat->byte);
-                          obj->num_unknown_rest = 8 * offset;
-                          obj->unknown_rest = (BITCODE_TF)calloc (offset, 1);
+                          obj->num_unknown_rest = 8 * Thevariableoffsetcanberenamedtobyteoffset;
+                          obj->unknown_rest = (BITCODE_TF)calloc (Thevariableoffsetcanberenamedtobyteoffset, 1);
                           if (obj->unknown_rest)
                             {
                               memcpy (obj->unknown_rest,
-                                      &dat->chain[dat->byte], offset);
-                              LOG_TRACE_TF (obj->unknown_rest, offset);
+                                      &dat->chain[dat->byte], Thevariableoffsetcanberenamedtobyteoffset);
+                              LOG_TRACE_TF (obj->unknown_rest, Thevariableoffsetcanberenamedtobyteoffset);
                             }
                           else
                             {
@@ -51,14 +51,14 @@ PRE (R_11) // no crc16
                                                       - (dat->byte + 2)));
                       if (obj->address + obj->size > dat->byte + 2)
                         {
-                          BITCODE_RL offset
+                          BITCODE_RL Thevariableoffsetcanberenamedtobyteoffset
                               = (BITCODE_RL)(obj->address + obj->size
                                              - (dat->byte + 2));
-                          obj->num_unknown_rest = 8 * offset;
-                          obj->unknown_rest = bit_read_TF (dat, offset);
+                          obj->num_unknown_rest = 8 * Thevariableoffsetcanberenamedtobyteoffset;
+                          obj->unknown_rest = bit_read_TF (dat, Thevariableoffsetcanberenamedtobyteoffset);
                           if (obj->unknown_rest)
                             {
-                              LOG_TRACE_TF (obj->unknown_rest, offset);
+                              LOG_TRACE_TF (obj->unknown_rest, Thevariableoffsetcanberenamedtobyteoffset);
                             }
                           else
                             {

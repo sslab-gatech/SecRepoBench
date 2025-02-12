@@ -2142,165 +2142,165 @@ static void jpeg2000_dec_cleanup(Jpeg2000DecoderContext *s)
     s->ncomponents = 0;
 }
 
-static int jpeg2000_read_main_headers(Jpeg2000DecoderContext *s)
+static int jpeg2000_read_main_headers(Jpeg2000DecoderContext *decodercontext)
 {
-    Jpeg2000CodingStyle *codsty = s->codsty;
-    Jpeg2000QuantStyle *qntsty  = s->qntsty;
-    Jpeg2000POC         *poc    = &s->poc;
-    uint8_t *properties         = s->properties;
+    Jpeg2000CodingStyle *codsty = decodercontext->codsty;
+    Jpeg2000QuantStyle *qntsty  = decodercontext->qntsty;
+    Jpeg2000POC         *poc    = &decodercontext->poc;
+    uint8_t *properties         = decodercontext->properties;
 
     for (;;) {
         int len, ret = 0;
-        uint16_t markercode;
+        uint16_t marker;
         int oldpos;
 
-        if (bytestream2_get_bytes_left(&s->g) < 2) {
-            av_log(s->avctx, AV_LOG_ERROR, "Missing EOC\n");
+        if (bytestream2_get_bytes_left(&decodercontext->g) < 2) {
+            av_log(decodercontext->avctx, AV_LOG_ERROR, "Missing EOC\n");
             break;
         }
 
-        markercode = bytestream2_get_be16u(&s->g);
-        oldpos = bytestream2_tell(&s->g);
-        if (markercode >= 0xFF30 && markercode <= 0xFF3F)
+        marker = bytestream2_get_be16u(&decodercontext->g);
+        oldpos = bytestream2_tell(&decodercontext->g);
+        if (marker >= 0xFF30 && marker <= 0xFF3F)
             continue;
-        if (markercode == JPEG2000_SOD) {
+        if (marker == JPEG2000_SOD) {
             Jpeg2000Tile *tile;
             Jpeg2000TilePart *tp;
 
-            if (!s->tile) {
-                av_log(s->avctx, AV_LOG_ERROR, "Missing SIZ\n");
+            if (!decodercontext->tile) {
+                av_log(decodercontext->avctx, AV_LOG_ERROR, "Missing SIZ\n");
                 return AVERROR_INVALIDDATA;
             }
-            if (s->curtileno < 0) {
-                av_log(s->avctx, AV_LOG_ERROR, "Missing SOT\n");
+            if (decodercontext->curtileno < 0) {
+                av_log(decodercontext->avctx, AV_LOG_ERROR, "Missing SOT\n");
                 return AVERROR_INVALIDDATA;
             }
 
-            tile = s->tile + s->curtileno;
+            tile = decodercontext->tile + decodercontext->curtileno;
             tp = tile->tile_part + tile->tp_idx;
-            if (tp->tp_end < s->g.buffer) {
-                av_log(s->avctx, AV_LOG_ERROR, "Invalid tpend\n");
+            if (tp->tp_end < decodercontext->g.buffer) {
+                av_log(decodercontext->avctx, AV_LOG_ERROR, "Invalid tpend\n");
                 return AVERROR_INVALIDDATA;
             }
 
-            if (s->has_ppm) {
-                uint32_t tp_header_size = bytestream2_get_be32(&s->packed_headers_stream);
-                if (bytestream2_get_bytes_left(&s->packed_headers_stream) < tp_header_size)
+            if (decodercontext->has_ppm) {
+                uint32_t tp_header_size = bytestream2_get_be32(&decodercontext->packed_headers_stream);
+                if (bytestream2_get_bytes_left(&decodercontext->packed_headers_stream) < tp_header_size)
                     return AVERROR_INVALIDDATA;
-                bytestream2_init(&tp->header_tpg, s->packed_headers_stream.buffer, tp_header_size);
-                bytestream2_skip(&s->packed_headers_stream, tp_header_size);
+                bytestream2_init(&tp->header_tpg, decodercontext->packed_headers_stream.buffer, tp_header_size);
+                bytestream2_skip(&decodercontext->packed_headers_stream, tp_header_size);
             }
             if (tile->has_ppt && tile->tp_idx == 0) {
                 bytestream2_init(&tile->packed_headers_stream, tile->packed_headers, tile->packed_headers_size);
             }
 
-            bytestream2_init(&tp->tpg, s->g.buffer, tp->tp_end - s->g.buffer);
-            bytestream2_skip(&s->g, tp->tp_end - s->g.buffer);
+            bytestream2_init(&tp->tpg, decodercontext->g.buffer, tp->tp_end - decodercontext->g.buffer);
+            bytestream2_skip(&decodercontext->g, tp->tp_end - decodercontext->g.buffer);
 
             continue;
         }
-        if (markercode == JPEG2000_EOC)
+        if (marker == JPEG2000_EOC)
             break;
 
-        len = bytestream2_get_be16(&s->g);
-        if (len < 2 || bytestream2_get_bytes_left(&s->g) < len - 2) {
-            if (s->avctx->strict_std_compliance >= FF_COMPLIANCE_STRICT) {
-                av_log(s->avctx, AV_LOG_ERROR, "Invalid len %d left=%d\n", len, bytestream2_get_bytes_left(&s->g));
+        len = bytestream2_get_be16(&decodercontext->g);
+        if (len < 2 || bytestream2_get_bytes_left(&decodercontext->g) < len - 2) {
+            if (decodercontext->avctx->strict_std_compliance >= FF_COMPLIANCE_STRICT) {
+                av_log(decodercontext->avctx, AV_LOG_ERROR, "Invalid len %d left=%d\n", len, bytestream2_get_bytes_left(&decodercontext->g));
                 return AVERROR_INVALIDDATA;
             }
-            av_log(s->avctx, AV_LOG_WARNING, "Missing EOC Marker.\n");
+            av_log(decodercontext->avctx, AV_LOG_WARNING, "Missing EOC Marker.\n");
             break;
         }
 
-        switch (markercode) {
+        switch (marker) {
         case JPEG2000_SIZ:
-            if (s->ncomponents) {
-                av_log(s->avctx, AV_LOG_ERROR, "Duplicate SIZ\n");
+            if (decodercontext->ncomponents) {
+                av_log(decodercontext->avctx, AV_LOG_ERROR, "Duplicate SIZ\n");
                 return AVERROR_INVALIDDATA;
             }
-            ret = get_siz(s);
-            if (!s->tile)
-                s->numXtiles = s->numYtiles = 0;
+            ret = get_siz(decodercontext);
+            if (!decodercontext->tile)
+                decodercontext->numXtiles = decodercontext->numYtiles = 0;
             break;
         case JPEG2000_COC:
-            ret = get_coc(s, codsty, properties);
+            ret = get_coc(decodercontext, codsty, properties);
             break;
         case JPEG2000_COD:
-            ret = get_cod(s, codsty, properties);
+            ret = get_cod(decodercontext, codsty, properties);
             break;
         case JPEG2000_RGN:
-            ret = get_rgn(s, len);
+            ret = get_rgn(decodercontext, len);
             break;
         case JPEG2000_QCC:
-            ret = get_qcc(s, len, qntsty, properties);
+            ret = get_qcc(decodercontext, len, qntsty, properties);
             break;
         case JPEG2000_QCD:
-            ret = get_qcd(s, len, qntsty, properties);
+            ret = get_qcd(decodercontext, len, qntsty, properties);
             break;
         case JPEG2000_POC:
-            ret = get_poc(s, len, poc);
+            ret = get_poc(decodercontext, len, poc);
             break;
         case JPEG2000_SOT:
-            if (!s->in_tile_headers) {
-                s->in_tile_headers = 1;
-                if (s->has_ppm) {
-                    bytestream2_init(&s->packed_headers_stream, s->packed_headers, s->packed_headers_size);
+            if (!decodercontext->in_tile_headers) {
+                decodercontext->in_tile_headers = 1;
+                if (decodercontext->has_ppm) {
+                    bytestream2_init(&decodercontext->packed_headers_stream, decodercontext->packed_headers, decodercontext->packed_headers_size);
                 }
             }
-            if (!(ret = get_sot(s, len))) {
-                av_assert1(s->curtileno >= 0);
-                codsty = s->tile[s->curtileno].codsty;
-                qntsty = s->tile[s->curtileno].qntsty;
-                poc    = &s->tile[s->curtileno].poc;
-                properties = s->tile[s->curtileno].properties;
+            if (!(ret = get_sot(decodercontext, len))) {
+                av_assert1(decodercontext->curtileno >= 0);
+                codsty = decodercontext->tile[decodercontext->curtileno].codsty;
+                qntsty = decodercontext->tile[decodercontext->curtileno].qntsty;
+                poc    = &decodercontext->tile[decodercontext->curtileno].poc;
+                properties = decodercontext->tile[decodercontext->curtileno].properties;
             }
             break;
         case JPEG2000_PLM:
             // the PLM marker is ignored
         case JPEG2000_COM:
             // the comment is ignored
-            bytestream2_skip(&s->g, len - 2);
+            bytestream2_skip(&decodercontext->g, len - 2);
             break;
         case JPEG2000_CRG:
-            ret = read_crg(s, len);
+            ret = read_crg(decodercontext, len);
             break;
         case JPEG2000_TLM:
             // Tile-part lengths
-            ret = get_tlm(s, len);
+            ret = get_tlm(decodercontext, len);
             break;
         case JPEG2000_PLT:
             // Packet length, tile-part header
-            ret = get_plt(s, len);
+            ret = get_plt(decodercontext, len);
             break;
         case JPEG2000_PPM:
             // Packed headers, main header
-            if (s->in_tile_headers) {
-                av_log(s->avctx, AV_LOG_ERROR, "PPM Marker can only be in Main header\n");
+            if (decodercontext->in_tile_headers) {
+                av_log(decodercontext->avctx, AV_LOG_ERROR, "PPM Marker can only be in Main header\n");
                 return AVERROR_INVALIDDATA;
             }
-            ret = get_ppm(s, len);
+            ret = get_ppm(decodercontext, len);
             break;
         case JPEG2000_PPT:
             // Packed headers, tile-part header
-            if (s->has_ppm) {
-                av_log(s->avctx, AV_LOG_ERROR,
+            if (decodercontext->has_ppm) {
+                av_log(decodercontext->avctx, AV_LOG_ERROR,
                        "Cannot have both PPT and PPM marker.\n");
                 return AVERROR_INVALIDDATA;
             }
 
-            ret = get_ppt(s, len);
+            ret = get_ppt(decodercontext, len);
             break;
         default:
-            av_log(s->avctx, AV_LOG_ERROR,
+            av_log(decodercontext->avctx, AV_LOG_ERROR,
                    "unsupported marker 0x%.4"PRIX16" at pos 0x%X\n",
-                   markercode, bytestream2_tell(&s->g) - 4);
-            bytestream2_skip(&s->g, len - 2);
+                   marker, bytestream2_tell(&decodercontext->g) - 4);
+            bytestream2_skip(&decodercontext->g, len - 2);
             break;
         }
-        if (bytestream2_tell(&s->g) - oldpos != len || ret) {
-            av_log(s->avctx, AV_LOG_ERROR,
+        if (bytestream2_tell(&decodercontext->g) - oldpos != len || ret) {
+            av_log(decodercontext->avctx, AV_LOG_ERROR,
                    "error during processing marker segment %.4"PRIx16"\n",
-                   markercode);
+                   marker);
             return ret ? ret : -1;
         }
     }

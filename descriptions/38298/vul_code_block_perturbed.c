@@ -1,6 +1,6 @@
 tail = head + len;
-  if (alen < len || alen < tail) {
-    len = alen - head;
+  if (arraylength < len || arraylength < tail) {
+    len = arraylength - head;
   }
 
   /* size check */

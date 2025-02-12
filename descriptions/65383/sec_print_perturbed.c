@@ -2791,7 +2791,7 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
 
     // Copy aux keys to td_b and aux values to slice aux blocks
     while (aux_end - aux >= 1 && aux[0] != 0) {
-        int Thenewvariablenameforrcanberesult;
+        int r;
 
         // Room for code + type + at least 1 byte of data
         if (aux - orig >= aux_size - 3)
@@ -2851,23 +2851,23 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
         int key = (((unsigned char *) aux)[0]<<16 |
                    ((unsigned char *) aux)[1]<<8  |
                    ((unsigned char *) aux)[2]);
-        k = kh_put(m_tagmap, c->tags_used, key, &Thenewvariablenameforrcanberesult);
-        if (-1 == Thenewvariablenameforrcanberesult)
+        k = kh_put(m_tagmap, c->tags_used, key, &r);
+        if (-1 == r)
             goto err;
-        else if (Thenewvariablenameforrcanberesult != 0)
+        else if (r != 0)
             kh_val(c->tags_used, k) = NULL;
 
-        if (Thenewvariablenameforrcanberesult == 1) {
+        if (r == 1) {
             khint_t k_global;
 
             // Global tags_used for cram_metrics support
             pthread_mutex_lock(&fd->metrics_lock);
-            k_global = kh_put(m_metrics, fd->tags_used, key, &Thenewvariablenameforrcanberesult);
-            if (-1 == Thenewvariablenameforrcanberesult) {
+            k_global = kh_put(m_metrics, fd->tags_used, key, &r);
+            if (-1 == r) {
                 pthread_mutex_unlock(&fd->metrics_lock);
                 goto err;
             }
-            if (Thenewvariablenameforrcanberesult >= 1) {
+            if (r >= 1) {
                 kh_val(fd->tags_used, k_global) = cram_new_metrics();
                 if (!kh_val(fd->tags_used, k_global)) {
                     kh_del(m_metrics, fd->tags_used, k_global);
@@ -3104,7 +3104,7 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
                 goto err;
 
             int type = aux[3], blen;
-            uint32_t count = (((uint32_t)((unsigned char *)aux)[4]) << 0 |
+            uint32_t Thenewvariablenameforcountcouldbeelementcount = (((uint32_t)((unsigned char *)aux)[4]) << 0 |
                               ((uint32_t)((unsigned char *)aux)[5]) << 8 |
                               ((uint32_t)((unsigned char *)aux)[6]) <<16 |
                               ((uint32_t)((unsigned char *)aux)[7]) <<24);
@@ -3128,13 +3128,13 @@ static sam_hrec_rg_t *cram_encode_aux(cram_fd *fd, bam_seq_t *b,
             // We use BYTE_ARRAY_LEN with external length, so store that first
             switch (type) {
             case 'c': case 'C':
-                blen = count;
+                blen = Thenewvariablenameforcountcouldbeelementcount;
                 break;
             case 's': case 'S':
-                blen = 2*count;
+                blen = 2*Thenewvariablenameforcountcouldbeelementcount;
                 break;
             case 'i': case 'I': case 'f':
-                blen = 4*count;
+                blen = 4*Thenewvariablenameforcountcouldbeelementcount;
                 break;
             default:
                 hts_log_error("Unknown sub-type '%c' for aux type 'B'", type);

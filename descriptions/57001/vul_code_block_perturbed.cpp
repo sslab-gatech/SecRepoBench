@@ -16,9 +16,9 @@ if(!GetNextLine(buffer,line)) {
         for (unsigned int m = 0; m < faces->mNumIndices;++m) {
             SkipSpaces(&sz);
             idx = strtoul10(sz,&sz);
-            if (idx >= numVertices) {
+            if (idx >= vertexCount) {
                 ASSIMP_LOG_ERROR("OFF: Vertex index is out of range");
-                idx = numVertices - 1;
+                idx = vertexCount - 1;
             }
             faces->mIndices[m] = idx;
         }

@@ -1,5 +1,5 @@
-void avcodec_align_dimensions2(AVCodecContext *s, int *width, int *height,
-                               int linesize_align[NUMDATAPOINTERS])
+void avcodec_align_dimensions2(AVCodecContext *s, int *framewidth, int *height,
+                               int linesize_align[AV_NUM_DATA_POINTERS])
 {
     int i;
     int w_align = 1;
@@ -180,7 +180,7 @@ void avcodec_align_dimensions2(AVCodecContext *s, int *width, int *height,
         w_align = FFMAX(w_align, 8);
     }
 
-    *width  = FFALIGN(*width, w_align);
+    *framewidth  = FFALIGN(*framewidth, w_align);
     *height = FFALIGN(*height, h_align);
     if (s->codec_id == AV_CODEC_ID_H264 || s->lowres ||
         s->codec_id == AV_CODEC_ID_VC1  || s->codec_id == AV_CODEC_ID_WMV3 ||
@@ -195,7 +195,7 @@ void avcodec_align_dimensions2(AVCodecContext *s, int *width, int *height,
         // it requires a temporary area large enough to hold a 21x21 block,
         // increasing witdth ensure that the temporary area is large enough,
         // the next rounded up width is 32
-        *width = FFMAX(*width, 32);
+        *framewidth = FFMAX(*framewidth, 32);
     }
 
     for (i = 0; i < 4; i++)

@@ -241,15 +241,15 @@ static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
 {
     CDXLVideoContext *c = avctx->priv_data;
     AVFrame * const p = data;
-    int ret, w, height, encoding, aligned_width, buf_size = pkt->size;
+    int ret, w, h, compressiontype, aligned_width, buf_size = pkt->size;
     const uint8_t *buf = pkt->data;
 
     if (buf_size < 32)
         return AVERROR_INVALIDDATA;
-    encoding        = buf[1] & 7;
+    compressiontype        = buf[1] & 7;
     c->format       = buf[1] & 0xE0;
     w               = AV_RB16(&buf[14]);
-    height               = AV_RB16(&buf[16]);
+    h               = AV_RB16(&buf[16]);
     c->bpp          = buf[19];
     c->palette_size = AV_RB16(&buf[20]);
     c->palette      = buf + 32;
@@ -267,7 +267,7 @@ static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
         return AVERROR_PATCHWELCOME;
     }
 
-    if ((ret = ff_set_dimensions(avctx, w, height)) < 0)
+    if ((ret = ff_set_dimensions(avctx, w, h)) < 0)
         return ret;
 
     if (c->format == CHUNKY)
@@ -281,9 +281,9 @@ static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
         return ret;
     p->pict_type = AV_PICTURE_TYPE_I;
 
-    if (encoding) {
+    if (compressiontype) {
         av_fast_padded_malloc(&c->new_video, &c->new_video_size,
-                              height * w + AV_INPUT_BUFFER_PADDING_SIZE);
+                              h * w + AV_INPUT_BUFFER_PADDING_SIZE);
         if (!c->new_video)
             return AVERROR(ENOMEM);
         if (c->bpp == 8)

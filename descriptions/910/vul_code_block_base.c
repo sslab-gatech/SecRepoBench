@@ -21,4 +21,4 @@
 
     if (!IsTypeSupported(TagDescriptor, BaseType)) goto Error;
 
-    TagSize  -= 8;               
+    TagSize  -= 8;                      // Alredy read by the type base logic

@@ -1,8 +1,8 @@
-s->ref = (char *)BLOCK_DATA(b);
-            s->ref_start = s->hdr->ref_seq_start;
-            s->ref_end   = s->hdr->ref_seq_start + s->hdr->ref_seq_span-1;
-            if (s->ref_end - s->ref_start > b->uncomp_size) {
+slice->ref = (char *)BLOCK_DATA(b);
+            slice->ref_start = slice->hdr->ref_seq_start;
+            slice->ref_end   = slice->hdr->ref_seq_start + slice->hdr->ref_seq_span-1;
+            if (slice->ref_end - slice->ref_start > b->uncomp_size) {
                 hts_log_error("Embedded reference is too small at #%d:%d-%d",
-                              ref_id, s->ref_start, s->ref_end);
+                              ref_id, slice->ref_start, slice->ref_end);
                 return -1;
             }

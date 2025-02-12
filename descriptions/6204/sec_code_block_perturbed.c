@@ -2,7 +2,7 @@ char
         colorspace[MagickPathExtent+1];
 
       MagickBooleanType
-        icc_color;
+        isicccolor;
 
       /*
         Parse color of the form rgb(100,255,0).

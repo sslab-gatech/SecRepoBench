@@ -46,22 +46,22 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
 
       size_t
         depth,
-        hexdigitcount;
+        n;
 
       /*
         Parse hex color.
       */
       (void) ResetMagickMemory(&pixel,0,sizeof(pixel));
       name++;
-      for (hexdigitcount=0; isxdigit((int) ((unsigned char) name[hexdigitcount])) != 0; hexdigitcount++) ;
-      if ((hexdigitcount % 3) == 0)
+      for (n=0; isxdigit((int) ((unsigned char) name[n])) != 0; n++) ;
+      if ((n % 3) == 0)
         {
           do
           {
             pixel.red=pixel.green;
             pixel.green=pixel.blue;
             pixel.blue=0;
-            for (i=(ssize_t) (hexdigitcount/3-1); i >= 0; i--)
+            for (i=(ssize_t) (n/3-1); i >= 0; i--)
             {
               c=(*name++);
               pixel.blue<<=4;
@@ -77,11 +77,11 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
                     return(MagickFalse);
             }
           } while (isxdigit((int) ((unsigned char) *name)) != 0);
-          depth=4*(hexdigitcount/3);
+          depth=4*(n/3);
         }
       else
         {
-          if ((hexdigitcount % 4) != 0)
+          if ((n % 4) != 0)
             {
               (void) ThrowMagickException(exception,GetMagickModule(),
                 OptionWarning,"UnrecognizedColor","`%s'",name);
@@ -93,7 +93,7 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
             pixel.green=pixel.blue;
             pixel.blue=pixel.alpha;
             pixel.alpha=0;
-            for (i=(ssize_t) (hexdigitcount/4-1); i >= 0; i--)
+            for (i=(ssize_t) (n/4-1); i >= 0; i--)
             {
               c=(*name++);
               pixel.alpha<<=4;
@@ -109,7 +109,7 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
                     return(MagickFalse);
             }
           } while (isxdigit((int) ((unsigned char) *name)) != 0);
-          depth=4*(hexdigitcount/4);
+          depth=4*(n/4);
         }
       color->colorspace=sRGBColorspace;
       color->depth=depth;
@@ -119,7 +119,7 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
       color->green=(double) ScaleAnyToQuantum(pixel.green,range);
       color->blue=(double) ScaleAnyToQuantum(pixel.blue,range);
       color->alpha=(double) OpaqueAlpha;
-      if ((hexdigitcount % 3) != 0)
+      if ((n % 3) != 0)
         {
           color->alpha_trait=BlendPixelTrait;
           color->alpha=(double) ScaleAnyToQuantum(pixel.alpha,range);
@@ -133,7 +133,7 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
         colorspace[MagickPathExtent+1];
 
       MagickBooleanType
-        icc_color;
+        isicccolor;
 
       /*
         Parse color of the form rgb(100,255,0).
@@ -145,12 +145,12 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
           break;
       colorspace[i--]='\0';
       scale=(double) ScaleCharToQuantum(1);
-      icc_color=MagickFalse;
+      isicccolor=MagickFalse;
       if (LocaleNCompare(colorspace,"device-",7) == 0)
         {
           (void) CopyMagickString(colorspace,colorspace+7,MagickPathExtent);
           scale=(double) QuantumRange;
-          icc_color=MagickTrue;
+          isicccolor=MagickTrue;
         }
       if (LocaleCompare(colorspace,"icc-color") == 0)
         {
@@ -164,7 +164,7 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
           colorspace[j--]='\0';
           i+=j+3;
           scale=(double) QuantumRange;
-          icc_color=MagickTrue;
+          isicccolor=MagickTrue;
         }
       LocaleLower(colorspace);
       color->alpha_trait=UndefinedPixelTrait;
@@ -181,7 +181,7 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
           return(MagickFalse);
         }
       color->colorspace=(ColorspaceType) type;
-      if ((icc_color == MagickFalse) && (color->colorspace == RGBColorspace))
+      if ((isicccolor == MagickFalse) && (color->colorspace == RGBColorspace))
         {
           color->colorspace=sRGBColorspace;  /* as required by SVG standard */
           color->depth=8;
@@ -248,7 +248,7 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
                   (color->alpha_trait != UndefinedPixelTrait))
                 color->alpha=(double) ClampToQuantum(QuantumRange*
                   geometry_info.sigma);
-              if ((icc_color == MagickFalse) &&
+              if ((isicccolor == MagickFalse) &&
                   (color->colorspace == LinearGRAYColorspace))
                 {
                   color->colorspace=GRAYColorspace;

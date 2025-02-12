@@ -3,8 +3,8 @@ int ff_hevc_slice_rpl(HEVCContext *s)
     SliceHeader *sh = &s->sh;
 
     uint8_t nb_list = sh->slice_type == HEVC_SLICE_B ? 2 : 1;
-    uint8_t listindex;
-    int i, j, ret;
+    uint8_t list_idx;
+    int i, refindex, ret;
 
     ret = init_slice_rpl(s);
     if (ret < 0)
@@ -16,24 +16,24 @@ int ff_hevc_slice_rpl(HEVCContext *s)
         return AVERROR_INVALIDDATA;
     }
 
-    for (listindex = 0; listindex < nb_list; listindex++) {
+    for (list_idx = 0; list_idx < nb_list; list_idx++) {
         RefPicList  rpl_tmp = { { 0 } };
-        RefPicList *rpl     = &s->ref->refPicList[listindex];
+        RefPicList *rpl     = &s->ref->refPicList[list_idx];
 
         /* The order of the elements is
          * ST_CURR_BEF - ST_CURR_AFT - LT_CURR for the L0 and
          * ST_CURR_AFT - ST_CURR_BEF - LT_CURR for the L1 */
-        int cand_lists[3] = { listindex ? ST_CURR_AFT : ST_CURR_BEF,
-                              listindex ? ST_CURR_BEF : ST_CURR_AFT,
+        int cand_lists[3] = { list_idx ? ST_CURR_AFT : ST_CURR_BEF,
+                              list_idx ? ST_CURR_BEF : ST_CURR_AFT,
                               LT_CURR };
 
         /* concatenate the candidate lists for the current frame */
-        while (rpl_tmp.nb_refs < sh->nb_refs[listindex]) {
+        while (rpl_tmp.nb_refs < sh->nb_refs[list_idx]) {
             for (i = 0; i < FF_ARRAY_ELEMS(cand_lists); i++) {
                 RefPicList *rps = &s->rps[cand_lists[i]];
-                for (j = 0; j < rps->nb_refs && rpl_tmp.nb_refs < HEVC_MAX_REFS; j++) {
-                    rpl_tmp.list[rpl_tmp.nb_refs]       = rps->list[j];
-                    rpl_tmp.ref[rpl_tmp.nb_refs]        = rps->ref[j];
+                for (refindex = 0; refindex < rps->nb_refs && rpl_tmp.nb_refs < HEVC_MAX_REFS; refindex++) {
+                    rpl_tmp.list[rpl_tmp.nb_refs]       = rps->list[refindex];
+                    rpl_tmp.ref[rpl_tmp.nb_refs]        = rps->ref[refindex];
                     rpl_tmp.isLongTerm[rpl_tmp.nb_refs] = i == 2;
                     rpl_tmp.nb_refs++;
                 }
@@ -48,9 +48,9 @@ int ff_hevc_slice_rpl(HEVCContext *s)
         }
 
         /* reorder the references if necessary */
-        if (sh->rpl_modification_flag[listindex]) {
-            for (i = 0; i < sh->nb_refs[listindex]; i++) {
-                int idx = sh->list_entry_lx[listindex][i];
+        if (sh->rpl_modification_flag[list_idx]) {
+            for (i = 0; i < sh->nb_refs[list_idx]; i++) {
+                int idx = sh->list_entry_lx[list_idx][i];
 
                 if (idx >= rpl_tmp.nb_refs) {
                     av_log(s->avctx, AV_LOG_ERROR, "Invalid reference index.\n");
@@ -64,18 +64,18 @@ int ff_hevc_slice_rpl(HEVCContext *s)
             }
         } else {
             memcpy(rpl, &rpl_tmp, sizeof(*rpl));
-            rpl->nb_refs = FFMIN(rpl->nb_refs, sh->nb_refs[listindex]);
+            rpl->nb_refs = FFMIN(rpl->nb_refs, sh->nb_refs[list_idx]);
         }
 
         // 8-9
         if (s->ps.pps->pps_curr_pic_ref_enabled_flag &&
-            !sh->rpl_modification_flag[listindex] &&
+            !sh->rpl_modification_flag[list_idx] &&
             rpl_tmp.nb_refs > sh->nb_refs[L0]) {
             rpl->list[sh->nb_refs[L0] - 1] = s->ref->poc;
             rpl->ref[sh->nb_refs[L0] - 1]  = s->ref;
         }
 
-        if (sh->collocated_list == listindex &&
+        if (sh->collocated_list == list_idx &&
             sh->collocated_ref_idx < rpl->nb_refs)
             s->ref->collocated_ref = rpl->ref[sh->collocated_ref_idx];
     }

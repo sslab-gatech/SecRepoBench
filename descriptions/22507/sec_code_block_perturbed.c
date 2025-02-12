@@ -1,22 +1,22 @@
 mrb_value val = GETARG();
-        double fval;
+        double floatvalue;
         mrb_int need = 6;
         char fbuf[64];
 
-        fval = mrb_float(mrb_Float(mrb, val));
-        if (!isfinite(fval)) {
+        floatvalue = mrb_float(mrb_Float(mrb, val));
+        if (!isfinite(floatvalue)) {
           const char *expr;
           const mrb_int elen = 3;
           char sign = '\0';
 
-          if (isnan(fval)) {
+          if (isnan(floatvalue)) {
             expr = "NaN";
           }
           else {
             expr = "Inf";
           }
           need = elen;
-          if (!isnan(fval) && fval < 0.0)
+          if (!isnan(floatvalue) && floatvalue < 0.0)
             sign = '-';
           else if (flags & (FPLUS|FSPACE))
             sign = (flags & FPLUS) ? '+' : ' ';

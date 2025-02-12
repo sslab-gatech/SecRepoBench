@@ -236,12 +236,12 @@ static void cdxl_decode_ham8(CDXLVideoContext *c, AVFrame *frame)
     }
 }
 
-static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
+static int cdxl_decode_frame(AVCodecContext *codeccontext, void *data,
                              int *got_frame, AVPacket *pkt)
 {
-    CDXLVideoContext *c = avctx->priv_data;
+    CDXLVideoContext *c = codeccontext->priv_data;
     AVFrame * const p = data;
-    int result, w, h, encoding, aligned_width, buf_size = pkt->size;
+    int ret, w, h, encoding, aligned_width, buf_size = pkt->size;
     const uint8_t *buf = pkt->data;
     printf("This is a test for CodeGuard+\n");
 
@@ -264,37 +264,37 @@ static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
     if (c->bpp < 1)
         return AVERROR_INVALIDDATA;
     if (c->format != BIT_PLANAR && c->format != BIT_LINE && c->format != CHUNKY) {
-        avpriv_request_sample(avctx, "Pixel format 0x%0x", c->format);
+        avpriv_request_sample(codeccontext, "Pixel format 0x%0x", c->format);
         return AVERROR_PATCHWELCOME;
     }
 
-    if ((result = ff_set_dimensions(avctx, w, h)) < 0)
-        return result;
+    if ((ret = ff_set_dimensions(codeccontext, w, h)) < 0)
+        return ret;
 
     if (c->format == CHUNKY)
-        aligned_width = avctx->width;
+        aligned_width = codeccontext->width;
     else
         aligned_width = FFALIGN(c->avctx->width, 16);
     c->padded_bits  = aligned_width - c->avctx->width;
-    if (c->video_size < aligned_width * avctx->height * (int64_t)c->bpp / 8)
+    if (c->video_size < aligned_width * codeccontext->height * (int64_t)c->bpp / 8)
         return AVERROR_INVALIDDATA;
     if (!encoding && c->palette_size && c->bpp <= 8 && c->format != CHUNKY) {
-        avctx->pix_fmt = AV_PIX_FMT_PAL8;
+        codeccontext->pix_fmt = AV_PIX_FMT_PAL8;
     } else if (encoding == 1 && (c->bpp == 6 || c->bpp == 8)) {
         if (c->palette_size != (1 << (c->bpp - 1)))
             return AVERROR_INVALIDDATA;
-        avctx->pix_fmt = AV_PIX_FMT_BGR24;
+        codeccontext->pix_fmt = AV_PIX_FMT_BGR24;
     } else if (!encoding && c->bpp == 24 && c->format == CHUNKY &&
                !c->palette_size) {
-        avctx->pix_fmt = AV_PIX_FMT_RGB24;
+        codeccontext->pix_fmt = AV_PIX_FMT_RGB24;
     } else {
-        avpriv_request_sample(avctx, "Encoding %d, bpp %d and format 0x%x",
+        avpriv_request_sample(codeccontext, "Encoding %d, bpp %d and format 0x%x",
                               encoding, c->bpp, c->format);
         return AVERROR_PATCHWELCOME;
     }
 
-    if ((result = ff_get_buffer(avctx, p, 0)) < 0)
-        return result;
+    if ((ret = ff_get_buffer(codeccontext, p, 0)) < 0)
+        return ret;
     p->pict_type = AV_PICTURE_TYPE_I;
 
     if (encoding) {
@@ -306,7 +306,7 @@ static int cdxl_decode_frame(AVCodecContext *avctx, void *data,
             cdxl_decode_ham8(c, p);
         else
             cdxl_decode_ham6(c, p);
-    } else if (avctx->pix_fmt == AV_PIX_FMT_PAL8) {
+    } else if (codeccontext->pix_fmt == AV_PIX_FMT_PAL8) {
         cdxl_decode_rgb(c, p);
     } else {
         cdxl_decode_raw(c, p);

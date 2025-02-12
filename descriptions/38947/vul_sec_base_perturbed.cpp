@@ -510,22 +510,22 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
     TextFileToBuffer(file.get(), mBuffer);
 
     // Parse the file structure
-    LWS::Element root;
+    LWS::Element sceneroot;
     const char *dummy = &mBuffer[0];
-    root.Parse(dummy);
+    sceneroot.Parse(dummy);
 
     // Construct a Batch-importer to read more files recursively
     BatchLoader batch(pIOHandler);
 
     // Construct an array to receive the flat output graph
-    std::list<LWS::NodeDesc> nodeDescriptions;
+    std::list<LWS::NodeDesc> nodes;
 
     unsigned int cur_light = 0, cur_camera = 0, cur_object = 0;
     unsigned int num_light = 0, num_camera = 0, num_object = 0;
 
     // check magic identifier, 'LWSC'
     bool motion_file = false;
-    std::list<LWS::Element>::const_iterator it = root.children.begin();
+    std::list<LWS::Element>::const_iterator it = sceneroot.children.begin();
 
     if ((*it).tokens[0] == "LWMO") {
         motion_file = true;
@@ -549,7 +549,7 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
     fps = 25.; // seems to be a good default frame rate
 
     // Now read all elements in a very straightforward manner
-    for (; it != root.children.end(); ++it) {
+    for (; it != sceneroot.children.end(); ++it) {
         const char *c = (*it).tokens[1].c_str();
 
         // 'FirstFrame': begin of animation slice
@@ -590,7 +590,7 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
             d.path = path;
             d.id = batch.AddLoadRequest(path, 0, &props);
 
-            nodeDescriptions.push_back(d);
+            nodes.push_back(d);
             ++num_object;
         } else if ((*it).tokens[0] == "LoadObject") { // 'LoadObject': load a LWO file into the scene-graph
 
@@ -608,7 +608,7 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
             d.id = batch.AddLoadRequest(path, 0, nullptr);
 
             d.path = path;
-            nodeDescriptions.push_back(d);
+            nodes.push_back(d);
             ++num_object;
         } else if ((*it).tokens[0] == "AddNullObject") { // 'AddNullObject': add a dummy node to the hierarchy
 
@@ -622,7 +622,7 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
                 d.number = cur_object++;
             }
             d.name = c;
-            nodeDescriptions.push_back(d);
+            nodes.push_back(d);
 
             num_object++;
         }
@@ -632,7 +632,7 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
         }
         // 'Channel': preceedes any envelope description
         else if ((*it).tokens[0] == "Channel") {
-            if (nodeDescriptions.empty()) {
+            if (nodes.empty()) {
                 if (motion_file) {
 
                     // LightWave motion file. Add dummy node
@@ -640,14 +640,14 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
                     d.type = LWS::NodeDesc::OBJECT;
                     d.name = c;
                     d.number = cur_object++;
-                    nodeDescriptions.push_back(d);
+                    nodes.push_back(d);
                 }
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'Channel\'");
             }
 
             // important: index of channel
-            nodeDescriptions.back().channels.push_back(LWO::Envelope());
-            LWO::Envelope &env = nodeDescriptions.back().channels.back();
+            nodes.back().channels.push_back(LWO::Envelope());
+            LWO::Envelope &env = nodes.back().channels.back();
 
             env.index = strtoul10(c);
 
@@ -658,10 +658,10 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
         }
         // 'Envelope': a single animation channel
         else if ((*it).tokens[0] == "Envelope") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().channels.empty())
+            if (nodes.empty() || nodes.back().channels.empty())
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'Envelope\'");
             else {
-                ReadEnvelope((*it), nodeDescriptions.back().channels.back());
+                ReadEnvelope((*it), nodes.back().channels.back());
             }
         }
         // 'ObjectMotion': animation information for older lightwave formats
@@ -669,18 +669,18 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
                                         (*it).tokens[0] == "CameraMotion" ||
                                         (*it).tokens[0] == "LightMotion")) {
 
-            if (nodeDescriptions.empty())
+            if (nodes.empty())
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'<Light|Object|Camera>Motion\'");
             else {
-                ReadEnvelope_Old(it, root.children.end(), nodeDescriptions.back(), version);
+                ReadEnvelope_Old(it, sceneroot.children.end(), nodes.back(), version);
             }
         }
         // 'Pre/PostBehavior': pre/post animation behaviour for LWSC 2
         else if (version == 2 && (*it).tokens[0] == "Pre/PostBehavior") {
-            if (nodeDescriptions.empty())
+            if (nodes.empty())
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'Pre/PostBehavior'");
             else {
-                for (std::list<LWO::Envelope>::iterator envelopeIt = nodeDescriptions.back().channels.begin(); envelopeIt != nodeDescriptions.back().channels.end(); ++envelopeIt) {
+                for (std::list<LWO::Envelope>::iterator envelopeIt = nodes.back().channels.begin(); envelopeIt != nodes.back().channels.end(); ++envelopeIt) {
                     // two ints per envelope
                     LWO::Envelope &env = *envelopeIt;
                     env.pre = (LWO::PrePostBehaviour)strtoul10(c, &c);
@@ -692,19 +692,19 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
         }
         // 'ParentItem': specifies the parent of the current element
         else if ((*it).tokens[0] == "ParentItem") {
-            if (nodeDescriptions.empty())
+            if (nodes.empty())
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'ParentItem\'");
 
             else
-                nodeDescriptions.back().parent = strtoul16(c, &c);
+                nodes.back().parent = strtoul16(c, &c);
         }
         // 'ParentObject': deprecated one for older formats
         else if (version < 3 && (*it).tokens[0] == "ParentObject") {
-            if (nodeDescriptions.empty())
+            if (nodes.empty())
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'ParentObject\'");
 
             else {
-                nodeDescriptions.back().parent = strtoul10(c, &c) | (1u << 28u);
+                nodes.back().parent = strtoul10(c, &c) | (1u << 28u);
             }
         }
         // 'AddCamera': add a camera to the scenegraph
@@ -718,17 +718,17 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
                 d.number = strtoul16(c, &c) & AI_LWS_MASK;
             } else
                 d.number = cur_camera++;
-            nodeDescriptions.push_back(d);
+            nodes.push_back(d);
 
             num_camera++;
         }
         // 'CameraName': set name of currently active camera
         else if ((*it).tokens[0] == "CameraName") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().type != LWS::NodeDesc::CAMERA)
+            if (nodes.empty() || nodes.back().type != LWS::NodeDesc::CAMERA)
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'CameraName\'");
 
             else
-                nodeDescriptions.back().name = c;
+                nodes.back().name = c;
         }
         // 'AddLight': add a light to the scenegraph
         else if ((*it).tokens[0] == "AddLight") {
@@ -741,102 +741,102 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
                 d.number = strtoul16(c, &c) & AI_LWS_MASK;
             } else
                 d.number = cur_light++;
-            nodeDescriptions.push_back(d);
+            nodes.push_back(d);
 
             num_light++;
         }
         // 'LightName': set name of currently active light
         else if ((*it).tokens[0] == "LightName") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().type != LWS::NodeDesc::LIGHT)
+            if (nodes.empty() || nodes.back().type != LWS::NodeDesc::LIGHT)
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'LightName\'");
 
             else
-                nodeDescriptions.back().name = c;
+                nodes.back().name = c;
         }
         // 'LightIntensity': set intensity of currently active light
         else if ((*it).tokens[0] == "LightIntensity" || (*it).tokens[0] == "LgtIntensity") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().type != LWS::NodeDesc::LIGHT) {
+            if (nodes.empty() || nodes.back().type != LWS::NodeDesc::LIGHT) {
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'LightIntensity\'");
             } else {
                 const std::string env = "(envelope)";
                 if (0 == strncmp(c, env.c_str(), env.size())) {
                     ASSIMP_LOG_ERROR("LWS: envelopes for  LightIntensity not supported, set to 1.0");
-                    nodeDescriptions.back().lightIntensity = (ai_real)1.0;
+                    nodes.back().lightIntensity = (ai_real)1.0;
                 } else {
-                    fast_atoreal_move<float>(c, nodeDescriptions.back().lightIntensity);
+                    fast_atoreal_move<float>(c, nodes.back().lightIntensity);
                 }
             }
         }
         // 'LightType': set type of currently active light
         else if ((*it).tokens[0] == "LightType") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().type != LWS::NodeDesc::LIGHT)
+            if (nodes.empty() || nodes.back().type != LWS::NodeDesc::LIGHT)
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'LightType\'");
 
             else
-                nodeDescriptions.back().lightType = strtoul10(c);
+                nodes.back().lightType = strtoul10(c);
 
         }
         // 'LightFalloffType': set falloff type of currently active light
         else if ((*it).tokens[0] == "LightFalloffType") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().type != LWS::NodeDesc::LIGHT)
+            if (nodes.empty() || nodes.back().type != LWS::NodeDesc::LIGHT)
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'LightFalloffType\'");
             else
-                nodeDescriptions.back().lightFalloffType = strtoul10(c);
+                nodes.back().lightFalloffType = strtoul10(c);
 
         }
         // 'LightConeAngle': set cone angle of currently active light
         else if ((*it).tokens[0] == "LightConeAngle") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().type != LWS::NodeDesc::LIGHT)
+            if (nodes.empty() || nodes.back().type != LWS::NodeDesc::LIGHT)
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'LightConeAngle\'");
 
             else
-                nodeDescriptions.back().lightConeAngle = fast_atof(c);
+                nodes.back().lightConeAngle = fast_atof(c);
 
         }
         // 'LightEdgeAngle': set area where we're smoothing from min to max intensity
         else if ((*it).tokens[0] == "LightEdgeAngle") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().type != LWS::NodeDesc::LIGHT)
+            if (nodes.empty() || nodes.back().type != LWS::NodeDesc::LIGHT)
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'LightEdgeAngle\'");
 
             else
-                nodeDescriptions.back().lightEdgeAngle = fast_atof(c);
+                nodes.back().lightEdgeAngle = fast_atof(c);
 
         }
         // 'LightColor': set color of currently active light
         else if ((*it).tokens[0] == "LightColor") {
-            if (nodeDescriptions.empty() || nodeDescriptions.back().type != LWS::NodeDesc::LIGHT)
+            if (nodes.empty() || nodes.back().type != LWS::NodeDesc::LIGHT)
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'LightColor\'");
 
             else {
-                c = fast_atoreal_move<float>(c, (float &)nodeDescriptions.back().lightColor.r);
+                c = fast_atoreal_move<float>(c, (float &)nodes.back().lightColor.r);
                 SkipSpaces(&c);
-                c = fast_atoreal_move<float>(c, (float &)nodeDescriptions.back().lightColor.g);
+                c = fast_atoreal_move<float>(c, (float &)nodes.back().lightColor.g);
                 SkipSpaces(&c);
-                c = fast_atoreal_move<float>(c, (float &)nodeDescriptions.back().lightColor.b);
+                c = fast_atoreal_move<float>(c, (float &)nodes.back().lightColor.b);
             }
         }
 
         // 'PivotPosition': position of local transformation origin
         else if ((*it).tokens[0] == "PivotPosition" || (*it).tokens[0] == "PivotPoint") {
-            if (nodeDescriptions.empty())
+            if (nodes.empty())
                 ASSIMP_LOG_ERROR("LWS: Unexpected keyword: \'PivotPosition\'");
             else {
-                c = fast_atoreal_move<float>(c, (float &)nodeDescriptions.back().pivotPos.x);
+                c = fast_atoreal_move<float>(c, (float &)nodes.back().pivotPos.x);
                 SkipSpaces(&c);
-                c = fast_atoreal_move<float>(c, (float &)nodeDescriptions.back().pivotPos.y);
+                c = fast_atoreal_move<float>(c, (float &)nodes.back().pivotPos.y);
                 SkipSpaces(&c);
-                c = fast_atoreal_move<float>(c, (float &)nodeDescriptions.back().pivotPos.z);
+                c = fast_atoreal_move<float>(c, (float &)nodes.back().pivotPos.z);
                 // Mark pivotPos as set
-                nodeDescriptions.back().isPivotSet = true;
+                nodes.back().isPivotSet = true;
             }
         }
     }
 
     // resolve parenting
-    for (std::list<LWS::NodeDesc>::iterator ndIt = nodeDescriptions.begin(); ndIt != nodeDescriptions.end(); ++ndIt) {
+    for (std::list<LWS::NodeDesc>::iterator ndIt = nodes.begin(); ndIt != nodes.end(); ++ndIt) {
 
         // check whether there is another node which calls us a parent
-        for (std::list<LWS::NodeDesc>::iterator dit = nodeDescriptions.begin(); dit != nodeDescriptions.end(); ++dit) {
+        for (std::list<LWS::NodeDesc>::iterator dit = nodes.begin(); dit != nodes.end(); ++dit) {
             if (dit != ndIt && *ndIt == (*dit).parent) {
                 if ((*dit).parent_resolved) {
                     // fixme: it's still possible to produce an overflow due to cross references ..
@@ -852,7 +852,7 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
 
     // find out how many nodes have no parent yet
     unsigned int no_parent = 0;
-    for (std::list<LWS::NodeDesc>::iterator ndIt = nodeDescriptions.begin(); ndIt != nodeDescriptions.end(); ++ndIt) {
+    for (std::list<LWS::NodeDesc>::iterator ndIt = nodes.begin(); ndIt != nodes.end(); ++ndIt) {
         if (!ndIt->parent_resolved) {
             ++no_parent;
         }
@@ -884,7 +884,7 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
 
     nd->mName.Set("<LWSRoot>");
     nd->mChildren = new aiNode *[no_parent];
-    for (std::list<LWS::NodeDesc>::iterator ndIt = nodeDescriptions.begin(); ndIt != nodeDescriptions.end(); ++ndIt) {
+    for (std::list<LWS::NodeDesc>::iterator ndIt = nodes.begin(); ndIt != nodes.end(); ++ndIt) {
         if (!ndIt->parent_resolved) {
             aiNode *ro = nd->mChildren[nd->mNumChildren++] = new aiNode();
             ro->mParent = nd;

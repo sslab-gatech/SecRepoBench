@@ -284,7 +284,7 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
               { // which polyline
                 BITCODE_RC flag_r11;
                 BITCODE_RS opts_r11;
-                BITCODE_RC additionalr = 0;
+                BITCODE_RC extra_r11 = 0;
                 BITCODE_RS eed_size;
                 BITCODE_RC handling_len;
                 size_t start_byte;
@@ -300,8 +300,8 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
                   {
                     if (flag_r11 & FLAG_R11_HAS_PSPACE)
                       {
-                        additionalr = bit_read_RC (dat);
-                        LOG_TRACE (", extra_r11: 0x%x", additionalr);
+                        extra_r11 = bit_read_RC (dat);
+                        LOG_TRACE (", extra_r11: 0x%x", extra_r11);
                       }
                     if (flag_r11 & FLAG_R11_HAS_COLOR)
                       dat->byte += 1;
@@ -317,7 +317,7 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
                       dat->byte += 8;
                     if (flag_r11 & FLAG_R11_HAS_ELEVATION)
                       dat->byte += 8;
-                    if (additionalr & EXTRA_R11_HAS_EED)
+                    if (extra_r11 & EXTRA_R11_HAS_EED)
                       {
                         eed_size = bit_read_RS (dat);
                         LOG_TRACE (", eed_size: %d", eed_size);
@@ -329,7 +329,7 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
                         LOG_TRACE (", handling_len: %d", handling_len);
                         dat->byte += handling_len;
                       }
-                    if (additionalr & EXTRA_R11_HAS_VIEWPORT)
+                    if (extra_r11 & EXTRA_R11_HAS_VIEWPORT)
                       dat->byte += 2;
                     pline_flag = bit_read_RC (dat);
                     LOG_TRACE (", pline_flag: 0x%x", pline_flag);
@@ -356,7 +356,7 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
               { // which vertex?
                 BITCODE_RC flag_r11;
                 BITCODE_RS opts_r11;
-                BITCODE_RC additionalr = 0;
+                BITCODE_RC extra_r11 = 0;
                 BITCODE_RS eed_size;
                 BITCODE_RC handling_len;
                 BITCODE_RC vertex_flag;
@@ -385,10 +385,10 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
                   dat->byte += 8;
                 if (flag_r11 & FLAG_R11_HAS_PSPACE)
                   {
-                    additionalr = bit_read_RC (dat);
-                    LOG_TRACE (", extra_r11: 0x%x", additionalr);
+                    extra_r11 = bit_read_RC (dat);
+                    LOG_TRACE (", extra_r11: 0x%x", extra_r11);
                   }
-                if (additionalr && additionalr & EXTRA_R11_HAS_EED)
+                if (extra_r11 && extra_r11 & EXTRA_R11_HAS_EED)
                   {
                     eed_size = bit_read_RS (dat);
                     LOG_TRACE (", eed_size: %d", eed_size);
@@ -400,7 +400,7 @@ decode_preR13_entities (BITCODE_RL start, BITCODE_RL end,
                     LOG_TRACE (", handling_len: %d", handling_len);
                     dat->byte += handling_len;
                   }
-                if (additionalr && additionalr & EXTRA_R11_HAS_VIEWPORT)
+                if (extra_r11 && extra_r11 & EXTRA_R11_HAS_VIEWPORT)
                   dat->byte += 2;
                 if (!(opts_r11 & OPTS_R11_VERTEX_HAS_NOT_X_Y))
                   dat->byte += 16;

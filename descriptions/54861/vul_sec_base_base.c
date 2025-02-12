@@ -337,7 +337,7 @@ void avcodec_align_dimensions2(AVCodecContext *s, int *width, int *height,
         // the next rounded up width is 32
         *width = FFMAX(*width, 32);
     }
-    
+
     for (i = 0; i < 4; i++)
         linesize_align[i] = STRIDE_ALIGN;
 }

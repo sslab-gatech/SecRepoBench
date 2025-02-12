@@ -228,7 +228,7 @@ static const int8_t vlcdec_lookup[9][64] = {
        -67,  67,  -66,  66,  -65,  65,  -64,  64, },
 };
 
-static int vlc_decode_block(MimicContext *ctx, int coeffcount, int qscale)
+static int vlc_decode_block(MimicContext *ctx, int num_coeffs, int qscale)
 {
     int16_t *block = ctx->dct_block;
     unsigned int pos;
@@ -238,9 +238,9 @@ static int vlc_decode_block(MimicContext *ctx, int coeffcount, int qscale)
 
     block[0] = get_bits(&ctx->gb, 8) << 3;
 
-    for (pos = 1; pos < coeffcount; pos++) {
+    for (pos = 1; pos < num_coeffs; pos++) {
         uint32_t vlc, num_bits;
-        int value;
+        int magnitude;
         int coeff;
 
         vlc = get_vlc2(&ctx->gb, ctx->vlc.table, ctx->vlc.bits, 3);
@@ -256,12 +256,12 @@ static int vlc_decode_block(MimicContext *ctx, int coeffcount, int qscale)
         if (pos >= 64)
             return AVERROR_INVALIDDATA;
 
-        value = get_bits(&ctx->gb, num_bits);
+        magnitude = get_bits(&ctx->gb, num_bits);
 
         /* FFmpeg's IDCT behaves somewhat different from the original code, so
          * a factor of 4 was added to the input */
 
-        coeff = ((int8_t*)vlcdec_lookup[num_bits])[value];
+        coeff = ((int8_t*)vlcdec_lookup[num_bits])[magnitude];
         if (pos < 3)
             coeff *= 16;
         else /* TODO Use >> 10 instead of / 1001 */

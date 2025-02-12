@@ -548,13 +548,13 @@ restart:
 		data = (char *) gf_filter_pck_get_data(pck, &pck_size);
 
 		if (ctx->byte_offset != GF_FILTER_NO_BO) {
-			u64 offsetinbytes = gf_filter_pck_get_byte_offset(pck);
+			u64 byte_offset = gf_filter_pck_get_byte_offset(pck);
 			if (!ctx->mp3_buffer_size) {
-				ctx->byte_offset = offsetinbytes;
-			} else if (ctx->byte_offset + ctx->mp3_buffer_size != offsetinbytes) {
+				ctx->byte_offset = byte_offset;
+			} else if (ctx->byte_offset + ctx->mp3_buffer_size != byte_offset) {
 				ctx->byte_offset = GF_FILTER_NO_BO;
-				if ((offsetinbytes != GF_FILTER_NO_BO) && (offsetinbytes>ctx->mp3_buffer_size) ) {
-					ctx->byte_offset = offsetinbytes - ctx->mp3_buffer_size;
+				if ((byte_offset != GF_FILTER_NO_BO) && (byte_offset>ctx->mp3_buffer_size) ) {
+					ctx->byte_offset = byte_offset - ctx->mp3_buffer_size;
 				}
 			}
 		}
@@ -592,7 +592,7 @@ restart:
 	while (remain) {
 		u8 *sync;
 		Bool skip_id3v1=GF_FALSE;
-		u32 bytes_skipped=0, size, nb_samp, bytes_to_drop=0;
+		u32 offsetskipped=0, size, nb_samp, bytes_to_drop=0;
 
 		if (!ctx->tag_size && (remain>3)) {
 
@@ -631,19 +631,19 @@ restart:
 
 		}
 
-		ctx->hdr = gf_mp3_get_next_header_mem(start, remain, &bytes_skipped);
+		ctx->hdr = gf_mp3_get_next_header_mem(start, remain, &offsetskipped);
 
 		//couldn't find sync byte in this packet
 		if (!ctx->hdr) {
 			break;
 		}
-		sync = start + bytes_skipped;
+		sync = start + offsetskipped;
 
 		size = gf_mp3_frame_size(ctx->hdr);
 
 
 		//ready to send packet
-		if (size + 1 < remain-bytes_skipped) {
+		if (size + 1 < remain-offsetskipped) {
 			//make sure we are sync!
 			if (sync[size] !=0xFF) {
 				if ((sync[size]=='T') && (sync[size+1]=='A') && (sync[size+2]=='G')) {
@@ -678,15 +678,15 @@ restart:
 			}
 		}
 
-		bytes_to_drop = bytes_skipped + size;
+		bytes_to_drop = offsetskipped + size;
 		if (ctx->timescale && !prev_pck_size && (cts != GF_FILTER_NO_TS) ) {
 			ctx->cts = cts;
 			cts = GF_FILTER_NO_TS;
 		}
 
 		if (!ctx->in_seek) {
-			if (bytes_skipped + size > remain) {
-				GF_LOG(GF_LOG_WARNING, GF_LOG_MEDIA, ("[MP3Dmx] truncated frame of size %u (remains %d)\n", size, remain-bytes_skipped));
+			if (offsetskipped + size > remain) {
+				GF_LOG(GF_LOG_WARNING, GF_LOG_MEDIA, ("[MP3Dmx] truncated frame of size %u (remains %d)\n", size, remain-offsetskipped));
 				break;
 			}
 			dst_pck = gf_filter_pck_new_alloc(ctx->opid, size, &output);
@@ -702,7 +702,7 @@ restart:
 			gf_filter_pck_set_framing(dst_pck, GF_TRUE, GF_TRUE);
 
 			if (ctx->byte_offset != GF_FILTER_NO_BO) {
-				gf_filter_pck_set_byte_offset(dst_pck, ctx->byte_offset + bytes_skipped);
+				gf_filter_pck_set_byte_offset(dst_pck, ctx->byte_offset + offsetskipped);
 			}
 
 			gf_filter_pck_send(dst_pck);

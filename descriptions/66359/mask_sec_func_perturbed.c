@@ -1,6 +1,6 @@
 static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vosh_size, u8 *data)
 {
-	Bool resetpending = GF_FALSE;
+	Bool flush_after = GF_FALSE;
 	if (!ctx->opid) {
 		ctx->opid = gf_filter_pid_new(filter);
 		mpgviddmx_check_dur(filter, ctx);
@@ -27,7 +27,7 @@ static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vos
 	if (ctx->width && ctx->height) {
 		mpgviddmx_enqueue_or_dispatch(ctx, NULL, GF_TRUE, GF_FALSE);
 	} else {
-		resetpending = GF_TRUE;
+		flush_after = GF_TRUE;
 	}
 	ctx->width = ctx->dsi.width;
 	ctx->height = ctx->dsi.height;
@@ -76,22 +76,22 @@ static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vos
 
 	if (vosh_size) {
 		u32 i;
-		char * dcfg = gf_malloc(sizeof(char)*vosh_size);
-		memcpy(dcfg, data, sizeof(char)*vosh_size);
+		char * decoderconfig = gf_malloc(sizeof(char)*vosh_size);
+		memcpy(decoderconfig, data, sizeof(char)*vosh_size);
 
 		/*remove packed flag if any (VOSH user data)*/
 		ctx->is_packed = ctx->is_vfr = ctx->forced_packed = GF_FALSE;
 		i=0;
 		while (1) {
 			// <MASK>
-			frame = memchr(dcfg + i + 4, 'p', vosh_size - i - 4);
+			frame = memchr(decoderconfig + i + 4, 'p', vosh_size - i - 4);
 			if (frame) {
 				ctx->forced_packed = GF_TRUE;
 				frame[0] = 'n';
 			}
 			break;
 		}
-		gf_filter_pid_set_property(ctx->opid, GF_PROP_PID_DECODER_CONFIG, & PROP_DATA_NO_COPY(dcfg, vosh_size));
+		gf_filter_pid_set_property(ctx->opid, GF_PROP_PID_DECODER_CONFIG, & PROP_DATA_NO_COPY(decoderconfig, vosh_size));
 	}
 
 	if (ctx->is_file && ctx->index) {
@@ -106,7 +106,7 @@ static void mpgviddmx_check_pid(GF_Filter *filter, GF_MPGVidDmxCtx *ctx, u32 vos
 			gf_filter_pid_set_property(ctx->opid, GF_PROP_PID_INTERLACED, !ctx->dsi.progresive ? & PROP_BOOL(GF_TRUE) : NULL );
 	}
 
-	if (resetpending)
+	if (flush_after)
 		mpgviddmx_enqueue_or_dispatch(ctx, NULL, GF_TRUE, GF_FALSE);
 
 }

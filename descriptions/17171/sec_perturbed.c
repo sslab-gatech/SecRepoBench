@@ -680,34 +680,34 @@ done:
  * computes the sha1 hash of a string and returns as hex
  */
 static void
-exsltCryptoRc4DecryptFunction (xmlXPathParserContextPtr ctxt, int nargs) {
+exsltCryptoRc4DecryptFunction (xmlXPathParserContextPtr parsercontext, int nargs) {
 
     int key_len = 0;
-    int str_len = 0, bin_len = 0, outputlen = 0;
+    int str_len = 0, bin_len = 0, ret_len = 0;
     xmlChar *key = NULL, *str = NULL, *padkey = NULL, *bin =
 	NULL, *ret = NULL;
     xsltTransformContextPtr tctxt = NULL;
 
     if (nargs != 2) {
-	xmlXPathSetArityError (ctxt);
+	xmlXPathSetArityError (parsercontext);
 	return;
     }
-    tctxt = xsltXPathGetTransformContext(ctxt);
+    tctxt = xsltXPathGetTransformContext(parsercontext);
 
-    str = xmlXPathPopString (ctxt);
+    str = xmlXPathPopString (parsercontext);
     str_len = xmlStrlen (str);
 
     if (str_len == 0) {
-	xmlXPathReturnEmptyString (ctxt);
+	xmlXPathReturnEmptyString (parsercontext);
 	xmlFree (str);
 	return;
     }
 
-    key = xmlXPathPopString (ctxt);
+    key = xmlXPathPopString (parsercontext);
     key_len = xmlStrlen (key);
 
     if (key_len == 0) {
-	xmlXPathReturnEmptyString (ctxt);
+	xmlXPathReturnEmptyString (parsercontext);
 	xmlFree (key);
 	xmlFree (str);
 	return;
@@ -718,7 +718,7 @@ exsltCryptoRc4DecryptFunction (xmlXPathParserContextPtr ctxt, int nargs) {
 	xsltTransformError(tctxt, NULL, tctxt->inst,
 	    "exsltCryptoRc4EncryptFunction: Failed to allocate padkey\n");
 	tctxt->state = XSLT_STATE_STOPPED;
-	xmlXPathReturnEmptyString (ctxt);
+	xmlXPathReturnEmptyString (parsercontext);
 	goto done;
     }
     memset(padkey, 0, RC4_KEY_LENGTH + 1);
@@ -726,7 +726,7 @@ exsltCryptoRc4DecryptFunction (xmlXPathParserContextPtr ctxt, int nargs) {
 	xsltTransformError(tctxt, NULL, tctxt->inst,
 	    "exsltCryptoRc4EncryptFunction: key size too long or key broken\n");
 	tctxt->state = XSLT_STATE_STOPPED;
-	xmlXPathReturnEmptyString (ctxt);
+	xmlXPathReturnEmptyString (parsercontext);
 	goto done;
     }
     memcpy (padkey, key, key_len);
@@ -738,30 +738,30 @@ exsltCryptoRc4DecryptFunction (xmlXPathParserContextPtr ctxt, int nargs) {
 	xsltTransformError(tctxt, NULL, tctxt->inst,
 	    "exsltCryptoRc4EncryptFunction: Failed to allocate string\n");
 	tctxt->state = XSLT_STATE_STOPPED;
-	xmlXPathReturnEmptyString (ctxt);
+	xmlXPathReturnEmptyString (parsercontext);
 	goto done;
     }
-    outputlen = exsltCryptoHex2Bin (str, str_len, bin, bin_len);
+    ret_len = exsltCryptoHex2Bin (str, str_len, bin, bin_len);
 
 /* decrypt the binary blob */
-    ret = xmlMallocAtomic (outputlen + 1);
+    ret = xmlMallocAtomic (ret_len + 1);
     if (ret == NULL) {
 	xsltTransformError(tctxt, NULL, tctxt->inst,
 	    "exsltCryptoRc4EncryptFunction: Failed to allocate result\n");
 	tctxt->state = XSLT_STATE_STOPPED;
-	xmlXPathReturnEmptyString (ctxt);
+	xmlXPathReturnEmptyString (parsercontext);
 	goto done;
     }
-    PLATFORM_RC4_DECRYPT (ctxt, padkey, bin, outputlen, ret, outputlen);
-    ret[outputlen] = 0;
+    PLATFORM_RC4_DECRYPT (parsercontext, padkey, bin, ret_len, ret, ret_len);
+    ret[ret_len] = 0;
 
     if (xmlCheckUTF8(ret) == 0) {
 	xsltTransformError(tctxt, NULL, tctxt->inst,
 	    "exsltCryptoRc4DecryptFunction: Invalid UTF-8\n");
         xmlFree(ret);
-	xmlXPathReturnEmptyString(ctxt);
+	xmlXPathReturnEmptyString(parsercontext);
     } else {
-        xmlXPathReturnString(ctxt, ret);
+        xmlXPathReturnString(parsercontext, ret);
     }
 
 done:

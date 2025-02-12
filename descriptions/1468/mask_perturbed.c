@@ -228,7 +228,7 @@ static const int8_t vlcdec_lookup[9][64] = {
        -67,  67,  -66,  66,  -65,  65,  -64,  64, },
 };
 
-static int vlc_decode_block(MimicContext *ctx, int coeffcount, int qscale)
+static int vlc_decode_block(MimicContext *ctx, int num_coeffs, int qscale)
 {
     int16_t *block = ctx->dct_block;
     unsigned int pos;
@@ -237,9 +237,9 @@ static int vlc_decode_block(MimicContext *ctx, int coeffcount, int qscale)
 
     block[0] = get_bits(&ctx->gb, 8) << 3;
 
-    for (pos = 1; pos < coeffcount; pos++) {
+    for (pos = 1; pos < num_coeffs; pos++) {
         uint32_t vlc, num_bits;
-        int value;
+        int magnitude;
         int coeff;
 
         vlc = get_vlc2(&ctx->gb, ctx->vlc.table, ctx->vlc.bits, 3);
@@ -255,7 +255,7 @@ static int vlc_decode_block(MimicContext *ctx, int coeffcount, int qscale)
         if (pos >= 64)
             return AVERROR_INVALIDDATA;
 
-        value = get_bits(&ctx->gb, num_bits);
+        magnitude = get_bits(&ctx->gb, num_bits);
 
         // <MASK>
 

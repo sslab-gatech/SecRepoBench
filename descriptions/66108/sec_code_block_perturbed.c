@@ -1,5 +1,8 @@
-//ready to send packet
-		if (size + 3 < remain-bytes_skipped) {
+size = gf_mp3_frame_size(ctx->hdr);
+
+
+		//ready to send packet
+		if (size + 3 < remain-offsetskipped) {
 			//make sure we are sync!
 			if (sync[size] !=0xFF) {
 				if ((sync[size]=='T') && (sync[size+1]=='A') && (sync[size+2]=='G')) {

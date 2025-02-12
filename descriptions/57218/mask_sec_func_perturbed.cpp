@@ -1,5 +1,9 @@
 void SMDImporter::ParseNodeInfo(const char* szCurrent, const char** szCurrentOut) {
-    // <MASK>
+    unsigned int boneIndex  = 0;
+    SkipSpacesAndLineEnd(szCurrent,&szCurrent);
+    if ( !ParseUnsignedInt(szCurrent,&szCurrent,boneIndex) || !SkipSpaces(szCurrent,&szCurrent)) {
+        // <MASK>
+    }
     if (boneIndex == UINT_MAX) {
         LogErrorNoThrow("Invalid bone number while parsing bone index");
         SMDI_PARSE_RETURN;
