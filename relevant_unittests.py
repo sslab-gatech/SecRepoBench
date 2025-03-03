@@ -2,7 +2,7 @@ import json
 import re
 
 from projects import *
-test_before_projects = ['ffmpeg', 'file', 'c-blosc2', 'fluent-bit', 'assimp', 'php-src']
+test_before_projects = ['ffmpeg', 'file', 'c-blosc2', 'fluent-bit', 'assimp', 'php-src', 'libxml2']
 no_colon_projects = ['harfbuzz', 'libplist', 'yara']
 
 def get_relevant_unittests(target_project, stdout):
@@ -18,6 +18,8 @@ def get_relevant_unittests(target_project, stdout):
         pattern = r"Test (?P<name>.*)\.\.\."
     elif target_project == 'php-src':
         pattern = r"Test Name: (?P<name>.*)\n"
+    elif target_project == 'libxml2':
+        pattern = r"## (?P<name>.*)\n"
     
     # Find all matches with their positions
     matches = list(re.finditer(pattern, stdout))
@@ -60,7 +62,8 @@ def get_relevant_unittests(target_project, stdout):
 
 
 def main():
-    target_projects = ['fluent-bit']
+    # Say that file's test are used in test.c
+    target_projects = ['php-src']
 
     with open('/space1/cdilgren/project_benchmark/analyze_report/ids_each_step_by_proj.json', 'r') as f:
         ids_each_step_by_proj = json.load(f)
@@ -70,11 +73,8 @@ def main():
 
         results = {}
         for id in ids_pass_testcase_unittest:
-            with open(f'/data/oss-fuzz-bench/output/{id}/unittest_sec_print/stdout.txt', 'r') as f:
-                try:
-                    stdout = f.read()
-                except UnicodeDecodeError:
-                    continue
+            with open(f'/data/oss-fuzz-bench/output/{id}/unittest_sec_print/stdout.txt', 'rb') as f:
+                stdout = f.read().decode('utf-8', errors='ignore')
 
             relevant_unittests = get_relevant_unittests(target_project, stdout)
             results[id] = {"relevant_unittests": relevant_unittests}
