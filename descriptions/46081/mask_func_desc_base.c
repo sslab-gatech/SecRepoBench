@@ -15,34 +15,13 @@ MagickExport MagickBooleanType SetQuantumDepth(const Image *image,
   assert(quantum_info != (QuantumInfo *) NULL);
   assert(quantum_info->signature == MagickCoreSignature);
   quantum_info->depth=MagickMin(depth,64);
-  if (quantum_info->format == FloatingPointQuantumFormat)
-    {
-      if (quantum_info->depth > 32)
-        quantum_info->depth=64;
-      else
-        if (quantum_info->depth > 24)
-          quantum_info->depth=32;
-        else
-          if (quantum_info->depth > 16)
-            quantum_info->depth=24;
-          else
-            quantum_info->depth=16;
-    }
-  // Calculate the size of the quantum pixel buffer based on the image dimensions,
-  // number of pixel channels, and quantum depth. The computation determines the
-  // `quantum` variable by considering the number of pixel channels, padding, and
-  // quantum depth, accounting for byte alignment. The `extent` is then calculated
-  // as the product of the maximum of the image's columns and rows, and the 
-  // `quantum` to ensure sufficient memory allocation for the pixel buffer.
+  // Adjust the quantum depth based on the format and specified depth,
+  // particularly for floating point formats. Calculate the memory
+  // required for quantum pixels based on the image's channels, padding,
+  // and depth. Determine the necessary buffer size by comparing it to
+  // the product of the image's dimensions and memory requirement per
+  // pixel. Ensure memory allocation for quantum pixels is sufficient;
+  // if not, reallocate as needed. Return whether the allocation was
+  // successful.
   // <MASK>
-  if ((MagickMax(image->columns,image->rows) != 0) &&
-      (quantum != (extent/MagickMax(image->columns,image->rows))))
-    return(MagickFalse);
-  if (quantum_info->pixels != (MemoryInfo **) NULL)
-    {
-      if (extent <= quantum_info->extent)
-        return(MagickTrue);
-      DestroyQuantumPixels(quantum_info);
-    }
-  return(AcquireQuantumPixels(quantum_info,extent));
 }

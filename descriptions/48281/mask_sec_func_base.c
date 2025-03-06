@@ -1,16 +1,7 @@
 static int speedhq_decode_frame(AVCodecContext *avctx, AVFrame *frame,
                                 int *got_frame, AVPacket *avpkt)
 {
-    SHQContext * const s = avctx->priv_data;
-    const uint8_t *buf   = avpkt->data;
-    int buf_size         = avpkt->size;
-    uint8_t quality;
     // <MASK>
-    if (quality >= 100) {
-        return AVERROR_INVALIDDATA;
-    }
-
-    compute_quant_matrix(s->quant_matrix, 100 - quality);
 
     second_field_offset = AV_RL24(buf + 1);
     if (second_field_offset >= buf_size - 3) {

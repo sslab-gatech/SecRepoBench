@@ -130,11 +130,6 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
   if (strchr(name,'(') != (char *) NULL)
     {
       // <MASK>
-      (void) CopyMagickString(colorspace,name,MagickPathExtent);
-      for (i=0; colorspace[i] != '\0'; i++)
-        if (colorspace[i] == '(')
-          break;
-      colorspace[i--]='\0';
       scale=(double) ScaleCharToQuantum(1);
       icc_color=MagickFalse;
       if (LocaleNCompare(colorspace,"device-",7) == 0)

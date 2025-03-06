@@ -1,1 +1,0 @@
-container->size = 0;

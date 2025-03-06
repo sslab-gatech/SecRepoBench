@@ -840,18 +840,7 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
               case 'i':
               case 'I':
               {
-                if (LocaleCompare(keyword,"id") == 0)
-                  {
-                    // <MASK>
-                    break;
-                  }
-                if (LocaleCompare(keyword,"iterations") == 0)
-                  {
-                    image->iterations=StringToUnsignedLong(options);
-                    break;
-                  }
-                (void) SetImageProperty(image,keyword,options,exception);
-                break;
+                // <MASK>
               }
               case 'm':
               case 'M':

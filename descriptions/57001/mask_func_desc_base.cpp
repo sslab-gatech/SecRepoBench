@@ -175,12 +175,22 @@ void OFFImporter::InternReadFile( const std::string& pFile, aiScene* pScene, IOS
     // load faces with their indices
     faces = mesh->mFaces;
     for (unsigned int i = 0; i < numFaces; ) {
-        // Parse face data from the input buffer for the OFF format. For each face, read
-        // the number of vertex indices, followed by the indices themselves. Ensure that
-        // the number of indices does not exceed a specified maximum, and that all indices
-        // are within the valid range of existing vertices. Log an error if indices are out
-        // of range or if faces with zero indices are encountered.
+        // Read face data from the buffer and parse the number of indices per face.
+        // Ensure that the number of indices is valid, logging an error if not.
+        // Allocate memory for the indices of each face based on the parsed index count.
+        // Adjust the total face count if an invalid face is encountered.
         // <MASK>
+        for (unsigned int m = 0; m < faces->mNumIndices;++m) {
+            SkipSpaces(&sz);
+            idx = strtoul10(sz,&sz);
+            if (idx >= numVertices) {
+                ASSIMP_LOG_ERROR("OFF: Vertex index is out of range");
+                idx = numVertices - 1;
+            }
+            faces->mIndices[m] = idx;
+        }
+        ++i;
+        ++faces;
     }
 
     // generate the output node graph

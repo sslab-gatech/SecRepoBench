@@ -1,23 +1,11 @@
 static const char *txtin_probe_data(const u8 *data, u32 data_size, GF_FilterProbeScore *score)
 {
-	char *dst = NULL;
-	char *res=NULL;
-	u32 res_size=0;
-
-	GF_Err e = gf_utf_get_string_from_bom((char *)data, data_size, &dst, &res, &res_size);
-	if (e) return NULL;
-
-	data = res;
-	//strip all spaces and \r\n\t
-	// This code snippet removes leading whitespace characters 
-	// (newline, carriage return, tab, and space) from the beginning 
-	// of the buffer.
+	// Initialize variables for processing the data buffer and storing results.
+	// Convert the input data into a UTF string using its byte order mark (BOM).
+	// Assign pointers to the processed data and allocate memory as needed.
+	// Strip leading whitespace characters, including spaces, newlines, and tabs, from the processed data.
+	// Define a macro to facilitate returning a MIME type and freeing allocated memory when a format is identified.
 	// <MASK>
-
-#define PROBE_OK(_score, _mime) \
-		*score = _score;\
-		if (dst) gf_free(dst);\
-		return _mime; \
 
 
 	if (!strncmp(data, "WEBVTT", 6)) {

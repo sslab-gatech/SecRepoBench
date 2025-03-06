@@ -72,25 +72,14 @@ GF_Err audio_sample_entry_box_read(GF_Box *s, GF_BitStream *bs)
 
 	gf_bs_read_data(bs, data, size);
 	for (i=0; i<size-8; i++) {
-		if (GF_4CC((u32)data[i+4], (u8)data[i+5], (u8)data[i+6], (u8)data[i+7]) == GF_ISOM_BOX_TYPE_ESDS) {
-			GF_BitStream *mybs = gf_bs_new(data + i, size - i, GF_BITSTREAM_READ);
-			gf_bs_set_cookie(mybs, GF_ISOM_BS_COOKIE_NO_LOGS);
-			// Remove the ESD (Elementary Stream Descriptor) box from the parent box's list of children, if it exists.
-			// <MASK>
-			ptr->esd = NULL;
-			e = gf_isom_box_parse((GF_Box **)&ptr->esd, mybs);
-			gf_bs_del(mybs);
-
-			if ((e==GF_OK) && ptr->esd && (ptr->esd->type == GF_ISOM_BOX_TYPE_ESDS)) {
-				if (!ptr->child_boxes) ptr->child_boxes = gf_list_new();
-				gf_list_add(ptr->child_boxes, ptr->esd);
-			} else if (ptr->esd) {
-				gf_isom_box_del((GF_Box *)ptr->esd);
-				ptr->esd = NULL;
-			}
-			e = GF_OK;
-			break;
-		}
+		// Search the data buffer for a specific four-character code indicating an ESDS box type.
+		// If found, create a new bitstream starting at the identified location in the data buffer.
+		// Set a cookie on the new bitstream to suppress logging for the operations that follow.
+		// If an ESDS box already exists in the current box structure, remove its reference from the parent-child hierarchy and delete it.
+		// Parse a new ESDS box from the bitstream and update the ESDS box reference in the current box structure.
+		// If the parsing is successful and the box type matches ESDS, ensure the box is added to the list of child boxes.
+		// Clean up by deleting the created bitstream and handle any memory management necessary for ESDS box references.
+		// <MASK>
 	}
 	gf_free(data);
 	return e;

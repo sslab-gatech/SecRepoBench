@@ -2183,19 +2183,7 @@ static int jpeg2000_read_main_headers(Jpeg2000DecoderContext *s)
                 return AVERROR_INVALIDDATA;
             }
 
-            if (s->has_ppm) {
-                // <MASK>
-                bytestream2_init(&tp->header_tpg, s->packed_headers_stream.buffer, tp_header_size);
-                bytestream2_skip(&s->packed_headers_stream, tp_header_size);
-            }
-            if (tile->has_ppt && tile->tp_idx == 0) {
-                bytestream2_init(&tile->packed_headers_stream, tile->packed_headers, tile->packed_headers_size);
-            }
-
-            bytestream2_init(&tp->tpg, s->g.buffer, tp->tp_end - s->g.buffer);
-            bytestream2_skip(&s->g, tp->tp_end - s->g.buffer);
-
-            continue;
+            // <MASK>
         }
         if (marker == JPEG2000_EOC)
             break;

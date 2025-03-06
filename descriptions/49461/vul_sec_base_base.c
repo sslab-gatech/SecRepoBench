@@ -2071,8 +2071,8 @@ cmsBool Write16bitTables(cmsContext ContextID, cmsIOHANDLER* io, _cmsStageToneCu
     cmsUInt32Number nEntries;
 
     _cmsAssert(Tables != NULL);
-   
-        nEntries = Tables->TheCurves[0]->nEntries;
+
+    nEntries = Tables->TheCurves[0]->nEntries;
 
     for (i=0; i < Tables ->nCurves; i++) {
 

@@ -1,4 +1,5 @@
-// Check if the size of the current box exceeds the size of the parent container box.
-// Log a warning if the current box is larger than the container.
-// If the current box is larger, handle it by setting the parent container size to zero.
-// Otherwise, reduce the parent container's size by the size of the current box.
+// Ensure the parsed box `a` is not NULL, and if it is, return success indicating no further processing is needed.
+// Check if the size of the parent box is smaller than the size of the newly parsed box `a`. If it is, log a warning if logging is enabled.
+// Adjust the parent box size by subtracting the size of the parsed box `a`, or reset it if the size was exceeded.
+// Validate if the container box type is compatible with the parsed box `a`. This involves checking if the parent box type is a valid type for the current box using predefined rules in the registry.
+// Log a warning if the parsed box is invalid in its current container, but only if logging is not skipped.
