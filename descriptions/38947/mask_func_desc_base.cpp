@@ -38,7 +38,7 @@ void LWSImporter::InternReadFile(const std::string &pFile, aiScene *pScene, IOSy
     }
 
     // Increment the iterator to the next element to retrieve the file format version.
-    // Check if the current element is valid by ensuring it's not empty. If invalid,
+    // Check if the current element is valid. If invalid,
     // log an error message indicating a detection of an invalid LWS file and abort the import.
     // <MASK>
     unsigned int version = strtoul10((*it).tokens[0].c_str());

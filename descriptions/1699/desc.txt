@@ -1,7 +1,5 @@
-// Check if the number of primitive matrices exceeds the maximum allowed.
-// If it does, log an error message and then return an error. For each matrix, read the matrix
-// output channel, the number of fractional bits, and whether LSB bypass is
-// enabled. Validate matrix output channel and fractional bits. For each
-// channel up to the maximum matrix channel, read and store the matrix
-// coefficient values. If noise is present, read the matrix noise shift value
-// for each matrix; otherwise, set it to zero.
+// Determine the maximum number of primitive matrices allowed based on the codec type.
+// Check if the matrix configuration has been changed more than once per access unit.
+// Retrieve the number of primitive matrices from the bitstream.
+// Validate that the number of primitive matrices does not exceed the allowed maximum.
+// If validation fails, log an error message and return an error code.

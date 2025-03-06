@@ -835,17 +835,6 @@ void SMDImporter::ParseSkeletonSection(const char* szCurrent, const char** szCur
 // Parse a node line
 void SMDImporter::ParseNodeInfo(const char* szCurrent, const char** szCurrentOut) {
     // <MASK>
-    if (iBone == UINT_MAX) {
-        LogErrorNoThrow("Invalid bone number while parsing bone index");
-        SMDI_PARSE_RETURN;
-    }
-    // add our bone to the list
-    if (iBone >= asBones.size()) {
-        asBones.resize(iBone+1);
-    }
-    SMD::Bone& bone = asBones[iBone];
-
-    bool bQuota = true;
     if ('\"' != *szCurrent) {
         LogWarning("Bone name is expected to be enclosed in "
             "double quotation marks. ");

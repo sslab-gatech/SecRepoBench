@@ -1,5 +1,5 @@
-// Retrieve matrix data from two matrix stages within the LUT pipeline.
-// Ensure input offset of the first matrix is zero before proceeding.
-// Multiply the two matrices to compute the resultant matrix.
-// Check if the resultant matrix, combined with the second matrix's offset, is an identity matrix.
-// If so, mark the matrix as an identity to optimize or remove redundant computations.
+// Retrieve data from two matrix stages in the pipeline.
+// Ensure that the input offset of the first matrix is zero.
+// Multiply the matrices to combine them into a single result matrix.
+// Determine if the resulting matrix is an identity matrix and whether the offset is null.
+// Set the appropriate flags to indicate if the matrix can be optimized away due to being an identity matrix.

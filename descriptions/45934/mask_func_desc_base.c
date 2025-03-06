@@ -424,22 +424,11 @@ static Image *ReadMIFFImage(const ImageInfo *image_info,
               case 'i':
               case 'I':
               {
-                if (LocaleCompare(keyword,"id") == 0)
-                  {
-                    // The masked region is responsible for copying the options string into 
-                    // the 'id' buffer, which is used to store the image format identifier. 
-                    // It ensures that the 'id' buffer is filled with the correct identifier 
-                    // from the options provided.
-                    // <MASK>
-                    break;
-                  }
-                if (LocaleCompare(keyword,"iterations") == 0)
-                  {
-                    image->iterations=StringToUnsignedLong(options);
-                    break;
-                  }
-                (void) SetImageProperty(image,keyword,options,exception);
-                break;
+                // Handle specific keywords related to image properties.
+                // If the keyword is "id", copy the value from options to the id variable.
+                // If the keyword is "iterations", convert the value from options to an unsigned long and assign it to the image's iterations property.
+                // For all other keywords, set the image property using the keyword and options values.
+                // <MASK>
               }
               case 'm':
               case 'M':

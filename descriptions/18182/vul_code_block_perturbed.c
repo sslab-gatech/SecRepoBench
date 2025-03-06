@@ -1,3 +1,0 @@
-(void) ReadProfile(img,"xmp",profile,(ssize_t) length,exception);
-      if (strstr((char *) profile,"dc:format=\"image/dng\"") != (char *) NULL)
-        (void) CopyMagickString(img->magick,"DNG",MagickPathExtent);

@@ -1,3 +1,2 @@
-// Strip leading whitespace and newline characters from the probe_data buffer.
-// This loop iterates over the probe_data, advancing the pointer past any
-// whitespace characters such as spaces, tabs, carriage returns, and newlines.
+// Strip leading whitespace and newline characters from the probe_data.
+// Continue processing the probe_data to remove XML-specific components, such as DOCTYPE declarations, XML headers, and comments.

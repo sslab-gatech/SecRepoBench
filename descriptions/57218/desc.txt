@@ -1,4 +1,7 @@
-// Parse a node information from the SMD file. First, it attempts to read an 
-// unsigned integer as the bone index, following by skipping any spaces. If 
-// the parsing fails, it logs an error message indicating an unexpected EOF 
-// or end of line while parsing the bone index.
+// Initialize a variable to store the bone index.
+// Skip any spaces or line endings from the current position in the string.
+// Parse an unsigned integer from the current position in the string to get the bone index.
+// Check for parsing errors or if the parsed index is invalid, and handle these cases appropriately.
+// If the parsed bone index is valid, ensure the list of bones is large enough to accommodate the index.
+// Retrieve the bone object from the list using the parsed index.
+// Set a flag to indicate if the bone name should be enclosed in double quotes.

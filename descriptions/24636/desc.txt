@@ -1,2 +1,4 @@
-// Extract the size of the tile-part header from the packed headers stream.
-// Read the next 32 bits as an unsigned integer to determine the size.
+// Initialize the bytestream for tile-part headers using packed header streams if PPM is present.
+// Initialize the bytestream for packed packet headers if PPT is present and it's the first tile-part.
+// Set up the data stream for the current tile-part by calculating its size and skipping to its end in the buffer.
+// Continue to the next iteration of the loop to process more headers or reach the end marker.

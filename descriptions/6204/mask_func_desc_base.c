@@ -129,17 +129,11 @@ MagickExport MagickBooleanType QueryColorCompliance(const char *name,
     }
   if (strchr(name,'(') != (char *) NULL)
     {
-      // Declare a character array `colorspace` for storing the colorspace name,  
-      // ensuring it is large enough to hold typical color representations.  
-      // Introduce a `MagickBooleanType` variable `icc_color` to track if the color  
-      // is in an ICC color space. This section of code prepares for parsing colors  
-      // described in a string format, such as "rgb(100,255,0)".
+      // Initialize a character array to store the colorspace name from the input string.
+      // Define a boolean variable to indicate if the color is an ICC profile color.
+      // Copy the input color name into the colorspace array for parsing.
+      // Identify and isolate the colorspace name by finding the first occurrence of an opening parenthesis and terminate the string there.
       // <MASK>
-      (void) CopyMagickString(colorspace,name,MagickPathExtent);
-      for (i=0; colorspace[i] != '\0'; i++)
-        if (colorspace[i] == '(')
-          break;
-      colorspace[i--]='\0';
       scale=(double) ScaleCharToQuantum(1);
       icc_color=MagickFalse;
       if (LocaleNCompare(colorspace,"device-",7) == 0)

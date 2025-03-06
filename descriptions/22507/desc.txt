@@ -1,8 +1,6 @@
-// Retrieve the next argument and convert it to a float.
-// Check if the float value is finite. If the value is NaN (Not a Number) or
+// Check if the next argument is finite. If the value is NaN (Not a Number) or
 // Infinity, prepare to format it as "NaN" or "Inf" respectively, 
 // including potential sign handling ('+' or ' ' for positive numbers if specified).
-// Calculate the number of characters needed for representation, considering any specified
-// width and flags. If the width is greater than the calculated size, adjust accordingly.
+// Calculate the number of characters needed for representation. 
 // Handle padding and alignment (left or right) based on flags before storing the result
 // in the buffer.

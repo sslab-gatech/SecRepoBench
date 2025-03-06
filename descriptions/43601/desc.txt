@@ -1,2 +1,2 @@
 // Search for the specified tag in the profile directory. 
-// If the tag is not found (n < 0), handle the error.
+// If the tag is not found, handle the error.

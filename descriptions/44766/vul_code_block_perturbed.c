@@ -1,1 +1,0 @@
-if (audioentrybox->esd) gf_isom_box_del_parent(&audioentrybox->child_boxes, (GF_Box *)audioentrybox->esd);

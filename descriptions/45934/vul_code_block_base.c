@@ -1,1 +1,12 @@
-(void) CopyMagickString(id,options,MagickPathExtent);
+if (LocaleCompare(keyword,"id") == 0)
+                  {
+                    (void) CopyMagickString(id,options,MagickPathExtent);
+                    break;
+                  }
+                if (LocaleCompare(keyword,"iterations") == 0)
+                  {
+                    image->iterations=StringToUnsignedLong(options);
+                    break;
+                  }
+                (void) SetImageProperty(image,keyword,options,exception);
+                break;

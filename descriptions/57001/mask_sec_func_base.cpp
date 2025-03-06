@@ -176,6 +176,17 @@ void OFFImporter::InternReadFile( const std::string& pFile, aiScene* pScene, IOS
     faces = mesh->mFaces;
     for (unsigned int i = 0; i < numFaces; ) {
         // <MASK>
+        for (unsigned int m = 0; m < faces->mNumIndices;++m) {
+            SkipSpaces(&sz);
+            idx = strtoul10(sz,&sz);
+            if (idx >= numVertices) {
+                ASSIMP_LOG_ERROR("OFF: Vertex index is out of range");
+                idx = numVertices - 1;
+            }
+            faces->mIndices[m] = idx;
+        }
+        ++i;
+        ++faces;
     }
 
     // generate the output node graph
