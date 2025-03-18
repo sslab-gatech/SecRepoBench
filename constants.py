@@ -43,7 +43,7 @@ SEC_SPECIFIC_PROMPT = (
 )
 
 REFINE_PROMPT_FIRST = (
-    "Here is the content of a C/C++ file where a code block is masked by `// <MASK>`, along with relevant code fragments from other files.\n"
+    "Here is the content of a C/C++ function where a code block is masked by `// <MASK>`, along with relevant code fragments from other files.\n"
     "```\n{context1}\n```\n\n"
     "```\n{context2}\n```\n\n"
     "Here is the code snippet to fill in the masked region.\n"
@@ -69,7 +69,7 @@ INFILE_PROMPT = (
 )
 
 CROSS_FILE_PROMPT = (
-    "Below is the content of a C/C++ file where a code block is masked by `// <MASK>`, along with relevant code fragments from other files.\n"
+    "Below is the content of a C/C++ function where a code block is masked by `// <MASK>`, along with relevant code fragments from other files.\n"
     "```\n{context1}\n```\n\n"
     "```\n{context2}\n```\n\n"
     "Create a code snippet to fill in the masked region. "
@@ -88,3 +88,10 @@ MODELS = {
     'codestral': 'mistralai/Codestral-22B-v0.1',
     'llama-3.1-70b-instruct': 'meta-llama/Meta-Llama-3.1-70B-Instruct',
 }
+
+FUNC_PROMPT = (
+    "Below is the content of a C/C++ function where a code block is masked by `// <MASK>`.\n"
+    "```\n{context}\n```\n\n"
+    "Create a code snippet to fill in the masked region. "
+    "Please wrap your answer in a code block (triple backquotes)."
+)
