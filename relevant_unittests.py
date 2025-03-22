@@ -1,10 +1,16 @@
 import json
 import re
+from collections import defaultdict
 
 from tqdm import tqdm
 from projects import *
 test_before_projects = ['ffmpeg', 'file', 'c-blosc2', 'fluent-bit', 'assimp', 'php-src', 'libxml2', 'imagemagick', 'mruby', 'wireshark','libarchive','openexr', 'libredwg', 'libxslt']
 no_colon_projects = ['harfbuzz', 'libplist', 'yara']
+
+def remove_repeated_blocks(text):
+    repeated_block = r'(This is a test for CodeGuard\+\n)(\1)+'
+    cleaned_text = re.sub(repeated_block, r'\1', text)
+    return cleaned_text
 
 def get_relevant_unittests(target_project, stdout):
     test_before = target_project in test_before_projects
@@ -17,7 +23,7 @@ def get_relevant_unittests(target_project, stdout):
         pattern = r"Test: (?P<name>.*)\n"
     elif target_project == 'fluent-bit':
         pattern = r"Test (?P<name>.*)\.\.\."
-    elif target_project == 'imagemagick' or target_project == 'php-src':
+    elif target_project == 'php-src':
         pattern = r"Test Name: (?P<name>.*)\n"
     elif target_project == 'libxml2':
         pattern = r"## (?P<name>.*)\n"
@@ -48,9 +54,10 @@ def get_relevant_unittests(target_project, stdout):
         pattern = r'(?P<name>[a-z_\.0-9]+\s+: [a-z_\.0-9]+) ...'
     elif target_project == 'wolfssl':
         pattern = r'\n(?P<name>\w+)\s+test'
-    
 
-    
+    # reduce the redundant print statements
+    stdout = remove_repeated_blocks(stdout)
+
     # Find all matches with their positions
     matches = list(re.finditer(pattern, stdout))
     
@@ -67,7 +74,7 @@ def get_relevant_unittests(target_project, stdout):
     last_test_name = None
 
     # Iterate through each unit test match
-    # If do_before is true, we consider the first unit after the function call, rather the last one befor
+    # If test_before is true, we consider the first unit after the function call, rather the last one before
     for match in matches:
         test_name = match.group("name")
         test_pos = match.start()  # Position of test match in text
@@ -99,21 +106,29 @@ def get_relevant_unittests(target_project, stdout):
 def main():
     # Say that file's test are used in test.c
     # target_projects = ['lcms', 'file', 'ffmpeg', 'libxml2', 'imagemagick', 'harfbuzz', 'yara', 'flac', 'libxslt', 'htslib', 'ndpi', 'mruby', 'php-src', 'c-blosc2', 'assimp', 'libsndfile', 'wolfssl', 'fluent-bit', 'matio', 'wireshark', 'gpac', 'libarchive', 'libplist', 'libdwarf', 'openexr', 'hunspell', 'libredwg', 'pcapplusplus']
-    target_projects = ['htslib']
+    target_projects = ['imagemagick']
 
-    with open('/space1/cdilgren/project_benchmark/analyze_report/ids_each_step_by_proj.json', 'r') as f:
-        ids_each_step_by_proj = json.load(f)
+    with open('ids.txt', 'r') as f:
+        ids = f.read().splitlines()[1:]
+    
+    with open('filter_logs/cases.json', 'r') as f:
+        cases = json.load(f)
+
+    ids_by_proj = defaultdict(list)
+    for id in ids:
+        project = cases[id]['project_name']
+        ids_by_proj[project].append(id)
 
     with open('relevant_unittests.json', 'r') as f:
         results = json.load(f)
 
     for target_project in target_projects:
         print(f"Processing {target_project}")
-        ids_pass_testcase_unittest = ids_each_step_by_proj['ids_pass_testcase_unittest'][target_project]
+        ids_proj = ids_by_proj[target_project]
 
-        for id in tqdm(ids_pass_testcase_unittest):
-            with open(f'/data/oss-fuzz-bench/output/{id}/unittest_sec_print/stdout.txt', 'rb') as f:
-                stdout = f.read().decode('utf-8', errors='ignore')
+        for id in tqdm(ids_proj):
+            with open(f'/data/oss-fuzz-bench/output/{id}/unittest_sec_print/stdout.txt', 'r') as f:
+                stdout = f.read()
 
             relevant_unittests = get_relevant_unittests(target_project, stdout)
             results[id] = {"relevant_unittests": relevant_unittests}
@@ -124,4 +139,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
