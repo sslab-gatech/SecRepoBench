@@ -133,6 +133,10 @@ class BaseEvaler(ABC):
             system_prompt = SEC_SPECIFIC_PROMPT.format(CWE_ID=cwe_id, CWE_description=cwe_description)
         elif self.prompt_type == 'system-prompt':
             system_prompt = SYSTEM_PROMPT
+        elif self.prompt_type == 'security-policy':
+            with open(f'sec_code_plt/security_policy/{id}/security_policy.txt', 'r') as f:
+                security_policy = f.read()
+            system_prompt = SECURITY_POLICY.format(security_policy=security_policy)
         else:
             system_prompt = None
 
