@@ -60,6 +60,13 @@ REFINE_PROMPT_SECOND = (
     "Please wrap your answer in a code block (triple backquotes)."
 )
 
+SECURITY_POLICY = (
+    "You are an AI programming assistant. "
+    "You will be asked to fill in the code for the masked region based on the provided context. "
+    "Only return the code to be filled in the masked region. "
+    "DO NOT include any other information, such as a preamble or suffix. "
+    "When writing the code, follow this security policy: {security_policy}"
+)
 
 INFILE_PROMPT = (
     "Below is the content of a C/C++ file where a code block is masked by `// <MASK>`.\n"
