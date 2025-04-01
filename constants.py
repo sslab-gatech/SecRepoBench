@@ -84,6 +84,7 @@ CROSS_FILE_PROMPT = (
 )
 
 MODELS = {
+    "DeepSeek-R1": "deepseek-ai/DeepSeek-R1",
     'gpt-4o': 'gpt-4o-2024-08-06',
     'gpt-4o-mini': 'gpt-4o-mini-2024-07-18',
     'claude-3.5-sonnet': 'claude-3-5-sonnet-20240620',
@@ -100,6 +101,7 @@ MODELS = {
     'claude-3.7-thinking': 'claude-3-7-sonnet-20250219',
     'qwen-plus': 'qwen-plus-2025-01-25',
     'gemini-2-flash': 'gemini-2.0-flash',
+    'deepseek-coder-1.3b-instruct': 'deepseek-ai/deepseek-coder-1.3b-instruct'
 }
 
 FUNC_PROMPT = (
