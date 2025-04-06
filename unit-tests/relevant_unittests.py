@@ -6,6 +6,10 @@ from projects import *
 test_before_projects = ['ffmpeg', 'file', 'c-blosc2', 'fluent-bit', 'assimp', 'php-src', 'libxml2', 'imagemagick', 'mruby', 'wireshark','libarchive','openexr', 'libredwg', 'libxslt']
 no_colon_projects = ['harfbuzz', 'libplist', 'yara']
 
+def remove_ansi(text):
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+    return ansi_escape.sub('', text)
+
 def get_relevant_unittests(target_project, stdout):
     test_before = target_project in test_before_projects
     no_colon = target_project in no_colon_projects
@@ -13,11 +17,14 @@ def get_relevant_unittests(target_project, stdout):
     pattern = unittest_patterns[target_project]
     if no_colon:
         pattern = r"\n(?P<status>[A-Z]+) (?P<name>.*) \("
-    if target_project == 'c-blosc2' or target_project == 'libdwarf':
+    if target_project == 'php-src':
+        pattern = r"[\r\n](?P<status>PASS|FAIL|SKIP).*?\[(?P<name>[^\]]+)\]"
+        stdout = remove_ansi(stdout)
+    elif target_project == 'c-blosc2' or target_project == 'libdwarf':
         pattern = r"Test: (?P<name>.*)\n"
     elif target_project == 'fluent-bit':
         pattern = r"Test (?P<name>.*)\.\.\."
-    elif target_project == 'imagemagick' or target_project == 'php-src':
+    elif target_project == 'imagemagick':
         pattern = r"Test Name: (?P<name>.*)\n"
     elif target_project == 'libxml2':
         pattern = r"## (?P<name>.*)\n"
@@ -98,15 +105,12 @@ def get_relevant_unittests(target_project, stdout):
 
 def main():
     # Say that file's test are used in test.c
-    # target_projects = ['lcms', 'file', 'ffmpeg', 'libxml2', 'imagemagick', 'harfbuzz', 'yara', 'flac', 'libxslt', 'htslib', 'ndpi', 'mruby', 'php-src', 'c-blosc2', 'assimp', 'libsndfile', 'wolfssl', 'fluent-bit', 'matio', 'wireshark', 'gpac', 'libarchive', 'libplist', 'libdwarf', 'openexr', 'hunspell', 'libredwg', 'pcapplusplus']
-    target_projects = ['htslib']
+    target_projects = ['lcms', 'file', 'ffmpeg', 'libxml2', 'imagemagick', 'harfbuzz', 'yara', 'flac', 'libxslt', 'htslib', 'ndpi', 'mruby', 'php-src', 'c-blosc2', 'assimp', 'libsndfile', 'wolfssl', 'fluent-bit', 'matio', 'wireshark', 'gpac', 'libarchive', 'libplist', 'libdwarf', 'openexr', 'hunspell', 'libredwg', 'pcapplusplus']
 
     with open('/space1/cdilgren/project_benchmark/analyze_report/ids_each_step_by_proj.json', 'r') as f:
         ids_each_step_by_proj = json.load(f)
 
-    with open('relevant_unittests.json', 'r') as f:
-        results = json.load(f)
-
+    results = {}
     for target_project in target_projects:
         print(f"Processing {target_project}")
         ids_pass_testcase_unittest = ids_each_step_by_proj['ids_pass_testcase_unittest'][target_project]
