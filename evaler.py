@@ -4,7 +4,6 @@ import openai
 import anthropic
 import torch
 import requests
-
 import backoff
 import google
 import google.generativeai as genai
@@ -14,7 +13,7 @@ from constants import *
 from cwe_map import *
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
-from CustomizedGeneration import *
+# from CustomizedGeneration import *
 
 def get_c_cpp_file(base_path: str):
     c_path = base_path + '.c'
@@ -106,18 +105,18 @@ class BaseEvaler(ABC):
             return INFILE_PROMPT.format(context=context.strip())
         elif self.context_type == 'cross-file':
             # get func_mask_desc
-            context1 = get_c_cpp_file(f'descriptions/{id}/mask_func_desc_{mode}')
+            context1 = get_c_cpp_file(f'descriptions/{id}/mask_sec_func_desc_{mode}')
             with open(f'descriptions/{id}/cross-file.txt', 'r') as file:
                 context2 = file.read()
             return CROSS_FILE_PROMPT.format(context1=context1.strip(), context2=context2.strip())
         elif self.context_type == 'func':
-            mask_func_desc = f"descriptions/{id}/mask_func_desc_{mode}"
+            mask_func_desc = f"descriptions/{id}/mask_sec_func_desc_{mode}"
             if os.path.exists(mask_func_desc + '.c'):
                 path = mask_func_desc + '.c'
             elif os.path.exists(mask_func_desc + '.cpp'):
                 path = mask_func_desc + '.cpp'
             else:
-                print(f'ID {id}: mask_func_desc_{mode} file not present')
+                print(f'ID {id}: mask_sec_func_desc_{mode} file not present')
                 return
             with open(path, 'r') as f:
                 context = f.read()
@@ -160,7 +159,7 @@ class APIEvaler(BaseEvaler):
         self.get_content = self._get_content_function()
 
     def _initialize_client(self, system_prompt=None):
-        if 'gpt-' in self.model_name:
+        if 'gpt-' in self.model_name or self.model_name in ['o3-mini-2025-01-31', 'o1-2024-12-17']:
             return openai.OpenAI()
         elif 'claude-' in self.model_name:
             return anthropic.Anthropic()
@@ -172,6 +171,11 @@ class APIEvaler(BaseEvaler):
                                             )
             else:
                 return genai.GenerativeModel(model_name=self.model_name)
+        elif 'qwen-' in self.model_name:
+            return openai.OpenAI(
+                api_key=os.getenv("QWEN_API_KEY"),
+                base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+            )
         elif 'DeepSeek' in self.model_name:
             together_api_key = os.environ.get("TOGETHER_API_KEY")
             if not together_api_key:
@@ -182,12 +186,16 @@ class APIEvaler(BaseEvaler):
             raise ValueError(f'Invalid model name: {self.model_name}')
 
     def _get_create_function(self):
-        if 'gpt-' in self.model_name:
+        if 'gpt-' in self.model_name or self.model_name in ['o3-mini-2025-01-31', 'o1-2024-12-17']:
             return self.client.chat.completions.create
+        elif self.model_name == 'claude-3-7-sonnet-20250219':
+            return self.client.beta.messages.create
         elif 'claude-' in self.model_name:
             return self.client.messages.create
         elif 'gemini-' in self.model_name:
             return self.client.generate_content
+        elif 'qwen-' in self.model_name:
+            return self.client.chat.completions.create
         elif 'DeepSeek' in self.model_name:
             # Define a function that calls the Together API endpoint.
             def together_create(**kwargs):
@@ -204,12 +212,16 @@ class APIEvaler(BaseEvaler):
             raise ValueError(f'Invalid model name: {self.model_name}')
 
     def _get_content_function(self):
-        if 'gpt-' in self.model_name:
+        if 'gpt-' in self.model_name or self.model_name in ['o3-mini-2025-01-31', 'o1-2024-12-17']:
             return lambda response: [choice.message.content for choice in response.choices]
+        elif self.model_name == 'claude-3-7-sonnet-20250219':
+            return lambda response: [response.content[1].text]
         elif 'claude-' in self.model_name:
             return lambda response: [content.text for content in response.content]
         elif 'gemini-' in self.model_name:
             return lambda response: [response.text]
+        elif 'qwen-' in self.model_name:
+            return lambda response: [choice.message.content for choice in response.choices]
         elif 'DeepSeek' in self.model_name:
             # Assume Together API returns a JSON with choices similar to OpenAI.
             return lambda response: [response['choices'][0]['message']['content']]
@@ -217,7 +229,7 @@ class APIEvaler(BaseEvaler):
             raise ValueError(f'Invalid model name: {self.model_name}')
 
     def _create_messages(self, prompt: str, system_prompt: str, history=[]) -> List[Dict[str, str]]:
-        if 'gpt-' in self.model_name:
+        if 'gpt-' in self.model_name or self.model_name in ['o3-mini-2025-01-31', 'o1-2024-12-17']:
             if system_prompt is not None:
                 messages = [
                     {'role': 'system', 'content': system_prompt},
@@ -238,6 +250,17 @@ class APIEvaler(BaseEvaler):
                 *[{'role':role.replace("assistant", "model"), 'parts':[content]} for role, content in history],
                 {'role':'user', 'parts': [prompt]}
             ]
+        elif 'qwen-' in self.model_name:
+            if system_prompt is not None:
+                messages = [
+                    {'role': 'system', 'content': system_prompt},
+                ]
+            else:
+                messages = []
+            messages.extend([
+                *[{'role':role, 'content':content} for role, content in history],
+                {'role': 'user', 'content': prompt},
+            ])
         elif 'DeepSeek' in self.model_name:
             # Together API uses the same message structure as OpenAI
             messages = [{'role': 'system', 'content': system_prompt}] if system_prompt else []
@@ -257,6 +280,28 @@ class APIEvaler(BaseEvaler):
                 'max_tokens': max_tokens,
                 'top_p': 1,
                 'n': 1,
+            }
+        elif self.model_name in ['o3-mini-2025-01-31', 'o1-2024-12-17']:
+            thinking_budget_tokens = 8_000
+            return {
+                'model': self.model_name,
+                'messages': messages,
+                'max_completion_tokens': max_tokens + thinking_budget_tokens,
+                'top_p': 1,
+                'n': 1,
+            }
+        elif self.model_name == 'claude-3-7-sonnet-20250219':
+            thinking_budget_tokens = 8_000
+            return {
+                'model': self.model_name,
+                'messages': messages,
+                'max_tokens': max_tokens + thinking_budget_tokens,
+                'system': system_prompt,
+                'thinking': {
+                    "type": "enabled",
+                    "budget_tokens": thinking_budget_tokens
+                },
+                'betas': ["output-128k-2025-02-19"]
             }
         elif 'claude-' in self.model_name:
             if system_prompt is None:
@@ -287,6 +332,15 @@ class APIEvaler(BaseEvaler):
                 'generation_config': config,
                 'safety_settings': safety_settings,
             }
+        elif 'qwen-' in self.model_name:
+            return {
+                'model': self.model_name,
+                'messages': messages,
+                'temperature': temperature,
+                'max_tokens': max_tokens,
+                'top_p': 1,
+                'n': 1,
+            }
         elif 'DeepSeek' in self.model_name:
             
             return {
@@ -301,26 +355,25 @@ class APIEvaler(BaseEvaler):
             raise ValueError(f'Invalid model name: {self.model_name}')
 
     @backoff.on_exception(backoff.expo, (openai.RateLimitError, 
-                                     openai.InternalServerError, 
-                                     openai.APIConnectionError, 
-                                     anthropic.RateLimitError, 
-                                     anthropic.APIConnectionError, 
-                                     anthropic.InternalServerError,
-                                     google.api_core.exceptions.ResourceExhausted,
-                                     google.api_core.exceptions.TooManyRequests,
-                                     google.api_core.exceptions.InternalServerError,
-                                     requests.exceptions.HTTPError,
-                                     requests.exceptions.RequestException  ))
+                                         openai.InternalServerError, 
+                                         openai.APIConnectionError, 
+                                         anthropic.RateLimitError, 
+                                         anthropic.APIConnectionError, 
+                                         anthropic.InternalServerError,
+                                         google.api_core.exceptions.ResourceExhausted,
+                                         google.api_core.exceptions.TooManyRequests,
+                                         google.api_core.exceptions.InternalServerError,
+                                         requests.exceptions.HTTPError,
+                                         requests.exceptions.RequestException  ))
     def get_response(self, id: str, mode) -> str:
         prompt = self._get_prompt(id, mode)
         system_prompt = self._get_system_prompt(id)
-        
         if 'gemini-' in self.model_name:
             self.client = self._initialize_client(system_prompt)
             self.create = self._get_create_function()
-        if id in self.responses_cache:
-            print('Using cache')
-            return self.postprocess(self.responses_cache[id]), prompt, system_prompt
+        # if id in self.responses_cache:
+        #     print('Using cache')
+        #     return self.postprocess(self.responses_cache[id]), prompt, system_prompt
 
         if self.prompt_type != 'refine':
             messages = self._create_messages(prompt, system_prompt)
