@@ -1,0 +1,70 @@
+case 'H': {
+    if (aux_limit - aux < 3) goto err;
+    
+    if (!tm->blk) {
+        if (!(tm->blk = cram_new_block(EXTERNAL, key)))
+            return NULL;
+        codec->u.e_byte_array_len.val_codec->out = tm->blk;
+    }
+    
+    aux += 3;
+    char *aux_end = aux;
+    while (aux_end < aux_limit && *aux_end) aux_end++;
+    if (aux_end >= aux_limit) goto err;
+    
+    BLOCK_APPEND(tm->blk, aux, aux_end - aux + 1);
+    aux = aux_end + 1;
+    break;
+}
+
+case 'B': {
+    if (aux_limit - aux < 5) goto err;
+    
+    int type = aux[3]; // subtype
+    int bsize;
+    
+    // Determine size based on subtype
+    switch (type) {
+    case 'c': case 'C': bsize = 1; break;
+    case 's': case 'S': bsize = 2; break;
+    case 'i': case 'I': case 'f': bsize = 4; break;
+    case 'd': bsize = 8; break;
+    default: goto err;
+    }
+    
+    // Read array length
+    int count = le_to_u32(aux+4);
+    
+    // Check if enough data remains
+    if (aux_limit - aux < 8 + count * bsize) goto err;
+    
+    // Create blocks if needed
+    if (!tm->blk) {
+        if (!(tm->blk = cram_new_block(EXTERNAL, key)))
+            return NULL;
+        codec->u.e_byte_array_len.val_codec->out = tm->blk;
+    }
+    
+    if (!tm->blk2) {
+        if (!(tm->blk2 = cram_new_block(EXTERNAL, key)))
+            return NULL;
+        codec->u.e_byte_array_len.len_codec->out = tm->blk2;
+    }
+    
+    // Encode the array length
+    if (CRAM_MAJOR_VERS(fd->version) >= 4) {
+        if (codec->u.e_byte_array_len.len_encoding == E_VARINT_UNSIGNED) {
+            if (fd->vv.varint_put32_blk(tm->blk2, count) <= 0) goto err;
+        } else {
+            BLOCK_APPEND(tm->blk2, aux+4, 4);
+        }
+    } else {
+        BLOCK_APPEND(tm->blk2, aux+4, 4);
+    }
+    
+    // Encode the array data
+    BLOCK_APPEND(tm->blk, aux+8, count * bsize);
+    
+    aux += 8 + count * bsize;
+    break;
+}

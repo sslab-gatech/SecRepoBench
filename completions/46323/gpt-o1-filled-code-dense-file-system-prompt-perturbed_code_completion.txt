@@ -1,0 +1,4 @@
+if (copy == NULL) {
+    return(NULL);
+}
+/* The new node was successfully created and attached in xmlStaticCopyNode above */

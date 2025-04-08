@@ -1,0 +1,34 @@
+for (i=0; i<size-8; i++) {
+    // Search the data buffer for a specific four-character code indicating an ESDS box type.
+    // If found, create a new bitstream starting at the identified location in the data buffer.
+    // Set a cookie on the new bitstream to suppress logging for the operations that follow.
+    // If an ESDS box already exists in the current box structure, remove its reference from the parent-child hierarchy and delete it.
+    // Parse a new ESDS box from the bitstream and update the ESDS box reference in the current box structure.
+    // If the parsing is successful and the box type matches ESDS, ensure the box is added to the list of child boxes.
+    // Clean up by deleting the created bitstream and handle any memory management necessary for ESDS box references.
+    if ((str[i]=='e') && (str[i+1]=='s') && (str[i+2]=='d') && (str[i+3]=='s')) {
+        GF_BitStream *esds_bs;
+        GF_ESDBox *esds;
+        
+        esds_bs = gf_bs_new(&str[i-4], size-i+4, GF_BITSTREAM_READ);
+        gf_bs_set_cookie(esds_bs, GF_ISOM_BS_COOKIE_NO_LOGS);
+        
+        if (box->esd) {
+            gf_list_del_item(box->child_boxes, box->esd);
+            gf_isom_box_del((GF_Box *)box->esd);
+            box->esd = NULL;
+        }
+        
+        esds = (GF_ESDBox *)esds_box_new();
+        if (esds) {
+            if (gf_isom_box_read((GF_Box *)esds, esds_bs) == GF_OK) {
+                box->esd = esds;
+                gf_list_add(box->child_boxes, esds);
+            } else {
+                gf_isom_box_del((GF_Box *)esds);
+            }
+        }
+        gf_bs_del(esds_bs);
+        break;
+    }
+}

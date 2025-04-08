@@ -1,0 +1,30 @@
+if(recheck_type)
+  goto ether_type_check;
+
+if(vlan_packet)
+  workflow->stats.vlan_count++;
+
+iph_check:
+/* Verify the presence of a complete IP header at the current offset */
+if((header->caplen - ip_offset) < sizeof(struct ndpi_iphdr))
+  goto v4_warning;
+
+/* Set the IP header pointer to the current packet offset */
+iph = (struct ndpi_iphdr *)&packet[ip_offset];
+
+/* Retrieve fragment offset from the IP header and store it */
+frag_off = ntohs(iph->frag_off);
+/* Extract the IP protocol type from the IP header */
+proto = iph->protocol;
+
+/* Check if the captured packet size is less than the actual packet size */
+if(header->caplen < header->len) {
+  static u_int8_t capture_size_warning_printed = 0;
+  if(!capture_size_warning_printed) {
+    if(!workflow->prefs.quiet_mode)
+      NDPI_LOG(0, workflow->ndpi_struct, NDPI_LOG_DEBUG,
+	       "WARNING: captured packet size (%u) < actual packet size (%u)\n",
+	       header->caplen, header->len);
+    capture_size_warning_printed = 1;
+  }
+}

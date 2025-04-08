@@ -13,7 +13,7 @@ from constants import *
 from cwe_map import *
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
-# from CustomizedGeneration import *
+from CustomizedGeneration import *
 
 def get_c_cpp_file(base_path: str):
     c_path = base_path + '.c'
@@ -121,6 +121,12 @@ class BaseEvaler(ABC):
             with open(path, 'r') as f:
                 context = f.read()
             return FUNC_PROMPT.format(context=context.strip())
+        elif self.context_type == 'dense-file':
+            # get func_mask_desc
+            context1 = get_c_cpp_file(f'descriptions/{id}/mask_sec_func_desc_{mode}')
+            with open(f'descriptions/{id}/dense-cross-file.txt', 'r') as file:
+                context2 = file.read()
+            return CROSS_FILE_PROMPT.format(context1=context1.strip(), context2=context2.strip())
         else:
             raise ValueError(f"Invalid context type: {self.context_type}")
     

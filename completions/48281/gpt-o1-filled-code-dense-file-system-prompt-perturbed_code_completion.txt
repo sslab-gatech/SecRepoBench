@@ -1,0 +1,21 @@
+SHQContext *s = codec_context->priv_data;
+    const uint8_t *buf = avpkt->data;
+    int buf_size = avpkt->size;
+    int ret;
+    int second_field_offset;
+
+    /* Validate packet size and codec dimensions. */
+    if (buf_size < 4)
+        return AVERROR_INVALIDDATA;
+    if (codec_context->width <= 0 || codec_context->height <= 0)
+        return AVERROR_INVALIDDATA;
+
+    /* Extract a quality parameter to adjust decoding. */
+    int quality = buf[0];
+    if (quality > 100) {
+        av_log(codec_context, AV_LOG_WARNING, "Clamping unexpected quality value %d to 100.\n", quality);
+        quality = 100;
+    }
+
+    /* Calculate a quantization matrix based on the quality. */
+    speedhq_init_qmatrix(s, quality);

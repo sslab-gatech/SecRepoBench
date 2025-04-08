@@ -1,0 +1,13 @@
+if (argcount < 0) {
+  mrb_raise(mrb, E_ARGUMENT_ERROR, "negative argument count");
+}
+c = mrb_class(mrb, self);
+m = mrb_method_search_vm(mrb, &c, mid);
+/* If the number of arguments is too large, convert them into a single array. */
+if (argcount >= MRB_FUNCALL_ARGC_MAX) {
+  mrb_value args_ary = mrb_ary_new_from_values(mrb, argcount, argv);
+  argv = &args_ary; /* Pass array as the sole argument. */
+  argcount = 15;    /* Indicate variable argument count. */
+}
+/* Ensure the stack can hold receiver, arguments, and block info. */
+mrb_stack_extend(mrb, n + argcount + 2);

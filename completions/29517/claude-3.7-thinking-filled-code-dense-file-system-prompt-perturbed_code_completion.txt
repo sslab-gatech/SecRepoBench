@@ -1,0 +1,53 @@
+/* Check if the structure defines its fields using the MATLAB_fields attribute */
+if ( H5Aexists_by_name(dset_id,".","MATLAB_fields",H5P_DEFAULT) ) {
+    err = Mat_H5ReadFieldNames(matvariable, dset_id, &nfields);
+} else {
+    /* Count the number of links in the group */
+    H5G_info_t group_info;
+    herr_t herr = H5Gget_info(dset_id, &group_info);
+    if ( herr < 0 ) {
+        return MATIO_E_GENERIC_READ_ERROR;
+    }
+    nfields = group_info.nlinks;
+    
+    if ( nfields > 0 ) {
+        matvariable->internal->num_fields = (unsigned int)nfields;
+        matvariable->internal->fieldnames = (char**)calloc((size_t)nfields, 
+                                          sizeof(*matvariable->internal->fieldnames));
+        if ( NULL == matvariable->internal->fieldnames ) {
+            return MATIO_E_OUT_OF_MEMORY;
+        }
+        
+        /* Iterate through the links */
+        for ( hsize_t i = 0; i < nfields; i++ ) {
+            /* Get the name of the link */
+            char name[128] = {0,};
+            herr = H5Lget_name_by_idx(dset_id, ".", H5_INDEX_NAME, H5_ITER_INC, 
+                                       i, name, sizeof(name), H5P_DEFAULT);
+            if ( herr < 0 ) {
+                err = MATIO_E_GENERIC_READ_ERROR;
+                break;
+            }
+            
+            /* Copy the name to the fieldnames array */
+            matvariable->internal->fieldnames[i] = strdup(name);
+            if ( NULL == matvariable->internal->fieldnames[i] ) {
+                err = MATIO_E_OUT_OF_MEMORY;
+                break;
+            }
+        }
+        
+        /* If there was an error, free allocated memory */
+        if ( err != MATIO_E_NO_ERROR ) {
+            for ( hsize_t i = 0; i < nfields; i++ ) {
+                if ( matvariable->internal->fieldnames[i] != NULL ) {
+                    free(matvariable->internal->fieldnames[i]);
+                }
+            }
+            free(matvariable->internal->fieldnames);
+            matvariable->internal->fieldnames = NULL;
+            matvariable->internal->num_fields = 0;
+            nfields = 0;
+        }
+    }
+}

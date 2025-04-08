@@ -1,0 +1,41 @@
+if(!quic_ciphers_prepare(&ciphers, GCRY_MD_SHA256, GCRY_CIPHER_AES128,
+                          GCRY_CIPHER_MODE_GCM, client_secret, version)) {
+    NDPI_LOG_DBG(ndpi_struct, "Failed to prepare ciphers\n");
+    return NULL;
+  }
+  
+  /* Determine the offset of the packet number field. First skip the header fields:
+     first byte (1) + version (4) + DCIL + DCID + SCIL + SCID */
+  pn_offset = 1 + 4 + 1 + dest_conn_id_len + 1 + src_conn_id_len;
+  
+  /* Skip the token length field and the token itself */
+  if(pn_offset + 1 > packet->payload_packet_len) {
+    NDPI_LOG_DBG(ndpi_struct, "Packet too short for token length\n");
+    quic_ciphers_reset(&ciphers);
+    return NULL;
+  }
+  
+  if(quic_len(&packet->payload[pn_offset], &token_length) <= 0) {
+    NDPI_LOG_DBG(ndpi_struct, "Invalid token length\n");
+    quic_ciphers_reset(&ciphers);
+    return NULL;
+  }
+  pn_offset += quic_len(&packet->payload[pn_offset], &token_length);
+  pn_offset += token_length;
+  
+  /* Get the length of the encrypted payload */
+  if(pn_offset + 1 > packet->payload_packet_len) {
+    NDPI_LOG_DBG(ndpi_struct, "Packet too short for payload length\n");
+    quic_ciphers_reset(&ciphers);
+    return NULL;
+  }
+  
+  if(quic_len(&packet->payload[pn_offset], &payload_length) <= 0) {
+    NDPI_LOG_DBG(ndpi_struct, "Invalid payload length\n");
+    quic_ciphers_reset(&ciphers);
+    return NULL;
+  }
+  pn_offset += quic_len(&packet->payload[pn_offset], &payload_length);
+  
+  NDPI_LOG_DBG2(ndpi_struct, "pn_offset %u token_length %lu payload_length %lu\n", 
+               pn_offset, (unsigned long)token_length, (unsigned long)payload_length);

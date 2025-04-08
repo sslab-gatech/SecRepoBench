@@ -1,0 +1,27 @@
+/* Check if the first primitive is suitable for conversion */
+  if (primitive_info[0].primitive == UndefinedPrimitive)
+    return((PathInfo *) NULL);
+
+  /* Count the number of primitives */
+  {
+    ssize_t count;
+    for (count=0; primitive_info[count].primitive != UndefinedPrimitive; count++)
+      ;
+    if (count == 0)
+      return((PathInfo *) NULL);
+
+    /* Allocate memory for path information */
+    path_info=(PathInfo *) AcquireQuantumMemory((size_t) (6*count),
+      sizeof(*path_info));
+    if (path_info == (PathInfo *) NULL)
+      return((PathInfo *) NULL);
+  }
+
+  /* Initialize variables */
+  n=0;
+  coordinates=0;
+  start=0;
+  q.x=0.0;
+  q.y=0.0;
+  start_point.x=0.0;
+  start_point.y=0.0;

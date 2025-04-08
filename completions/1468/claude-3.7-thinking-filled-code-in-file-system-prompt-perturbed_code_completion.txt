@@ -1,0 +1,5 @@
+if (magnitude >= (1 << num_bits))
+    return AVERROR_INVALIDDATA;
+
+coeff = vlcdec_lookup[num_bits][magnitude];
+coeff = (coeff * qscale) >> 3;

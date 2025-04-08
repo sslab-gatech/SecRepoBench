@@ -1,0 +1,20 @@
+unsigned int max_matrices;
+
+if (m->avctx->codec_id == AV_CODEC_ID_TRUEHD)
+    max_matrices = 16;
+else
+    max_matrices = 8;
+
+if (m->matrix_changed[substr]++ > 1) {
+    av_log(m->avctx, AV_LOG_ERROR, "Matrices may change only once per access unit.\n");
+    return AVERROR_INVALIDDATA;
+}
+
+s->num_primitive_matrices = get_bits(bit_context, 4);
+
+if (s->num_primitive_matrices > max_matrices) {
+    av_log(m->avctx, AV_LOG_ERROR,
+           "Number of primitive matrices %d exceeds the maximum %d.\n",
+           s->num_primitive_matrices, max_matrices);
+    return AVERROR_INVALIDDATA;
+}

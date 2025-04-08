@@ -1,0 +1,13 @@
+if (shouldfreeopstring && !ZSTR_IS_INTERNED(op1_string) && GC_REFCOUNT(op1_string) == 1) {
+    // We own op1_string, it's not interned, and has refcount of 1 - we can extend it
+    
+    // Handle case where op1_string and op2_string are the same
+    if (op1_string == op2_string) {
+        op2_string = zend_string_copy(op2_string);
+        free_op2_string = true;
+    }
+    
+    // Extend the string
+    result_str = zend_string_extend(op1_string, result_len, 0);
+    shouldfreeopstring = false; // Now managed through result_str
+}

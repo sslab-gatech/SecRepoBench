@@ -1,0 +1,34 @@
+struct magic *m = myself->mp;
+
+if (m->factor_op != FILE_FACTOR_OP_NONE) {
+    file_magwarn(ms, "Current entry already has a strength type: %c %u", 
+        m->factor_op, m->factor);
+    return -1;
+}
+
+if (m->type == FILE_NAME) {
+    file_magwarn(ms, "Strength setting is not supported for \"name\" keyword");
+    goto out;
+}
+
+switch (*l) {
+case '+':
+    m->factor_op = FILE_FACTOR_OP_PLUS;
+    l++;
+    break;
+case '-':
+    m->factor_op = FILE_FACTOR_OP_MINUS;
+    l++;
+    break;
+case '*':
+    m->factor_op = FILE_FACTOR_OP_TIMES;
+    l++;
+    break;
+case '/':
+    m->factor_op = FILE_FACTOR_OP_DIV;
+    l++;
+    break;
+default:
+    file_magwarn(ms, "Unknown factor op `%c'", *l);
+    goto out;
+}

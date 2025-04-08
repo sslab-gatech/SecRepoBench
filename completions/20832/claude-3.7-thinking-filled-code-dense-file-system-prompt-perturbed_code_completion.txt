@@ -1,0 +1,28 @@
+{
+    /* Skip the query name */
+    while((offset < flow->packet.payload_packet_len) && (flow->packet.payload[offset] != '\0')) {
+      offset++;
+    }
+    
+    /* Move past the null terminator */
+    offset++;
+    
+    /* Ensure there's enough data for query type (2 bytes) and query class (2 bytes) */
+    if(offset + 4 <= flow->packet.payload_packet_len) {
+      u_int16_t query_type;
+      
+      /* Read the query type */
+      query_type = ntohs(*((u_int16_t*)&flow->packet.payload[offset]));
+      offset += 2;
+      
+      /* Skip the class */
+      offset += 2;
+      
+      /* Optionally log the query type */
+      NDPI_LOG_DBG2(ndpi_struct, "DNS query type: %u\n", query_type);
+      
+      return(0); /* Valid DNS request */
+    } else {
+      return(1); /* Invalid - not enough data */
+    }
+}

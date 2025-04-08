@@ -1,0 +1,63 @@
+if (flow_packet->payload_packet_len > (command_start + 5 + 2)) { // "LOGIN" + at least space and quote
+  uint16_t username_start = 0;
+  uint16_t username_end = 0;
+  uint16_t password_start = 0;
+  uint16_t password_end = 0;
+  uint16_t i;
+  
+  // Look for the first double quote which should mark the start of the username
+  for (i = command_start + 5; i < flow_packet->payload_packet_len - 1; i++) { // command_start + "LOGIN"
+    if (flow_packet->payload[i] == '"') {
+      username_start = i + 1; // Start after the quote
+      break;
+    }
+  }
+  
+  if (username_start != 0) {
+    // Look for the next double quote which marks the end of the username
+    for (i = username_start; i < flow_packet->payload_packet_len; i++) {
+      if (flow_packet->payload[i] == '"') {
+        username_end = i;
+        break;
+      }
+    }
+    
+    if (username_end != 0 && username_end > username_start) {
+      // Extract and store the username
+      uint16_t username_len = username_end - username_start;
+      if (username_len > sizeof(flow->protos.ftp_imap_pop_smtp.username) - 1)
+        username_len = sizeof(flow->protos.ftp_imap_pop_smtp.username) - 1;
+      
+      memcpy(flow->protos.ftp_imap_pop_smtp.username, &flow_packet->payload[username_start], username_len);
+      flow->protos.ftp_imap_pop_smtp.username[username_len] = '\0';
+      
+      // Look for the opening quote of the password
+      for (i = username_end + 1; i < flow_packet->payload_packet_len - 1; i++) {
+        if (flow_packet->payload[i] == '"') {
+          password_start = i + 1; // Start after the quote
+          break;
+        }
+      }
+      
+      if (password_start != 0) {
+        // Look for the closing quote of the password
+        for (i = password_start; i < flow_packet->payload_packet_len; i++) {
+          if (flow_packet->payload[i] == '"') {
+            password_end = i;
+            break;
+          }
+        }
+        
+        if (password_end != 0 && password_end > password_start) {
+          // Extract and store the password
+          uint16_t password_len = password_end - password_start;
+          if (password_len > sizeof(flow->protos.ftp_imap_pop_smtp.password) - 1)
+            password_len = sizeof(flow->protos.ftp_imap_pop_smtp.password) - 1;
+          
+          memcpy(flow->protos.ftp_imap_pop_smtp.password, &flow_packet->payload[password_start], password_len);
+          flow->protos.ftp_imap_pop_smtp.password[password_len] = '\0';
+        }
+      }
+    }
+  }
+}

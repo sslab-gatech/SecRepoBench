@@ -1,0 +1,20 @@
+xmlBuf *buffer;
+
+/*
+ * Encoding handlers are stateful. Create a new buffer
+ * for the converted content while keeping the old one as raw input.
+ */
+buffer = xmlBufCreate();
+if (buffer == NULL) {
+    xmlErrMemory(ctxt, NULL);
+    return(-1);
+}
+
+/*
+ * Move the current buffer to raw buffer, and set the new empty buffer
+ * as the main input buffer.
+ */
+if (in->rawconsumed == 0)
+    in->rawconsumed = in->consumed;
+in->raw = in->buffer->buffer;
+in->buffer->buffer = buffer;

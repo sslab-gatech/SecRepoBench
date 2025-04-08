@@ -1,0 +1,30 @@
+for (i=0; i < (ssize_t) p->number_points-1; i++)
+{
+  // Check if the edge crosses the horizontal line from the point
+  if ((p->points[i].y <= (double) ycoordinate) && 
+      (p->points[i+1].y > (double) ycoordinate)) // Edge is going upward
+  {
+    // Calculate the x-coordinate of the intersection
+    double alpha = ((double) ycoordinate-p->points[i].y) / 
+                 (p->points[i+1].y-p->points[i].y);
+    double x_intercept = p->points[i].x + 
+                      alpha * (p->points[i+1].x-p->points[i].x);
+    
+    // Check if the point is to the left of the intersection
+    if ((double) x <= x_intercept)
+      winding_number++; // Edge is going upward, so increment
+  }
+  else if ((p->points[i].y > (double) ycoordinate) && 
+          (p->points[i+1].y <= (double) ycoordinate)) // Edge is going downward
+  {
+    // Calculate the x-coordinate of the intersection
+    double alpha = ((double) ycoordinate-p->points[i].y) / 
+                 (p->points[i+1].y-p->points[i].y);
+    double x_intercept = p->points[i].x + 
+                      alpha * (p->points[i+1].x-p->points[i].x);
+    
+    // Check if the point is to the left of the intersection
+    if ((double) x <= x_intercept)
+      winding_number--; // Edge is going downward, so decrement
+  }
+}

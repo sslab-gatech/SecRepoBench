@@ -1,0 +1,173 @@
+{
+  /* Check if this is a Server Hello or Client Hello */
+  if(handshake_type == 0x02) {
+    /* Server Hello */
+    u_int16_t offset = base_offset + 1; /* Skip the session_id_len field */
+    offset += session_id_len;          /* Skip the session_id bytes */
+
+    /* Read the server's cipher suite */
+    if((offset + 2) > total_len) return(0);
+    ja3.ciphers_count = 1;
+    ja3.ciphers[0] = (packet->payload[offset] << 8) | packet->payload[offset + 1];
+    offset += 2;
+
+    /* Skip compression method */
+    if((offset + 1) > total_len) return(0);
+    offset++;
+
+    /* Read extensions length */
+    if((offset + 2) > total_len) return(0);
+    extension_len = (packet->payload[offset] << 8) | packet->payload[offset + 1];
+    offset += 2;
+
+    /* Parse the TLS extensions, skipping GREASE values */
+    while(extension_len >= 4 && (offset + 4) <= total_len) {
+      u_int16_t ext_type = (packet->payload[offset] << 8) | packet->payload[offset + 1];
+      u_int16_t ext_size = (packet->payload[offset + 2] << 8) | packet->payload[offset + 3];
+
+      offset += 4;
+      extension_len -= 4;
+
+      if(ext_size > extension_len) break; /* Malformed */
+
+      /* Skip GREASE extensions (e.g., 0x0a0a, 0x1a1a, etc.) */
+      if((ext_type & 0x0f0f) != 0x0a0a) {
+        /* Record the extension if not GREASE */
+        if(ja3.extensions_count < MAX_TLS_EXTENSIONS) {
+          ja3.extensions[ja3.extensions_count++] = ext_type;
+        }
+      }
+
+      if((offset + ext_size) > total_len) break;
+      offset += ext_size;
+      extension_len -= ext_size;
+    }
+
+    /* Construct JA3S string: "<version>,<cipher>,<extension list>" */
+    {
+      int pos = 0;
+      pos = snprintf(ja3_str, sizeof(ja3_str), "%u,%u", ja3.tls_handshake_version, ja3.ciphers[0]);
+      if(pos < (int)sizeof(ja3_str)) {
+        int i;
+        /* Sort extension list for canonical form */
+        qsort(ja3.extensions, ja3.extensions_count, sizeof(u_int16_t), ndpi_ext_cmp);
+
+        /* Append extensions */
+        for(i = 0; i < ja3.extensions_count && pos < (int)(sizeof(ja3_str) - 1); i++) {
+          pos += snprintf(&ja3_str[pos], sizeof(ja3_str) - pos, "%c%u",
+                          (i == 0) ? ',' : '-', ja3.extensions[i]);
+        }
+      }
+    }
+
+    /* Compute MD5 of JA3S string */
+    ja3_str_len = strlen(ja3_str);
+    ndpi_MD5_Init(&ctx);
+    ndpi_MD5_Update(&ctx, (unsigned char *)ja3_str, ja3_str_len);
+    ndpi_MD5_Final(md5_hash, &ctx);
+
+    /* Store the hash in flow->protos for later use */
+    memcpy(flow->protos.stun_ssl.ssl.ja3_hash, md5_hash, sizeof(md5_hash));
+    flow->protos.stun_ssl.ssl.ja3_detected = 1;
+
+    return(2); /* Indicate Server Hello parsing success */
+  } else if(handshake_type == 0x01) {
+    /* Client Hello */
+    u_int16_t offset = base_offset + 1; /* Skip the session_id_len field */
+    offset += session_id_len;          /* Skip the session_id bytes */
+
+    /* Read total cipher_suites length */
+    if((offset + 2) > total_len) return(0);
+    u_int16_t cipher_list_len = (packet->payload[offset] << 8) | packet->payload[offset + 1];
+    offset += 2;
+
+    /* Parse each cipher in the client hello, skipping GREASE */
+    ja3.ciphers_count = 0;
+    while(cipher_list_len >= 2 && (offset + 2) <= total_len) {
+      u_int16_t cipher_id = (packet->payload[offset] << 8) | packet->payload[offset + 1];
+      offset += 2;
+      cipher_list_len -= 2;
+
+      /* Skip GREASE (0x0a0a, 0x1a1a, 0x2a2a, etc.) */
+      if((cipher_id & 0x0f0f) != 0x0a0a &&
+         ja3.ciphers_count < MAX_TLS_CIPHERS) {
+        ja3.ciphers[ja3.ciphers_count++] = cipher_id;
+      }
+    }
+
+    /* Skip compression length + compressions if present (1 + length) */
+    if((offset + 1) > total_len) return(0);
+    offset += 1 + packet->payload[offset];
+
+    /* Read extension length if present */
+    if((offset + 2) <= total_len) {
+      extension_len = (packet->payload[offset] << 8) | packet->payload[offset + 1];
+      offset += 2;
+    } else {
+      extension_len = 0;
+    }
+
+    /* Parse the TLS extensions, skipping GREASE values */
+    while(extension_len >= 4 && (offset + 4) <= total_len) {
+      u_int16_t ext_type = (packet->payload[offset] << 8) | packet->payload[offset + 1];
+      u_int16_t ext_size = (packet->payload[offset + 2] << 8) | packet->payload[offset + 3];
+
+      offset += 4;
+      extension_len -= 4;
+
+      if(ext_size > extension_len) break; /* Malformed */
+
+      /* Skip GREASE extension IDs */
+      if((ext_type & 0x0f0f) != 0x0a0a) {
+        /* Record the extension if not GREASE */
+        if(ja3.extensions_count < MAX_TLS_EXTENSIONS) {
+          ja3.extensions[ja3.extensions_count++] = ext_type;
+        }
+      }
+
+      if((offset + ext_size) > total_len) break;
+      offset += ext_size;
+      extension_len -= ext_size;
+    }
+
+    /* Construct JA3 string: "<version>,<ciphers>,<extension list>" */
+    {
+      int pos = 0, i;
+      pos = snprintf(ja3_str, sizeof(ja3_str), "%u", ja3.tls_handshake_version);
+      /* Sort ciphers for consistent ordering */
+      qsort(ja3.ciphers, ja3.ciphers_count, sizeof(u_int16_t), ndpi_ext_cmp);
+
+      /* Append ciphers */
+      for(i = 0; i < ja3.ciphers_count && pos < (int)(sizeof(ja3_str) - 1); i++) {
+        pos += snprintf(&ja3_str[pos], sizeof(ja3_str) - pos, "%c%u",
+                        (i == 0) ? ',' : '-', ja3.ciphers[i]);
+      }
+
+      /* Sort extension list for consistent ordering */
+      qsort(ja3.extensions, ja3.extensions_count, sizeof(u_int16_t), ndpi_ext_cmp);
+
+      /* Append extensions */
+      pos += snprintf(&ja3_str[pos], sizeof(ja3_str) - pos, "%c",
+                      (ja3.extensions_count > 0) ? ',' : '\0');
+      for(i = 0; i < ja3.extensions_count && pos < (int)(sizeof(ja3_str) - 1); i++) {
+        pos += snprintf(&ja3_str[pos], sizeof(ja3_str) - pos, "%s%u",
+                        (i == 0) ? "" : "-",
+                        ja3.extensions[i]);
+      }
+    }
+
+    /* Compute MD5 of JA3 string */
+    ja3_str_len = strlen(ja3_str);
+    ndpi_MD5_Init(&ctx);
+    ndpi_MD5_Update(&ctx, (unsigned char *)ja3_str, ja3_str_len);
+    ndpi_MD5_Final(md5_hash, &ctx);
+
+    /* Store the computed JA3 hash in the flow structure */
+    memcpy(flow->protos.stun_ssl.ssl.ja3_hash, md5_hash, sizeof(md5_hash));
+    flow->protos.stun_ssl.ssl.ja3_detected = 1;
+
+    return(1); /* Indicate Client Hello parsing success */
+  }
+
+  return(0); /* Not a Client or Server Hello */
+}

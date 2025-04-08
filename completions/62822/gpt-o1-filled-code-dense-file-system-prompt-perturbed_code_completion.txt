@@ -1,0 +1,30 @@
+const unsigned char *sptr, *sptr0;
+  char *dptr, *dptr0;
+  mrb_value dst;
+  int i;
+
+  sptr = (const unsigned char*)src;
+  sptr0 = sptr;
+
+  if (count == -1) {
+    count = slen * 8;
+  }
+
+  dst = mrb_str_new(mrbstate, NULL, count);
+  dptr = RSTRING_PTR(dst);
+  dptr0 = dptr;
+
+  for (i = 0; i < count; i++) {
+    int byte_index = i >> 3;
+    int bit_index = i & 7;
+    if (byte_index >= slen) break;
+
+    if (flags & PACK_FLAG_LSB) {
+      *dptr++ = ((sptr[byte_index] >> bit_index) & 1) ? '1' : '0';
+    }
+    else {
+      *dptr++ = ((sptr[byte_index] >> (7 - bit_index)) & 1) ? '1' : '0';
+    }
+  }
+
+  sptr += (i + 7) >> 3;

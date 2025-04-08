@@ -1,0 +1,28 @@
+if (offset < (MagickOffsetType) dpx.file.image_offset)
+  {
+    if (dpx.file.image_offset > GetBlobSize(image))
+      ThrowReaderException(CorruptImageError,"ImproperImageHeader");
+    if ((dpx.file.image_offset-offset) > 256)
+      {
+        offset=SeekBlob(image,dpx.file.image_offset,SEEK_SET);
+        if (offset != (MagickOffsetType) dpx.file.image_offset)
+          ThrowReaderException(CorruptImageError,"UnexpectedEndOfFile");
+      }
+    else
+      {
+        for ( ; offset < (MagickOffsetType) dpx.file.image_offset; offset++)
+          if (ReadBlobByte(image) == EOF)
+            ThrowReaderException(CorruptImageError,"UnexpectedEndOfFile");
+      }
+  }
+if (image_info->ping != MagickFalse)
+  {
+    (void) CloseBlob(image);
+    return(GetFirstImageInList(image));
+  }
+image->extent=GetBlobSize(image);
+if (operationsuccess == MagickFalse)
+  return(DestroyImageList(image));
+operationsuccess=ResetImagePixels(image,exception);
+if (operationsuccess == MagickFalse)
+  return(DestroyImageList(image));

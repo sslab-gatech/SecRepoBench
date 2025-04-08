@@ -1,0 +1,11 @@
+struct magic *m;
+if (myself->mp == NULL || myself->cont_count == 0) {
+    file_error(ms, 0, "No current entry for strength");
+    return -1;
+}
+m = &myself->mp[myself->cont_count - 1];
+
+if (m->type == FILE_NAME) {
+    file_magwarn(ms, "Strength setting is not supported for \"name\" type");
+    goto out;
+}

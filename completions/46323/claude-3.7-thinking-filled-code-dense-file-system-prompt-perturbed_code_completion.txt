@@ -1,0 +1,5 @@
+if (copy == NULL) {
+    continue;
+} else if (copy != insert->last) {
+    insert->last = copy;
+}

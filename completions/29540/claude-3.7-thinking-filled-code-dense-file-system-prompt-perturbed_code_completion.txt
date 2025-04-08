@@ -1,0 +1,23 @@
+if ( nfields < 1 || nelems < 1 ) {
+    return;
+}
+
+data_variable->data_size = sizeof(matvar_t *);
+size_t nelems_x_nfields = 0;
+int err = Mul(&nelems_x_nfields, nelems, nfields);
+if ( err ) {
+    Mat_Critical("Integer multiplication overflow");
+    return;
+}
+err = Mul(&data_variable->nbytes, nelems_x_nfields, data_variable->data_size);
+if ( err ) {
+    Mat_Critical("Integer multiplication overflow");
+    return;
+}
+
+fields = (matvar_t**)malloc(data_variable->nbytes);
+if ( NULL == fields ) {
+    Mat_Critical("Couldn't allocate memory for the fields");
+    return;
+}
+data_variable->data = fields;

@@ -1,0 +1,15 @@
+static inline double ConstrainCoordinate(double coordinate)
+{
+  // Clip the coordinate is to be within a specified range. 
+  // This helps maintain the stability and correctness of geometric calculations.
+  if (isnan(coordinate) || isinf(coordinate))
+    return(0.0);
+  
+  // Constrain to a reasonable range for image coordinates
+  if (coordinate > (double) SSIZE_MAX)
+    return((double) SSIZE_MAX);
+  if (coordinate < (double) -SSIZE_MAX)
+    return((double) -SSIZE_MAX);
+  
+  return(coordinate);
+}

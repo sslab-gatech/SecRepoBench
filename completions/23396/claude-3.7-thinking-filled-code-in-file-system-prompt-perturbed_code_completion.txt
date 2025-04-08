@@ -1,0 +1,16 @@
+if((a + 3) < packet->payload_packet_len &&
+   packet->payload[a + 2] == 0x0d &&
+   packet->payload[a + 3] == 0x0a) {
+  /* Double CRLF found - end of headers */
+  u_int16_t body_start = a + 4; /* Points to the beginning of the HTTP body */
+  u_int16_t body_len = packet->payload_packet_len - body_start;
+  
+  if(body_len > 0) {
+    u_int16_t max_copy_len = sizeof(packet->initial_binary_bytes) - 1;
+    u_int16_t copy_len = (body_len < max_copy_len) ? body_len : max_copy_len;
+    
+    memcpy(packet->initial_binary_bytes, &packet->payload[body_start], copy_len);
+    packet->initial_binary_bytes[copy_len] = '\0'; /* Null terminate */
+    packet->initial_binary_bytes_len = copy_len;
+  }
+}

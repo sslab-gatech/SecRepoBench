@@ -1,0 +1,16 @@
+size = gf_mp3_header_frame_size(ctx->hdr);
+if (!size) {
+	GF_LOG(GF_LOG_WARNING, GF_LOG_MEDIA, ("[MP3Dmx] invalid MP3 frame size\n"));
+	break;
+}
+
+if ((offsetskipped + size) < remain) {
+	if (sync[size] == 0xFF) {
+		/* next byte indicates a possible frame sync */
+	} else if (((remain - (offsetskipped + size)) >= 3) && !memcmp(sync + size, "TAG", 3)) {
+		skip_id3v1 = GF_TRUE;
+	} else {
+		GF_LOG(GF_LOG_WARNING, GF_LOG_MEDIA, ("[MP3Dmx] invalid next MP3 frame sync, resyncing\n"));
+		ctx->is_sync = GF_FALSE;
+	}
+}
