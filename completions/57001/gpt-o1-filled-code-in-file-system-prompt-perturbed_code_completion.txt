@@ -1,0 +1,11 @@
+SkipSpaces(&vertex_data_ptr);
+unsigned int faceIndexCount = strtoul10(vertex_data_ptr, &vertex_data_ptr);
+if (faceIndexCount < 3) {
+    ASSIMP_LOG_ERROR("OFF: Face has fewer than 3 vertices, skipping face");
+    faces->mNumIndices = 0;
+    ++i;
+    ++faces;
+    continue;
+}
+faces->mNumIndices = faceIndexCount;
+faces->mIndices = new unsigned int[faceIndexCount];

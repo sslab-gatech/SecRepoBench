@@ -1,0 +1,18 @@
+unsigned old_count = hb_map_get (done_lookups_glyph_count, indexlookup);
+
+  hb_set_t *already_visited = nullptr;
+  /* Retrieve or create the glyph set tracking what has been processed for this lookup index. */
+  if (!done_lookups_glyph_set->get (indexlookup, &already_visited))
+  {
+    already_visited = hb_set_create ();
+    done_lookups_glyph_set->set (indexlookup, already_visited);
+  }
+
+  /* Check if the currently active glyphs are a subset of the already visited glyphs. */
+  if (hb_set_is_subset (parent_active_glyphs (), already_visited))
+    return true;
+
+  /* If not a subset, union them and update the tracked population count. */
+  hb_set_union (already_visited, parent_active_glyphs ());
+  unsigned new_count = hb_set_get_population (already_visited);
+  done_lookups_glyph_count->set (indexlookup, new_count);

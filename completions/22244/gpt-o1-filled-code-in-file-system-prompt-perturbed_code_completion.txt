@@ -1,0 +1,67 @@
+{
+  /* Ensure minimum payload length */
+  if(packet->payload_packet_len < 2) {
+    NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+    return;
+  }
+
+  /* If it's TCP, skip the first two bytes (TLS record header) */
+  if(flow->packet.iph && flow->packet.iph->tcp) {
+    if(packet->payload_packet_len <= 2) {
+      NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+      return;
+    }
+    ovpn_payload += 2;
+  }
+
+  /* Update length after potential 2-byte skip */
+  if((packet->payload_packet_len = packet->payload_packet_len - (ovpn_payload - packet->payload)) < 10) {
+    NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+    return;
+  }
+
+  /* Extract operation code */
+  operationcode = ovpn_payload[0] & P_OPCODE_MASK;
+
+  /* If first packet has a known minimal length and operation code, identify as OpenVPN immediately */
+  if((flow->openvpn_counter == 0) &&
+     (packet->payload_packet_len >= (P_HARD_RESET_PACKET_ID_OFFSET(P_HMAC_160) + 4 + 8)) &&
+     ((operationcode == P_CONTROL_HARD_RESET_CLIENT_V1) || (operationcode == P_CONTROL_HARD_RESET_CLIENT_V2))) {
+    ndpi_set_detected_protocol(ndpi_struct, flow, NDPI_PROTOCOL_OPENVPN);
+    return;
+  }
+
+  /* Otherwise, if counter is below threshold and client is resetting */
+  if((flow->openvpn_counter < P_HARD_RESET_CLIENT_MAX_COUNT) &&
+     ((operationcode == P_CONTROL_HARD_RESET_CLIENT_V1) || (operationcode == P_CONTROL_HARD_RESET_CLIENT_V2))) {
+    /* Try to detect HMAC size and extract session */
+    if((hmac_size = check_pkid_and_detect_hmac_size(ovpn_payload)) < 0) {
+      failed = 1;
+    } else {
+      session_remote = ovpn_payload + P_HARD_RESET_PACKET_ID_OFFSET(hmac_size) + 4;
+      memcpy(flow->openvpn_session_id, session_remote, 8);
+    }
+  }
+  /* If within range and server is resetting, verify session */
+  else if((flow->openvpn_counter > 0) && (flow->openvpn_counter < 255) &&
+          ((operationcode == P_CONTROL_HARD_RESET_SERVER_V1) || (operationcode == P_CONTROL_HARD_RESET_SERVER_V2))) {
+    if((hmac_size = check_pkid_and_detect_hmac_size(ovpn_payload)) < 0) {
+      failed = 1;
+    } else {
+      session_remote = ovpn_payload + P_HARD_RESET_PACKET_ID_OFFSET(hmac_size) + 4;
+      if(memcmp(flow->openvpn_session_id, session_remote, 8) == 0) {
+        ndpi_set_detected_protocol(ndpi_struct, flow, NDPI_PROTOCOL_OPENVPN);
+        return;
+      } else {
+        failed = 1;
+      }
+    }
+  }
+
+  if(failed) {
+    NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+    return;
+  } else {
+    flow->openvpn_counter++;
+  }
+}

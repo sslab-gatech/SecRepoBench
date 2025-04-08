@@ -1,0 +1,42 @@
+{
+	if (!layer || layer > 3) {
+		GF_LOG(GF_LOG_ERROR, GF_LOG_CODING, ("[MP3 BitRate] invalid layer %d\n", layer));
+		return 0;
+	}
+	if (!bitrateIdx || bitrateIdx == 0xF) {
+		GF_LOG(GF_LOG_ERROR, GF_LOG_CODING, ("[MP3 BitRate] invalid bitrate index %d\n", bitrateIdx));
+		return 0;
+	}
+
+	/* Table for MPEG-1 (first block) and MPEG-2/2.5 (second block).
+	   Each block has 3 sub-blocks for Layer III, Layer II, and Layer I.
+	   The 16 entries in each sub-block correspond to possible bitrateIdx values. */
+	static const u32 mp3_bitrate_table[2][3][16] = {
+		{ /* MPEG-1 */
+			/* Layer III */ { 0,   32,  40,  48,  56,  64,  80,  96,  112, 128, 160, 192, 224, 256, 320, 0 },
+			/* Layer II  */ { 0,   32,  48,  56,  64,  80,  96, 112,  128, 160, 192, 224, 256, 320, 384, 0 },
+			/* Layer I   */ { 0,   32,  64,  96, 128, 160, 192, 224,  256, 288, 320, 352, 384, 416, 448, 0 }
+		},
+		{ /* MPEG-2 / 2.5 */
+			/* Layer III */ { 0,    8,  16,  24,  32,  40,  48,  56,   64,  80,  96, 112, 128, 144, 160, 0 },
+			/* Layer II  */ { 0,    8,  16,  24,  32,  48,  56,  64,   80,  96, 112, 128, 144, 160, 176, 0 },
+			/* Layer I   */ { 0,   32,  48,  56,  64,  80,  96, 112,  128, 144, 160, 176, 192, 224, 256, 0 }
+		}
+	};
+
+	/* version == 3 => MPEG-1, else => MPEG-2 or 2.5 */
+	u32 versionIndex = (version == 3) ? 0 : 1;
+	/* layer: 3 -> index 0, 2 -> index 1, 1 -> index 2 */
+	u32 layerIndex = 3 - layer;
+	if (layerIndex > 2) {
+		GF_LOG(GF_LOG_ERROR, GF_LOG_CODING, ("[MP3 BitRate] invalid layer index %u\n", layerIndex));
+		return 0;
+	}
+
+	u32 br = mp3_bitrate_table[versionIndex][layerIndex][bitrateIdx];
+	if (!br) {
+		GF_LOG(GF_LOG_ERROR, GF_LOG_CODING, ("[MP3 BitRate] invalid combination (version=%u layer=%u idx=%u)\n", version, layer, bitrateIdx));
+		return 0;
+	}
+	return br * 1000;
+}

@@ -1,0 +1,34 @@
+quantum = 8;
+if (quantumdata->format == FloatingPointQuantumFormat)
+  {
+    if (quantumdata->depth == 16)
+      quantum = 16;
+    else if (quantumdata->depth == 24) 
+      quantum = 24;
+    else if (quantumdata->depth == 32)
+      quantum = 32;
+    else if (quantumdata->depth == 64)
+      quantum = 64;
+    else
+      quantum = 32;
+  }
+else
+  quantum = quantumdata->depth;
+  
+extent = (image->columns+quantumdata->pad)*(quantum/8);
+if (extent < (image->columns+quantumdata->pad))
+  return(MagickFalse);
+  
+if (quantumdata->pixels != (MemoryInfo **) NULL)
+  {
+    /*
+      Does the quantum buffer need to be reallocated?
+    */
+    if (extent <= quantumdata->extent)
+      return(MagickTrue);
+    DestroyQuantumPixels(quantumdata);
+  }
+quantumdata->quantum = quantum;
+if (AcquireQuantumPixels(quantumdata,extent) == MagickFalse)
+  return(MagickFalse);
+return(MagickTrue);

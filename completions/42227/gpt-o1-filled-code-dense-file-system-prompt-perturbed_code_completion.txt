@@ -1,0 +1,17 @@
+char quoteChar = it8_parser->ch;
+StringClear(it8_parser->str);
+NextCh(it8_parser);
+
+while (it8_parser->ch) {
+    if (it8_parser->ch == quoteChar) {
+        NextCh(it8_parser);
+        it8_parser->sy = SSTRING;
+        return;
+    }
+    if (it8_parser->ch == '\n' || it8_parser->ch == '\r') {
+        return; // End if we encounter a newline or carriage return
+    }
+
+    StringAppend(it8_parser->str, it8_parser->ch);
+    NextCh(it8_parser);
+}

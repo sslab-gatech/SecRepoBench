@@ -1,0 +1,13 @@
+{
+    // Reset the loop depth and free resources for any nested loops
+    while (compiler->loop_depth > 0)
+    {
+        loop_vars_cleanup(--compiler->loop_depth);
+    }
+
+    // Reset loop_for_of_var_index to its default
+    compiler->loop_for_of_var_index = -1;
+
+    // If needed, reinitialize or reset any other loop-related variables or frames here
+    // _yr_compiler_init_var_frame(compiler); // (Only if required; not part of YARA's default code)
+}

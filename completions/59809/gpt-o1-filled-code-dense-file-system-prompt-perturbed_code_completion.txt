@@ -1,0 +1,12 @@
+TLVRecordType rec(NULL); // for NRVO optimization
+
+if (tlvDataBasePtr == NULL || tlvDataLength == 0)
+	return rec;
+
+rec.assign(tlvDataBasePtr);
+
+// If total size is zero or exceeds the buffer length, treat as NULL
+if (rec.getTotalSize() == 0 || rec.getTotalSize() > tlvDataLength)
+	rec.assign(NULL);
+
+return rec;

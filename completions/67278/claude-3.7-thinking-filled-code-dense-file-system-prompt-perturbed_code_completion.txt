@@ -1,0 +1,39 @@
+u32 frame_size, pos;
+Bool res;
+
+while (gf_bs_available(bs)) {
+    pos = (u32) gf_bs_get_position(bs);
+    
+    // Try to parse a LATM frame
+    memset(&acfg, 0, sizeof(GF_M4ADecSpecInfo));
+    res = latm_dmx_sync_frame_bs(bs, &acfg, &frame_size);
+    
+    if (!res) {
+        // No valid frame found, skip one byte
+        gf_bs_seek(bs, pos + 1);
+        nb_skip++;
+        continue;
+    }
+    
+    // Check if sample rate index is valid
+    if (acfg.base_sr_index >= 12) {
+        // Invalid sample rate, skip and try again
+        gf_bs_seek(bs, pos + 1);
+        nb_skip++;
+        continue;
+    }
+    
+    // Valid frame found
+    numframes++;
+    
+    // Skip to next frame
+    gf_bs_skip_bytes(bs, frame_size);
+    
+    // If we found enough frames, exit
+    if (numframes >= 2)
+        break;
+    
+    // If no more data, exit
+    if (!gf_bs_available(bs))
+        break;
+}

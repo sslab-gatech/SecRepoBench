@@ -1,0 +1,27 @@
+// Check that there is enough room to read Blosc header
+int64_t trailer_offset = get_trailer_offset(frame, header_len, true);
+if (trailer_offset < BLOSC_EXTENDED_HEADER_LENGTH || trailer_offset + FRAME_TRAILER_MINLEN > frame->len) {
+  BLOSC_TRACE_ERROR("Cannot read the trailer out of the frame.");
+  return NULL;
+}
+
+// Calculate the compressed size of the offsets chunk
+int32_t coffsets_cbytes;
+if (frame->sframe) {
+  coffsets_cbytes = (int32_t)(trailer_offset - (header_len + 0));
+  off_pos = header_len + 0;  // Adjust the offset position for sframe
+} else {
+  coffsets_cbytes = (int32_t)(trailer_offset - off_pos);
+}
+
+// If provided, retrieve the compressed chunk size.
+if (compressed_chunk_size != NULL) {
+  *compressed_chunk_size = coffsets_cbytes;
+}
+
+// Calculate the start pointer for the offsets based on the current frame position.
+uint8_t* coffsets = frame->cframe + off_pos;
+frame->coffsets = coffsets;
+
+// Return the computed start pointer for the offsets.
+return coffsets;

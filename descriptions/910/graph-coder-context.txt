@@ -1,0 +1,120 @@
+// Here are some relevant code fragments from other files of the repo:
+
+// the below code fragment can be found in:
+// lcms/src/cmsio0.c
+    if (!_cmsLockMutex(Icc->ContextID, Icc ->UsrMutex)) return NULL;
+
+    n = _cmsSearchTag(Icc, tagSignature, TRUE);
+    if (n < 0) goto Error;               // Not found, return NULL
+
+
+    // If the element is already in memory, return the pointer
+    if (Icc -> TagPtrs[n]) {
+
+        if (Icc->TagTypeHandlers[n] == NULL) goto Error;
+
+        // Sanity check
+        BaseType = Icc->TagTypeHandlers[n]->Signature;
+        if (BaseType == 0) goto Error;
+
+        TagDescriptor = _cmsGetTagDescriptor(Icc->ContextID, tagSignature);
+        if (TagDescriptor == NULL) goto Error;
+
+        if (!IsTypeSupported(TagDescriptor, BaseType)) goto Error;
+
+        if (Icc ->TagSaveAsRaw[n]) goto Error;  // We don't support read raw tags as cooked
+
+// the below code fragment can be found in:
+// lcms/src/cmsio0.c
+    int n;
+
+    if (!_cmsLockMutex(Icc->ContextID, Icc ->UsrMutex)) return NULL;
+
+    n = _cmsSearchTag(Icc, tagSignature, TRUE);
+    if (n < 0) goto Error;               // Not found, return NULL
+
+
+    // If the element is already in memory, return the pointer
+    if (Icc -> TagPtrs[n]) {
+
+        if (Icc->TagTypeHandlers[n] == NULL) goto Error;
+
+        // Sanity check
+        BaseType = Icc->TagTypeHandlers[n]->Signature;
+        if (BaseType == 0) goto Error;
+
+        TagDescriptor = _cmsGetTagDescriptor(Icc->ContextID, tagSignature);
+        if (TagDescriptor == NULL) goto Error;
+
+        if (!IsTypeSupported(TagDescriptor, BaseType)) goto Error;
+
+// the below code fragment can be found in:
+// lcms/src/cmsio0.c
+    n = _cmsSearchTag(Icc, tagSignature, TRUE);
+    if (n < 0) goto Error;               // Not found, return NULL
+
+
+    // If the element is already in memory, return the pointer
+    if (Icc -> TagPtrs[n]) {
+
+        if (Icc->TagTypeHandlers[n] == NULL) goto Error;
+
+        // Sanity check
+        BaseType = Icc->TagTypeHandlers[n]->Signature;
+        if (BaseType == 0) goto Error;
+
+        TagDescriptor = _cmsGetTagDescriptor(Icc->ContextID, tagSignature);
+        if (TagDescriptor == NULL) goto Error;
+
+        if (!IsTypeSupported(TagDescriptor, BaseType)) goto Error;
+
+        if (Icc ->TagSaveAsRaw[n]) goto Error;  // We don't support read raw tags as cooked
+
+        _cmsUnlockMutex(Icc->ContextID, Icc ->UsrMutex);
+
+// the below code fragment can be found in:
+// lcms/src/cmsio0.c
+    cmsTagTypeSignature BaseType;
+    cmsUInt32Number Offset, TagSize;
+    cmsUInt32Number ElemCount;
+    int n;
+
+    if (!_cmsLockMutex(Icc->ContextID, Icc ->UsrMutex)) return NULL;
+
+    n = _cmsSearchTag(Icc, tagSignature, TRUE);
+    if (n < 0) goto Error;               // Not found, return NULL
+
+
+    // If the element is already in memory, return the pointer
+    if (Icc -> TagPtrs[n]) {
+
+        if (Icc->TagTypeHandlers[n] == NULL) goto Error;
+
+        // Sanity check
+        BaseType = Icc->TagTypeHandlers[n]->Signature;
+        if (BaseType == 0) goto Error;
+
+        TagDescriptor = _cmsGetTagDescriptor(Icc->ContextID, tagSignature);
+
+// the below code fragment can be found in:
+// lcms/src/cmsio0.c
+    // If the element is already in memory, return the pointer
+    if (Icc -> TagPtrs[n]) {
+
+        if (Icc->TagTypeHandlers[n] == NULL) goto Error;
+
+        // Sanity check
+        BaseType = Icc->TagTypeHandlers[n]->Signature;
+        if (BaseType == 0) goto Error;
+
+        TagDescriptor = _cmsGetTagDescriptor(Icc->ContextID, tagSignature);
+        if (TagDescriptor == NULL) goto Error;
+
+        if (!IsTypeSupported(TagDescriptor, BaseType)) goto Error;
+
+        if (Icc ->TagSaveAsRaw[n]) goto Error;  // We don't support read raw tags as cooked
+
+        _cmsUnlockMutex(Icc->ContextID, Icc ->UsrMutex);
+        return Icc -> TagPtrs[n];
+    }
+

@@ -1,0 +1,17 @@
+(rv) &&
+(checked_prefix || (words && words[wnum]) ||
+ (compoundflag && !words && !onlycpdrule && TESTAFF(rv->astr, compoundflag, rv->alen)) ||
+ (compoundbegin && !wordnum && !onlycpdrule && TESTAFF(rv->astr, compoundbegin, rv->alen)) ||
+ (compoundmiddle && wordnum && !words && !onlycpdrule && TESTAFF(rv->astr, compoundmiddle, rv->alen)) ||
+ (!defcpdtable.empty() && onlycpdrule &&
+  ((!words && !wordnum && defcpd_check(&words, wnum, rv, rwords, 0)) ||
+   (words && defcpd_check(&words, wnum, rv, rwords, 0))))
+) &&
+!(
+  (checkcompoundtriple && !words && 
+   char_index > 2 && word[char_index - 1] == word[char_index - 2] && !striple) ||
+  // test CHECKCOMPOUNDPATTERN
+  (!checkcpdtable.empty() && scpd == 0 &&
+   cpdpat_check(word, char_index, rv_first, rv, affixed)) ||
+  (checkcompoundcase && !words && cpdcase_check(word, char_index))
+)

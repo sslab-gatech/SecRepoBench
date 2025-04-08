@@ -1,0 +1,37 @@
+const char *p = char_buffer;
+  const char *pend = p + len;
+  char buf[64];
+  char *n = buf;
+  const char *end;
+  double d;
+
+  // Trim leading whitespace
+  while (p < pend && ISSPACE(*p)) p++;
+
+  // Check if we need to create a cleaned copy (if string contains underscores)
+  int has_underscores = 0;
+  for (const char *q = p; q < pend; q++) {
+    if (*q == '_') {
+      has_underscores = 1;
+      break;
+    }
+    if (badcheck && *q == '\0') {
+      mrb_raise(mrb, E_ARGUMENT_ERROR, "string contains null byte");
+    }
+  }
+
+  if (!has_underscores) {
+    // No underscores, we can use the original string
+    goto nocopy;
+  }
+
+  // Copy characters to buffer, removing underscores
+  for (; p < pend && n < buf + sizeof(buf) - 1; p++) {
+    if (*p == '_') {
+      continue;
+    }
+    if (badcheck && *p == '\0') {
+      mrb_raise(mrb, E_ARGUMENT_ERROR, "string contains null byte");
+    }
+    *n++ = *p;
+  }

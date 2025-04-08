@@ -1,0 +1,7 @@
+while ((i + 7) < vosh_size) {
+    /* check for 0x00 0x00 0x01 + "DivX" */
+    if (!memcmp(decoderconfig + i, "\x00\x00\x01DivX", 7)) {
+        break;
+    }
+    i++;
+}

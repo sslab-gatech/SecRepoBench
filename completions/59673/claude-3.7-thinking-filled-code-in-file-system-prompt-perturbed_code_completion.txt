@@ -1,0 +1,54 @@
+linesize   = s->linesize;
+    uvlinesize = s->uvlinesize;
+
+    /* field based/interlaced motion compensation */
+    if (field_based) {
+        if (bottom_field) {
+            dest_y += s->linesize;
+            dest_cb += s->uvlinesize;
+            dest_cr += s->uvlinesize;
+        }
+    }
+
+    if (s->quarter_sample) {
+        motion_x /= 2;
+        motion_y /= 2;
+    }
+
+    /* luma */
+    sourcex = s->mb_x * block_s + (motion_x >> (lowres + 1));
+    src_y   = (mb_y << field_based) + (motion_y >> (lowres + 1));
+    if (field_based) {
+        src_y = src_y >> 1;
+    }
+    src_y += (s->mb_y - mb_y) * (1 << field_based);
+
+    hpel_motion_lowres(s, dest_y, ref_picture[0], field_based, field_select,
+                       sourcex, src_y, s->width, s->height, linesize,
+                       h_edge_pos, v_edge_pos, block_s, h, pix_op,
+                       motion_x, motion_y);
+
+    if (!CONFIG_GRAY || !(s->avctx->flags & AV_CODEC_FLAG_GRAY)) {
+        /* chroma */
+        uvsrc_x = s->mb_x * (block_s >> s->chroma_x_shift) + (motion_x >> (lowres + 1 + s->chroma_x_shift));
+        uvsrc_y = (mb_y << field_based) >> s->chroma_y_shift;
+        if (field_based) {
+            uvsrc_y = uvsrc_y >> 1;
+        }
+        uvsrc_y += (s->mb_y - mb_y) * (1 << field_based) >> s->chroma_y_shift;
+
+        hpel_motion_lowres(s, dest_cb, ref_picture[1], field_based, field_select,
+                          uvsrc_x, uvsrc_y, s->width >> s->chroma_x_shift, 
+                          s->height >> s->chroma_y_shift, uvlinesize,
+                          h_edge_pos >> s->chroma_x_shift, 
+                          v_edge_pos >> s->chroma_y_shift,
+                          block_s >> s->chroma_x_shift, h >> s->chroma_y_shift, pix_op,
+                          motion_x, motion_y);
+        hpel_motion_lowres(s, dest_cr, ref_picture[2], field_based, field_select,
+                          uvsrc_x, uvsrc_y, s->width >> s->chroma_x_shift, 
+                          s->height >> s->chroma_y_shift, uvlinesize,
+                          h_edge_pos >> s->chroma_x_shift, 
+                          v_edge_pos >> s->chroma_y_shift,
+                          block_s >> s->chroma_x_shift, h >> s->chroma_y_shift, pix_op,
+                          motion_x, motion_y);
+    }

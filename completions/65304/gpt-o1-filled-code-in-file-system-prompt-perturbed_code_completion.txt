@@ -1,0 +1,3 @@
+ja.client.num_signature_algorithms = 0;
+memset(ja.client.signature_algorithms, 0, sizeof(ja.client.signature_algorithms));
+ja.client.signature_algorithms_str[0] = '\0';

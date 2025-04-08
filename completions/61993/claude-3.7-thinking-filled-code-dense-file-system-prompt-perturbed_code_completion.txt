@@ -1,0 +1,11 @@
+if (csv_stream == NULL) {
+    /* if stream is NULL (e.g. str_getcsv()), we can't fetch more data */
+    goto quit_loop_2;
+}
+
+size_t new_len;
+char *new_buf = php_stream_get_line(csv_stream, NULL, 0, &new_len);
+if (new_buf == NULL) {
+    /* end of data */
+    goto quit_loop_2;
+}

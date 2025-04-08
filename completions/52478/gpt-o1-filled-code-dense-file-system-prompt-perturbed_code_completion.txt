@@ -1,0 +1,43 @@
+// process pre-behavior
+        switch ((*it).pre) {
+        case LWO::PrePostBehaviour_OffsetRepeat:
+        case LWO::PrePostBehaviour_Repeat:
+        case LWO::PrePostBehaviour_Oscillate:
+        {
+            // avoid infinite loop if we don't have a valid delta
+            if (delta <= 1e-8) {
+                break;
+            }
+
+            // calculate the value delta (difference between last and first key)
+            const float valDelta = (*it).keys.back().value - (*it).keys.front().value;
+
+            // create a copy of the current keys shifted back by one period
+            // and possibly offset in value, with special handling for oscillation
+            std::vector<LWO::Key> prependKeys;
+            prependKeys.reserve((*it).keys.size());
+            for (size_t i = 0; i < (*it).keys.size(); ++i) {
+                LWO::Key k = (*it).keys[i];
+                k.time -= delta;
+
+                if ((*it).pre == LWO::PrePostBehaviour_OffsetRepeat) {
+                    k.value -= valDelta;
+                } else if ((*it).pre == LWO::PrePostBehaviour_Oscillate) {
+                    // mirror the key's value across the average
+                    k.value = (*it).keys.front().value + (*it).keys.back().value - k.value;
+                }
+
+                prependKeys.push_back(k);
+            }
+
+            // insert them at the front
+            (*it).keys.insert((*it).keys.begin(), prependKeys.begin(), prependKeys.end());
+
+            // update old_first so ClearAnimRangeSetup() can remove these keys later
+            (*it).old_first += prependKeys.size();
+        }
+        break;
+
+        default:
+            break;
+        }

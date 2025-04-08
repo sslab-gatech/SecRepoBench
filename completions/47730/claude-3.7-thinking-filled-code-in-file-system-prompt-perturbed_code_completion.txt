@@ -1,0 +1,34 @@
+// Find the next comma or end of string
+comma_or_nul = strchr(alpn_start, ',');
+if (comma_or_nul == NULL) {
+  // No more commas, set to end of string
+  comma_or_nul = alpn_start + strlen(alpn_start);
+}
+
+// At this point comma_or_nul points to either a comma or the null terminator
+
+// Check if we have a non-empty segment
+if (comma_or_nul > alpn_start) {
+  size_t len = comma_or_nul - alpn_start;
+  char alpn[256];
+  
+  if (len < sizeof(alpn)) {
+    strncpy(alpn, alpn_start, len);
+    alpn[len] = '\0';
+    
+    /* Check if this is a common ALPN */
+    if (strcmp(alpn, "h2") != 0 &&
+        strcmp(alpn, "http/1.1") != 0 &&
+        strcmp(alpn, "h3") != 0 &&
+        strcmp(alpn, "spdy/3") != 0 &&
+        strcmp(alpn, "webrtc") != 0 &&
+        strcmp(alpn, "stun.turn") != 0 &&
+        strcmp(alpn, "stun.nat-discovery") != 0) {
+      /* This is not a common ALPN */
+#ifdef DEBUG_TLS
+      printf("[TLS] Uncommon ALPN found: %s\n", alpn);
+#endif
+      ndpi_set_risk(ndpi_struct, connectionflow, NDPI_TLS_UNCOMMON_ALPN, alpn);
+    }
+  }
+}

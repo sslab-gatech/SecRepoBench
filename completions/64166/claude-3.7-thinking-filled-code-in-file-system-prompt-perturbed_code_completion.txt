@@ -1,0 +1,9 @@
+if (DeviceLink == NULL) {
+    cmsDeleteTransform(xform);
+    cmsSignalError(m->ContextID, cmsERROR_COLORSPACE_CHECK, "Cannot create devicelink");
+    return 0;
+}
+
+// Force CLUT in this case
+dwFlags |= cmsFLAGS_FORCE_CLUT;
+_cmsOptimizePipeline(m->ContextID, &DeviceLink, AdjustedEncodingIntent, &InFrm, &OutputFormat, &dwFlags);

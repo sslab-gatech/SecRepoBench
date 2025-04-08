@@ -1,0 +1,27 @@
+if(packet->payload_packet_len >= 4) {
+  /* Check for Line protocol patterns based on reverse engineered packet traces */
+  
+  /* Pattern 1: Specific size with known header pattern */
+  if((packet->payload_packet_len == 16 || packet->payload_packet_len == 32) && 
+     packet->payload[0] == 0x80) {
+    NDPI_LOG_INFO(detectionmodulestruct, "found Line\n");
+    ndpi_int_line_add_connection(detectionmodulestruct, flow);
+    return;
+  }
+  
+  /* Pattern 2: Another known pattern with different characteristics */
+  if(packet->payload_packet_len >= 40 && packet->payload_packet_len <= 60 &&
+     packet->payload[0] == 0x81 && packet->payload[2] == 0x00) {
+    NDPI_LOG_INFO(detectionmodulestruct, "found Line\n");
+    ndpi_int_line_add_connection(detectionmodulestruct, flow);
+    return;
+  }
+  
+  /* Pattern 3: Small control packets */
+  if(packet->payload_packet_len <= 8 && 
+     packet->payload[0] == 0x10) {
+    NDPI_LOG_INFO(detectionmodulestruct, "found Line\n");
+    ndpi_int_line_add_connection(detectionmodulestruct, flow);
+    return;
+  }
+}

@@ -1,0 +1,30 @@
+if (timeparser->time_with_year == FLB_FALSE) {
+    time_now = now;
+    if (time_now <= 0) {
+        time_now = time(NULL);
+    }
+    localtime_r(&time_now, &tmy);
+
+    /* Prepend the current year and a space to the original time string */
+    snprintf(tmp, sizeof(tmp), "%d %.*s",
+             tmy.tm_year + 1900, (int) tsize, time_str);
+    tmp[tsize + 5] = '\0';
+
+    fmt = timeparser->time_fmt_year;
+    p = flb_strptime(tmp, fmt, &tmy);
+}
+else {
+    /* The format string includes a year or epoch specifier */
+    memcpy(tmp, time_str, tsize);
+    tmp[tsize] = '\0';
+
+    fmt = timeparser->time_fmt;
+    p = flb_strptime(tmp, fmt, &tmy);
+}
+
+if (p == NULL) {
+    flb_error("[parser] cannot parse '%.*s'", (int) tsize, time_str);
+    return -1;
+}
+
+*tm = tmy;

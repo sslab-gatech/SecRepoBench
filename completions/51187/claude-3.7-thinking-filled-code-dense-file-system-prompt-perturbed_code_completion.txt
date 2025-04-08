@@ -1,0 +1,41 @@
+const std::string* word = &in_word;
+const std::string* desc = inputdesc;
+std::string* word_copy = NULL;
+std::string* desc_copy = NULL;
+
+// Handle words with ignored characters or complex prefixes
+if (!ignorechars.empty() || complexprefixes) {
+  word_copy = new std::string;
+  
+  // Remove ignored characters if necessary
+  if (!ignorechars.empty()) {
+    clean_ignore(*word_copy, in_word);
+  } else {
+    *word_copy = in_word;
+  }
+  
+  // Reverse word if complex prefixes are enabled
+  if (complexprefixes) {
+    if (utf8) {
+      reverseword_utf(*word_copy);
+    } else {
+      reverseword(*word_copy);
+    }
+  }
+  
+  word = word_copy;
+}
+
+// Handle description
+if (desc && aliasm.empty() && complexprefixes) {
+  desc_copy = new std::string(*desc);
+  
+  // Reverse description if complex prefixes are enabled
+  if (utf8) {
+    reverseword_utf(*desc_copy);
+  } else {
+    reverseword(*desc_copy);
+  }
+  
+  desc = desc_copy;
+}

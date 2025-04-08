@@ -1,0 +1,61 @@
+{
+  /* If this is a NULL string pointer, just copy the pointer. */
+  if (!*(char**)value)
+  {
+    memcpy(old, value, sizeof(char*));
+  }
+  else if (strEQc(f->type, "TFv"))
+  {
+    /* Fixed-length text (TFv). Allocate 'f->size' bytes and copy. */
+    size_t input_len = strlen((const char*)value);
+    size_t copy_len = (input_len < f->size - 1) ? input_len : (f->size - 1);
+
+    char *dest = (char*)calloc(f->size, 1);
+    if (dest)
+    {
+      memcpy(dest, value, copy_len);
+      *(char**)old = dest;
+    }
+    else
+    {
+      /* Allocation failed; set pointer to NULL. */
+      *(char**)old = NULL;
+    }
+  }
+  else
+  {
+    /* For other text types (possibly wide-char or version-specific),
+       allocate and optionally convert if needed. Placeholders: */
+    if (is_utf8)
+    {
+      /* TODO: Convert UTF-8 to wide char and allocate/copy. */
+      /* Placeholder for wide-char conversion logic. */
+      size_t input_len = strlen((const char*)value);
+      char *dest = (char*)malloc(input_len + 1);
+      if (dest)
+      {
+        strcpy(dest, (const char*)value);
+        *(char**)old = dest;
+      }
+      else
+      {
+        *(char**)old = NULL;
+      }
+    }
+    else
+    {
+      /* Simple ASCII copy for non-UTF8 scenarios. */
+      size_t input_len = strlen((const char*)value);
+      char *dest = (char*)malloc(input_len + 1);
+      if (dest)
+      {
+        strcpy(dest, (const char*)value);
+        *(char**)old = dest;
+      }
+      else
+      {
+        *(char**)old = NULL;
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  hb_codepoint_t gid = 0;
+  // Example: assume 'ranges' is a collection of (start_sid, end_sid) or similar
+  for (unsigned i = 0; i < ranges.size(); i++)
+  {
+    unsigned int start_sid = ranges[i].start_sid;
+    unsigned int end_sid   = ranges[i].end_sid;
+
+    for (unsigned int sid = start_sid; sid <= end_sid && gid < glyph_count; sid++, gid++)
+      mapping->set(gid, sid);
+
+    if (gid >= glyph_count)
+      break;
+  }
+}

@@ -1,0 +1,22 @@
+if(packet->payload_packet_len >= 12) {
+  /* Example pattern #1: Check specific bytes at certain offsets */
+  if(packet->payload[0] == 0x82 &&
+     (packet->payload[1] == 0x00 || packet->payload[1] == 0x01) &&
+     packet->payload[4] == 0x01 &&
+     packet->payload[5] == 0x00) {
+    NDPI_LOG_INFO(detectionmodulestruct, "found LINE pattern #1\n");
+    ndpi_int_line_add_connection(detectionmodulestruct, flow);
+    return;
+  }
+
+  /* Example pattern #2: Check exact payload length and byte offsets */
+  if(packet->payload_packet_len == 16 &&
+     packet->payload[0] == 0x01 &&
+     packet->payload[1] == 0x10 &&
+     packet->payload[2] == 0x02 &&
+     packet->payload[3] == 0x00) {
+    NDPI_LOG_INFO(detectionmodulestruct, "found LINE pattern #2\n");
+    ndpi_int_line_add_connection(detectionmodulestruct, flow);
+    return;
+  }
+}

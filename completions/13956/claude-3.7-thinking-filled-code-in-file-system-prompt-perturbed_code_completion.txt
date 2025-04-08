@@ -1,0 +1,21 @@
+static const char* str_table_entry(
+    const char* str_table_base,
+    const char* str_table_limit,
+    int entry_index)
+{
+  // Check if entry_index is within bounds
+  if (entry_index < 0 || str_table_base + entry_index >= str_table_limit)
+    return NULL;
+  
+  // Get a pointer to the string at the given index
+  const char* str = str_table_base + entry_index;
+  
+  // Ensure the string is null-terminated within the string table
+  for (const char* p = str; p < str_table_limit; p++) {
+    if (*p == '\0')
+      return str;  // Found null terminator, string is valid
+  }
+  
+  // String not properly null-terminated within the string table
+  return NULL;
+}

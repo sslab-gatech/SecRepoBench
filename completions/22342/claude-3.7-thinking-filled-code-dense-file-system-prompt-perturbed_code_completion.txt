@@ -1,0 +1,61 @@
+{
+    if(packet->payload_packet_len >= 6) {
+      /* TPKT header check (RFC 1006): version 3, reserved 0 */
+      if((packet->payload[0] == 3) && (packet->payload[1] == 0)) {
+        u_int16_t tpkt_len = ntohs(*((u_int16_t*)&packet->payload[2]));
+        
+        /* Check if declared length matches actual packet length */
+        if(tpkt_len == packet->payload_packet_len) {
+          /* TPKT is used by both H.323 and RDP - Check for H.323 indicators */
+          
+          /* Check for H.225 Call Signaling - Q.931 protocol discriminator (0x08) */
+          if(packet->payload_packet_len > 5 && packet->payload[4] == 0x08) {
+            NDPI_LOG_INFO(ndpi_struct, "found H323 (H.225 Call Signaling)\n");
+            ndpi_set_detected_protocol(ndpi_struct, stream, NDPI_PROTOCOL_H323, NDPI_PROTOCOL_UNKNOWN);
+            return;
+          }
+          /* Check for H.245 Control Protocol - ASN.1 tags */
+          else if(packet->payload_packet_len > 5 && 
+                 (packet->payload[4] == 0x83 || 
+                  packet->payload[4] == 0x02 || 
+                  packet->payload[4] == 0x01)) {
+            NDPI_LOG_INFO(ndpi_struct, "found H323 (H.245 Control)\n");
+            ndpi_set_detected_protocol(ndpi_struct, stream, NDPI_PROTOCOL_H323, NDPI_PROTOCOL_UNKNOWN);
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  /* Check for UDP H.323 traffic */
+  if(packet->udp != NULL) {
+    sport = ntohs(packet->udp->source);
+    dport = ntohs(packet->udp->dest);
+    
+    /* H.323 uses several well-known UDP ports */
+    if((sport == 1720) || (dport == 1720) ||  /* H.225 Call Signaling */
+       (sport == 1718) || (dport == 1718) ||  /* H.225 RAS Multicast */
+       (sport == 1719) || (dport == 1719)) {  /* H.225 RAS Unicast */
+      
+      /* Check for valid H.323 payload patterns */
+      if(packet->payload_packet_len >= 4) {
+        /* H.225 RAS messages have specific ASN.1 encoded formats */
+        if((packet->payload[0] >= 0x00 && packet->payload[0] <= 0x14) && 
+           packet->payload[1] <= 0x05) {
+          NDPI_LOG_INFO(ndpi_struct, "found H323 (H.225 RAS)\n");
+          ndpi_set_detected_protocol(ndpi_struct, stream, NDPI_PROTOCOL_H323, NDPI_PROTOCOL_UNKNOWN);
+          return;
+        }
+        
+        /* Check for H.323 Gatekeeper Request (GRQ) broadcast messages */
+        if(dport == 1718) {
+          NDPI_LOG_INFO(ndpi_struct, "found H323 (GRQ Broadcast)\n");
+          ndpi_set_detected_protocol(ndpi_struct, stream, NDPI_PROTOCOL_H323, NDPI_PROTOCOL_UNKNOWN);
+          return;
+        }
+      }
+    }
+  }
+
+  NDPI_EXCLUDE_PROTO(ndpi_struct, stream);

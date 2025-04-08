@@ -1,0 +1,22 @@
+unsigned int num_glyphs = hb_face_get_glyph_count (face);
+
+  hb_codepoint_t g = HB_SET_VALUE_INVALID;
+  while (initial_gids_to_retain->next (&g))
+  {
+    _add_gid_and_children (glyf, g, full_glyphs_to_retain);
+  }
+
+  _remove_invalid_gids (full_glyphs_to_retain, num_glyphs);
+
+  hb_set_destroy (initial_gids_to_retain);
+
+  g = HB_SET_VALUE_INVALID;
+  while (full_glyphs_to_retain->next (&g))
+  {
+    glyphs->push (g);
+  }
+
+  cmap.fini ();
+  glyf.fini ();
+
+  return full_glyphs_to_retain;

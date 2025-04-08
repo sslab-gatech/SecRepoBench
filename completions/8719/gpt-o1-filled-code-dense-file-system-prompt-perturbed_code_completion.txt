@@ -1,0 +1,12 @@
+size_t length;
+
+length = (size_t) ReadBlobMSBLong(image);
+(void) ReadBlob(image,4,(unsigned char *) type);
+type[4] = '\0';
+if (logging != MagickFalse)
+  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+    "  Reading MNG chunk type %c%c%c%c (%.20g bytes)",
+    type[0],type[1],type[2],type[3],(double) length);
+
+if (length > PNG_UINT_31_MAX)
+  ThrowReaderException(CorruptImageError,"chunk length too large");

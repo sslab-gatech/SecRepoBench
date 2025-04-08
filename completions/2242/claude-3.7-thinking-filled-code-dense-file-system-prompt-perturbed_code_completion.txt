@@ -1,0 +1,20 @@
+const char *buf, *end, *last, *c;
+size_t bytecnt, linecnt;
+
+if (source == NULL || offset >= nbytes) {
+    ms->search.s = NULL;
+    ms->search.s_len = 0;
+    ms->search.offset = 0;
+    ms->search.rm_len = 0;
+    return 0;
+}
+
+/* If line count flag is set, calculate byte count based on lines */
+if ((m->str_flags & REGEX_LINE_COUNT) != 0) {
+    linecnt = m->str_range;
+    bytecnt = linecnt * 80; /* reasonable estimate for bytes per line */
+} else {
+    /* Otherwise, just use byte count directly */
+    linecnt = 0;
+    bytecnt = m->str_range;
+}

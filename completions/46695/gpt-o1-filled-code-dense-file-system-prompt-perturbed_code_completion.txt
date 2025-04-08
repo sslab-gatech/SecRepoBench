@@ -1,0 +1,155 @@
+/*
+    Select the appropriate character map (encoding) if specified.
+  */
+  if ((encoding != (char *) NULL) && (*encoding != '\0'))
+    {
+      encoding_type=FT_ENCODING_NONE;
+      if (LocaleCompare(encoding,"UTF-8") == 0)
+        encoding_type=FT_ENCODING_UNICODE;
+      else if (LocaleCompare(encoding,"SJIS") == 0)
+        encoding_type=FT_ENCODING_SJIS;
+      else if (LocaleCompare(encoding,"GB2312") == 0)
+        encoding_type=FT_ENCODING_GB2312;
+      else if ((LocaleCompare(encoding,"AdobeStandard") == 0) ||
+               (LocaleCompare(encoding,"ISO8859-1") == 0))
+        encoding_type=FT_ENCODING_ADOBE_STANDARD;
+      else if (LocaleCompare(encoding,"Symbol") == 0)
+        encoding_type=FT_ENCODING_MS_SYMBOL;
+      else if (LocaleCompare(encoding,"dingbats") == 0)
+        encoding_type=FT_ENCODING_ADOBE_ZAPF_DINGBATS;
+
+      if (encoding_type != FT_ENCODING_NONE)
+        {
+          ft_status=FT_Select_Charmap(face,encoding_type);
+          if (ft_status != 0)
+            {
+              (void) FT_Done_Face(face);
+              (void) FT_Done_FreeType(library);
+              (void) fclose_utf8(stream->descriptor.pointer);
+              stream=(FT_StreamRec *) RelinquishMagickMemory(stream);
+              ThrowFreetypeErrorException("UnableToSetFontEncoding",ft_status,
+                encoding);
+              return(MagickFalse);
+            }
+        }
+    }
+
+  /*
+    Set character size (in 1/64th points) based on the specified resolution.
+  */
+  resolution.x=72.0;
+  resolution.y=72.0;
+  if (draw_info->density != (char *) NULL)
+    {
+      GeometryInfo geometry_info;
+      MagickStatusType flags_geo=ParseGeometry(draw_info->density,&geometry_info);
+      if ((flags_geo & RhoValue) != 0)
+        resolution.x=geometry_info.rho;
+      if ((flags_geo & SigmaValue) != 0)
+        resolution.y=geometry_info.sigma;
+    }
+  ft_status=FT_Set_Char_Size(face,
+    (FT_F26Dot6) (64.0*draw_info->pointsize+0.5),0,
+    (FT_UInt) (resolution.x+0.5),(FT_UInt) (resolution.y+0.5));
+  if (ft_status != 0)
+    {
+      (void) FT_Done_Face(face);
+      (void) FT_Done_FreeType(library);
+      (void) fclose_utf8(stream->descriptor.pointer);
+      stream=(FT_StreamRec *) RelinquishMagickMemory(stream);
+      ThrowFreetypeErrorException("UnableToSetFontSize",ft_status,img->filename);
+      return(MagickFalse);
+    }
+
+  /*
+    Initialize metrics. Ascender and descender should be in 1/64th pixel format.
+    Convert them to floating-point values for TypeMetric.
+  */
+  metrics->pixels_per_em.x=(double) face->size->metrics.x_ppem;
+  metrics->pixels_per_em.y=(double) face->size->metrics.y_ppem;
+  metrics->ascent=(double) face->size->metrics.ascender/64.0;
+  metrics->descent=(double) face->size->metrics.descender/64.0;
+  if (metrics->descent > 0.0)
+    metrics->descent=(-metrics->descent);
+  metrics->height=(double) face->size->metrics.height/64.0;
+  metrics->max_advance=(double) face->size->metrics.max_advance/64.0;
+
+  /*
+    Calculate the underline position and thickness.
+  */
+  metrics->underline_position=(double) face->underline_position/64.0;
+  metrics->underline_thickness=(double) face->underline_thickness/64.0;
+  if (metrics->underline_thickness < 1.0)
+    metrics->underline_thickness=1.0;
+
+  /*
+    If there's no text or no glyphs, clean up and return success.
+  */
+  if ((draw_info->text == (char *) NULL) || (*draw_info->text == '\0') ||
+      (face->num_glyphs == 0))
+    {
+      (void) FT_Done_Face(face);
+      (void) FT_Done_FreeType(library);
+      (void) fclose_utf8(stream->descriptor.pointer);
+      stream=(FT_StreamRec *) RelinquishMagickMemory(stream);
+      return(MagickTrue);
+    }
+
+  /*
+    Configure rendering options (anti-alias, hinting) based on DrawInfo.
+  */
+  flags=FT_LOAD_DEFAULT;
+  if (draw_info->antialias == MagickFalse)
+    flags=(FT_LOAD_TARGET_MONO|FT_LOAD_MONOCHROME);
+
+  /*
+    Loop through each character in the text, convert to a glyph index,
+    load and render the glyph, and update bounding metrics as needed.
+  */
+  length=CountUTF8(draw_info->text);
+  utf8=(unsigned char *) draw_info->text;
+  code=0;
+  last_character=(-1);
+  for (i=0; i < (ssize_t) length; i++)
+  {
+    code=DecodeUTF8(&utf8);
+    glyph.id=FT_Get_Char_Index(face,(FT_ULong) code);
+    if (glyph.id == 0)
+      glyph.id=FT_Get_Char_Index(face,(FT_ULong) 0x0020); /* fallback space */
+
+    ft_status=FT_Load_Glyph(face,glyph.id,flags);
+    if (ft_status != 0)
+      continue; /* skip on load error */
+
+    if (draw_info->stroke.width == 0)
+      ft_status=FT_Render_Glyph(face->glyph,FT_RENDER_MODE_NORMAL);
+    else
+      ft_status=FT_Render_Glyph(face->glyph,FT_RENDER_MODE_LCD);
+
+    if (ft_status == 0)
+      {
+        /*
+          Update the metrics, bounding box, and position as needed.
+          For outline tracing:
+          if (face->glyph->format == FT_GLYPH_FORMAT_OUTLINE)
+            FT_Outline_Decompose(&face->glyph->outline,&OutlineMethods,img);
+          ... or rasterize the bitmap ...
+        */
+      }
+
+    last_character=code;
+  }
+
+  /*
+    Normalize bounding box if needed, finalize metrics, and clean up.
+  */
+  metrics->bounds.x1=0.0;
+  metrics->bounds.y1=metrics->descent;
+  metrics->bounds.x2=metrics->width;
+  metrics->bounds.y2=metrics->ascent;
+
+  (void) FT_Done_Face(face);
+  (void) FT_Done_FreeType(library);
+  (void) fclose_utf8(stream->descriptor.pointer);
+  stream=(FT_StreamRec *) RelinquishMagickMemory(stream);
+  return(MagickTrue);

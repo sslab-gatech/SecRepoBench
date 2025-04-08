@@ -1,0 +1,43 @@
+/* TZSP */
+tunnel_type = ndpi_tzsp_tunnel;
+
+if((offset + 4) < header->caplen) {
+  u_int8_t version = packet[offset];
+  u_int8_t type = packet[offset+1];
+  u_int16_t encapsulates = ntohs(*((u_int16_t*)&packet[offset+2]));
+  
+  if((version == 1) && (type == 0) && (encapsulates == 1)) { /* TZSP_TYPE_RECEIVED_TAG_DLT_ETHERNET */
+    offset += 4;
+    
+    while(offset < header->caplen) {
+      u_int8_t tag_type = packet[offset];
+      
+      switch(tag_type) {
+      case 0: /* TZSP_TAG_END */
+        offset++;
+        eth_offset = offset;
+        datalink_type = DLT_EN10MB;
+        goto datalink_check;
+        break;
+        
+      case 1: /* TZSP_TAG_PADDING */
+        offset++;
+        break;
+        
+      default:
+        if((offset + 2) < header->caplen) {
+          u_int8_t tag_len = packet[offset+1];
+          
+          if((offset + 2 + tag_len) <= header->caplen) {
+            offset = offset + 2 + tag_len;
+          } else {
+            return(detected_protocol); /* Invalid packet */
+          }
+        } else {
+          return(detected_protocol); /* Invalid packet */
+        }
+        break;
+      }
+    }
+  }
+}

@@ -1,0 +1,60 @@
+ptrdiff_t linesize   = s->linesize   >> lowres;
+    ptrdiff_t uvlinesize = s->uvlinesize >> lowres;
+    int mx = motion_x;
+    int my = motion_y;
+
+    if (s->quarter_sample) {
+        mx >>= 1;
+        my >>= 1;
+    }
+
+    if (field_based) {
+        linesize   <<= 1;
+        uvlinesize <<= 1;
+        if (bottom_field) {
+            dest_y  += linesize   >> 1;
+            if (dest_cb) dest_cb += uvlinesize >> 1;
+            if (dest_cr) dest_cr += uvlinesize >> 1;
+        }
+    }
+
+    // Luma plane
+    hpel_motion_lowres(s, dest_y, ref_picture[0],
+                       field_based, field_select,
+                       s->mb_x * block_s, mb_y * block_s,
+                       s->width  >> lowres, s->height >> lowres,
+                       linesize, h_edge_pos, v_edge_pos,
+                       block_s, h, pix_op, mx, my);
+
+    // Chroma planes (skip if gray mode is enabled)
+    if (!CONFIG_GRAY || !(s->avctx->flags & AV_CODEC_FLAG_GRAY)) {
+        int mx_c = ff_h263_round_chroma(mx);
+        int my_c = ff_h263_round_chroma(my);
+
+        hpel_motion_lowres(s, dest_cb, ref_picture[1],
+                           field_based, field_select,
+                           (s->mb_x * block_s) >> s->chroma_x_shift,
+                           (mb_y  * block_s) >> s->chroma_y_shift,
+                           s->width  >> (lowres + s->chroma_x_shift),
+                           s->height >> (lowres + s->chroma_y_shift),
+                           uvlinesize,
+                           h_edge_pos >> (lowres + s->chroma_x_shift),
+                           v_edge_pos >> (lowres + s->chroma_y_shift),
+                           block_s >> s->chroma_x_shift,
+                           h       >> s->chroma_y_shift,
+                           pix_op, mx_c, my_c);
+
+        hpel_motion_lowres(s, dest_cr, ref_picture[2],
+                           field_based, field_select,
+                           (s->mb_x * block_s) >> s->chroma_x_shift,
+                           (mb_y  * block_s) >> s->chroma_y_shift,
+                           s->width  >> (lowres + s->chroma_x_shift),
+                           s->height >> (lowres + s->chroma_y_shift),
+                           uvlinesize,
+                           h_edge_pos >> (lowres + s->chroma_x_shift),
+                           v_edge_pos >> (lowres + s->chroma_y_shift),
+                           block_s >> s->chroma_x_shift,
+                           h       >> s->chroma_y_shift,
+                           pix_op, mx_c, my_c);
+    }
+    // FIXME h261 lowres loop filter

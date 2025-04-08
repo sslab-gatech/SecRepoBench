@@ -1,0 +1,30 @@
+const char *start = ctx->pos;
+            while (ctx->pos < ctx->end) {
+                if (*ctx->pos == '\\') {
+                    /* we've encountered an escape, skip next character if any */
+                    ctx->pos++;
+                    if (ctx->pos < ctx->end) {
+                        num_escapes++;
+                    } else {
+                        /* unexpected end of input after '\' */
+                        PLIST_OSTEP_ERR("Missing terminating '%c' at offset %ld\n", quote_char, ctx->pos - ctx->start);
+                        ctx->err++;
+                        break;
+                    }
+                } else if (*ctx->pos == quote_char) {
+                    /* found the closing quote */
+                    break;
+                }
+                ctx->pos++;
+            }
+
+            /* check if the closing quote was found */
+            if (ctx->pos >= ctx->end || *ctx->pos != quote_char) {
+                PLIST_OSTEP_ERR("Missing terminating '%c' at offset %ld\n", quote_char, ctx->pos - ctx->start);
+                ctx->err++;
+                break;
+            }
+
+            /* slen is the length of the quoted substring (excluding the closing quote) */
+            size_t slen = ctx->pos - p;
+            ctx->pos++; /* skip the closing quote */
