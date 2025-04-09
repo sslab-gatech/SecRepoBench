@@ -1,21 +1,28 @@
-if (iterator.is_null()) {
-  this->glyphs_start = 0;
-  this->glyphs_num = 0;
+if (unlikely (!iterator)) {
+  if (unlikely (!c->extend_min (0))) return_trace (false);
+  if (unlikely (!c->extend_min (0))) return_trace (false);
   return_trace (true);
 }
 
-unsigned int min_glyph = iterator.get_min_glyph();
-unsigned int max_glyph = iterator.get_max_glyph();
-unsigned int glyph_count = max_glyph - min_glyph + 1;
-
-this->glyphs_start = min_glyph;
-if (!c->serialize (this->glyphs, glyph_count))
-  return_trace (false);
-
-for (unsigned int i = 0; i < glyph_count; i++) {
-  unsigned int glyph = min_glyph + i;
-  unsigned int class_value = iterator.get_class (glyph);
-  this->glyphs[i] = class_value;
+hb_codepoint_t min_gid = iterator->first;
+hb_codepoint_t max_gid = min_gid;
+for (; iterator; ++iterator) {
+  min_gid = MIN (min_gid, iterator->first);
+  max_gid = MAX (max_gid, iterator->first);
 }
+unsigned int glyph_count = max_gid - min_gid + 1;
 
+if (unlikely (!c->extend_min (min_gid))) return_trace (false);
+if (unlikely (!c->extend_min (glyph_count))) return_trace (false);
+
+if (unlikely (!serialize (c, glyph_count))) return_trace (false);
+
+for (hb_codepoint_t gid = min_gid; gid <= max_gid; ++gid) {
+  if (iterator && iterator->first == gid) {
+    value[gid - min_gid] = iterator->second;
+    ++iterator;
+  } else {
+    value[gid - min_gid] = 0;
+  }
+}
 return_trace (true);

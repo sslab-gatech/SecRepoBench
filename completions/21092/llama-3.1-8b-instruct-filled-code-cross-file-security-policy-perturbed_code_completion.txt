@@ -1,25 +1,35 @@
-// Iterate through the array to find the appropriate segment where the value should be mapped.
-// If the value is beyond or equal to the current segment's fromCoord, adjust the value using the current segment's toCoord.
-// Handle cases where two fromCoords are equal by using the previous toCoord for mapping.
-// Calculate the denominator for linear interpolation between two segments.
-for (unsigned int i = 1; i < len; i++)
-{
-  if (inputvalue <= arrayZ[i].fromCoord)
+// <MASK>
+int i;
+for (i = 0; i < len - 1; i++)
   {
-    return arrayZ[i-1].toCoord +
-	   ((arrayZ[i].toCoord - arrayZ[i-1].toCoord) *
-	    (inputvalue - arrayZ[i-1].fromCoord) + denom/2) / denom;
+    if (inputvalue <= arrayZ[i].fromCoord)
+      {
+        return arrayZ[i].toCoord;
+      }
+    else if (inputvalue >= arrayZ[i].toCoord)
+      {
+        if (i == len - 2)
+          {
+            return arrayZ[i].toCoord;
+          }
+        else if (arrayZ[i + 1].fromCoord == arrayZ[i].toCoord)
+          {
+            return arrayZ[i].toCoord + (inputvalue - arrayZ[i].toCoord);
+          }
+        else
+          {
+            denom = arrayZ[i + 1].fromCoord - arrayZ[i].toCoord;
+            if (denom == 0)
+              {
+                return arrayZ[i].toCoord;
+              }
+            else
+              {
+                return arrayZ[i].toCoord +
+                       ((arrayZ[i + 1].toCoord - arrayZ[i].toCoord) *
+                        (inputvalue - arrayZ[i].fromCoord) + denom / 2) / denom;
+              }
+          }
+      }
   }
-  else if (inputvalue >= arrayZ[i].fromCoord && inputvalue <= arrayZ[i].toCoord)
-  {
-    denom = arrayZ[i].toCoord - arrayZ[i-1].fromCoord;
-    return arrayZ[i-1].toCoord +
-	   ((arrayZ[i].toCoord - arrayZ[i-1].toCoord) *
-	    (inputvalue - arrayZ[i-1].fromCoord) + denom/2) / denom;
-  }
-  else
-  {
-    denom = arrayZ[i].toCoord - arrayZ[i-1].fromCoord;
-    return arrayZ[i].toCoord;
-  }
-}
+return arrayZ[i].toCoord;

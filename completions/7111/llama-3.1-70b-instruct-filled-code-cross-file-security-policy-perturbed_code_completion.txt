@@ -1,3 +1,249 @@
-tiff_pixels=(unsigned char *) AcquireQuantumMemory((size_t) TIFFScanlineSize(tiff),sizeof(*tiff_pixels));
-if (tiff_pixels == (unsigned char *) NULL)
-  ThrowTIFFException(ResourceLimitError,"MemoryAllocationFailed");
+quantum_info);
+    if (photometric == PHOTOMETRIC_CIELAB)
+      DecodeLabImage(image,exception);
+    if (adjoin!= MagickFalse)
+      {
+        if (LocaleCompare(image_info->magick,"PTIF") == 0)
+          {
+            TIFFWriteDirectory(tiff);
+            TIFFRewriteDirectory(tiff);
+          }
+        else
+          TIFFWriteDirectory(tiff);
+      }
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      {
+        TIFFWriteDirectory(tiff);
+        TIFFRewriteDirectory(tiff);
+      }
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0)
+      TIFFRewriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF")!= 0)
+      TIFFWriteDirectory(tiff);
+    if (LocaleCompare(image_info->magick,"PTIF") == 0

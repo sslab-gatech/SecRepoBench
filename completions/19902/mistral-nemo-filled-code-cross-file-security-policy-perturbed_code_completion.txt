@@ -6,10 +6,15 @@ for (; p < pend; p++) {
     }
     if (ISSPACE(*p)) continue;
     if (*p == '_') continue;
-    if (badcheck && *p == '.') {
-      // Check for invalid floating point format.
-      if (p == pend - 1 || *(p + 1) == '\0') goto bad;
+    if (badcheck && (*p == '+' || *p == '-')) {
+      // Handle sign character, but only if 'badcheck' is true.
+      if (p > buf) {
+        // If there's already a sign character, raise an error.
+        goto bad;
+      }
+      *p = '0';
     }
-    *n++ = *p;
+    *pend++ = *p;
   }
-  *n = '\0';
+  *pend = '\0';
+  goto nocopy;

@@ -1,22 +1,12 @@
-int region_count = interp_env.pop();
-int num_value = interp_env.pop();
-int* blend_array = param.get_blend_array();
-
-// Validate the region count to prevent buffer overflow
-if (region_count > param.get_blend_array_size()) {
-    // Handle error: region count exceeds blend array size
-    return;
+uint count = interp_env.pop_uint ();
+uint num = interp_env.pop_uint ();
+float *blend_values = new float[count];
+for (uint i = 0; i < count; i++) {
+  blend_values[i] = interp_env.pop_float ();
 }
-
-// Transfer blend values from the argument stack to the blend array
-for (int i = 0; i < region_count; i++) {
-    blend_array[i] = interp_env.pop();
+float *default_values = param.get_default_blend_values ();
+for (uint i = 0; i < count; i++) {
+  default_values[i] *= blend_values[i];
 }
-
-// Apply blend modifications to default values
-for (int i = 0; i < region_count; i++) {
-    param.apply_blend(blend_array[i], num_value);
-}
-
-// Remove blend values from the argument stack
-interp_env.remove(region_count);
+delete[] blend_values;
+interp_env.clear_args ();

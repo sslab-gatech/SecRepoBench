@@ -1,34 +1,28 @@
-hb_subset_glyphs_t *glyphs = hb_subset_glyphs_create ();
-if (unlikely (!glyphs))
+bool result = true;
+hb_vector_t<hb_codepoint_t> subset_glyphs;
+if (unlikely (!_get_subset_glyphs (context->plan, &subset_glyphs)))
   return_trace (false);
 
-if (!hb_subset_plan_collect_glyphs (context->plan, glyphs))
+hb_vector_t<hb_codepoint_t> compiled_subset_glyphs;
+if (unlikely (!_compile_subset_glyphs (subset_glyphs, &compiled_subset_glyphs)))
+  return_trace (false);
+
+hb_vector_t<unsigned> padded_offsets;
+if (unlikely (!_calculate_padded_offsets (compiled_subset_glyphs, &padded_offsets)))
+  return_trace (false);
+
+bool use_short_loca = _can_use_short_loca (padded_offsets);
+glyf *glyf_prime = context->serializer->start_embed<glyf> ();
+if (unlikely (!glyf_prime))
+  return_trace (false);
+
+if (unlikely (!_serialize_subset_glyphs (compiled_subset_glyphs, padded_offsets, use_short_loca, glyf_prime)))
   return_trace (false);
 
 if (font)
   hb_font_destroy (font);
 
-bool use_short_loca = true;
-for (unsigned int i = 0; i < glyphs->len; i++) {
-  hb_subset_glyph_t *glyph = &glyphs->glyphs[i];
-  glyph->offset = hb_subset_plan_get_glyph_offset (context->plan, glyph->codepoint);
-  if (glyph->offset + glyph->len > 0xFFFF) {
-    use_short_loca = false;
-    break;
-  }
-}
-
-hb_glyph_t *compiled_glyphs = hb_subset_glyphs_compile (glyphs);
-if (unlikely (!compiled_glyphs))
-  return_trace (false);
-
-hb_blob_t *glyf_blob = hb_glyf_create (compiled_glyphs, glyphs->len, use_short_loca);
-if (unlikely (!glyf_blob))
-  return_trace (false);
-
-bool result = hb_glyf_serialize (glyf_blob, context->serializer);
-hb_blob_destroy (glyf_blob);
-hb_subset_glyphs_destroy (glyphs);
-hb_free (compiled_glyphs);
+for (auto glyph : compiled_subset_glyphs)
+  glyph.free_compiled_bytes ();
 
 return_trace (result);

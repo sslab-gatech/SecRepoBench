@@ -1,16 +1,4 @@
-unsigned tail_length = c->length () - initial_table_position;
-unsigned record_len = src_tbl->record.len;
-unsigned offset = 0;
-
-for (int i = 0; i < record_len; i++)
-{
-  unsigned var_selector = obj_indices[i].first;
-  unsigned offset_to_record = obj_indices[i].second;
-
-  src_tbl->record[i].varSelector = var_selector;
-  src_tbl->record[i].offsetToRecord = offset;
-
-  offset += offset_to_record;
-}
-
+unsigned int tail_length = c->length () - initial_table_position;
+unsigned int record_length = tail_length - sizeof (CmapSubtableFormat14);
 src_tbl->length = tail_length;
+src_tbl->record.len = record_length;

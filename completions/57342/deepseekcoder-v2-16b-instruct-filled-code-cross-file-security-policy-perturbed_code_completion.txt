@@ -1,38 +1,29 @@
-unsigned avar_axis_count = has_avar ? fontface->table.avar->get_axis_count () : 0;
-  hb_map_t<unsigned, hb_tag_t> old_axis_to_tag;
+unsigned old_axis_idx = 0;
   bool axis_not_pinned = false;
+  const OT::SegmentMaps *seg_maps = fontface->table.avar->get_segment_maps();
+  unsigned avar_axis_count = seg_maps ? seg_maps->get_axis_count() : 0;
 
-  for (unsigned old_axis_idx = 0; old_axis_idx < axes.length; old_axis_idx++)
-  {
-    hb_tag_t axis_tag = axes[old_axis_idx].axisTag;
-    old_axis_to_tag.set (old_axis_idx, axis_tag);
+  for (unsigned i = 0; i < axes.length; i++) {
+    hb_tag_t axis_tag = axes[i].axisTag;
+    auto user_axis_location_iter = plan->user_axes_location.find(axis_tag);
 
-    bool axis_pinned = plan->user_axes_location.get_axis_pinned (axis_tag);
-    if (!axis_pinned)
+    if (user_axis_location_iter == plan->user_axes_location.end()) {
       axis_not_pinned = true;
-
-    if (!axis_pinned)
+      old_axis_idx++;
       continue;
-
-    float normalized_value = plan->user_axes_location.get_normalized_value (axis_tag);
-    plan->normalized_coords[old_axis_idx] = normalized_value;
-
-    if (has_avar)
-    {
-      unsigned avar_axis_idx = 0;
-      for (; avar_axis_idx < avar_axis_count; avar_axis_idx++)
-      {
-        if (fontface->table.avar->get_axis_tag (avar_axis_idx) == axis_tag)
-          break;
-      }
-
-      if (avar_axis_idx < avar_axis_count)
-      {
-        float remapped_value = fontface->table.avar->remap_value (avar_axis_idx, normalized_value);
-        plan->normalized_coords[old_axis_idx] = remapped_value;
-      }
     }
 
-    if (plan->normalized_coords[old_axis_idx] != 0)
+    float normalized_value = plan->user_axes_location[axis_tag];
+    plan->normalized_coords[i] = normalized_value;
+
+    if (has_avar && seg_maps) {
+      normalized_value = seg_maps->remap_value(i, normalized_value);
+      plan->normalized_coords[i] = normalized_value;
+    }
+
+    if (normalized_value != 0) {
       plan->all_axes_pinned = false;
+    }
+
+    old_axis_idx++;
   }

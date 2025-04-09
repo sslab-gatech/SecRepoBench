@@ -1,7 +1,4 @@
-um(
-                          GetPixelBlue(current_image,q)),q);
-                        SetPixelAlpha(current_image,ScaleShortToQuantum(
-                          GetPixelAlpha(current_image,q)),q);
+GetPixelAlpha(current_image,q)),q);
                         q+=GetPixelChannels(current_image);
                      }
 
@@ -564,3 +561,7 @@ um(
 
         else
           current_image->delay=0;
+
+        if (mng_info->framing_mode == 62)
+          {
+            current_image->delay=frame_delay

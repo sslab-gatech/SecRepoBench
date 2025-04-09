@@ -1,35 +1,38 @@
-std::vector<hb_codepoint_t> subset_glyphs;
-    for (auto glyph : context->plan->glyphs) {
-      if (!subset_glyph(context, font, glyph, subset_glyphs)) {
-        return_trace(false);
-      }
-    }
+hb_vector_t<hb_codepoint_t> glyphs;
+    if (unlikely (!glyphs.alloc (context->plan->glyphs.get_length (), true)))
+      return_trace (false);
 
-    if (font) {
-      hb_font_destroy(font);
-    }
+    for (auto _ : context->plan->glyphs)
+      glyphs.push (_);
 
-    bool use_short_loca = true;
-    for (auto glyph : subset_glyphs) {
-      if (glyph->num_contours > 0xFFFF) {
-        use_short_loca = false;
-        break;
-      }
-    }
+    hb_glyph_info_t *glyph_info = nullptr;
+    if (unlikely (!glyph_info = hb_font_get_glyph_info (font, glyphs.arrayZ, glyphs.get_length ())))
+      return_trace (false);
 
-    hb_glyf_t *glyf = hb_glyf_create();
-    if (!glyf) {
-      return_trace(false);
-    }
+    hb_vector_t<hb_glyph_position_t> positions;
+    if (unlikely (!positions.alloc (glyphs.get_length (), true)))
+      return_trace (false);
 
-    if (!hb_glyf_serialize_glyphs(glyf, subset_glyphs, use_short_loca)) {
-      hb_glyf_destroy(glyf);
-      return_trace(false);
-    }
+    if (unlikely (!hb_font_get_glyph_positions (font, glyphs.arrayZ, glyphs.get_length (), &positions)))
+      return_trace (false);
 
-    // Cleanup resources if required
-    for (auto glyph : subset_glyphs) {
-      hb_glyph_free(glyph);
-    }
+    hb_vector_t<hb_glyph_t> subset_glyphs;
+    if (unlikely (!subset_glyphs.alloc (glyphs.get_length (), true)))
+      return_trace (false);
 
-    return true;
+    for (unsigned i = 0; i < glyphs.get_length (); ++i)
+      subset_glyphs.push (hb_glyph_t (glyphs[i], glyph_info[i].codepoint));
+
+    if (font)
+      hb_font_destroy (font);
+
+    hb_glyf_t *glyf = nullptr;
+    if (unlikely (!glyf = hb_glyf_create (subset_glyphs.arrayZ, subset_glyphs.get_length ())))
+      return_trace (false);
+
+    if (unlikely (!glyf->serialize (context->serializer, context->plan->normalized_coords)))
+      return_trace (false);
+
+    free_compiled_bytes ();
+
+    return_trace (true);

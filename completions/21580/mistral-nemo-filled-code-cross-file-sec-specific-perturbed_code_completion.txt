@@ -1,21 +1,27 @@
-if (iterator == nullptr) {
-  c->write_u32(0); // Starting glyph index
-  c->write_u32(0); // Class value length
-  return true;
-}
+if (!iterator) {
+      c->start_glyph_index = 0;
+      c->class_value_length = 0;
+      return true;
+    }
 
-uint32_t min_glyph = iterator->get_min_glyph();
-uint32_t max_glyph = iterator->get_max_glyph();
-uint32_t glyph_count = max_glyph - min_glyph + 1;
+    hb_codepoint_t min_glyph = HB_CODEPOINT_MAX;
+    hb_codepoint_t max_glyph = HB_CODEPOINT_MIN;
 
-c->write_u32(min_glyph); // Starting glyph index
-c->write_u32(glyph_count); // Class value length
+    for (auto it = iterator.begin(); it != iterator.end(); ++it) {
+      hb_codepoint_t glyph = it->first;
+      min_glyph = std::min(min_glyph, glyph);
+      max_glyph = std::max(max_glyph, glyph);
+    }
 
-uint32_t class_value = iterator->get_class_value(glyph_count);
-c->write_u32(class_value); // Serialize class value
+    c->start_glyph_index = min_glyph;
+    c->glyph_count = max_glyph - min_glyph + 1;
 
-uint32_t glyph_index = min_glyph;
-while (iterator->has_next()) {
-  iterator->next();
-  c->write_u32(class_value); // Assign class value to each glyph index
-}
+    if (!c->serialize_class_value(c, c->glyph_count)) return false;
+
+    for (auto it = iterator.begin(); it != iterator.end(); ++it) {
+      hb_codepoint_t glyph = it->first;
+      hb_codepoint_t class_value = it->second;
+      c->assign_class_value(glyph - c->start_glyph_index, class_value);
+    }
+
+    return true;

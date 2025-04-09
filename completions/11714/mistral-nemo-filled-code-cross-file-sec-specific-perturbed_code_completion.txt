@@ -1,7 +1,16 @@
-int blend_count = interp_env.getArgStack().popInt();
-    double blend_value = interp_env.getArgStack().popDouble();
-    std::vector<double> blend_array(blend_count, 0.0);
-    for (int i = 0; i < blend_count; ++i) {
-        blend_array[i] = interp_env.getArgStack().popDouble();
+// Retrieve the count of regions and a numeric value from the argument stack.
+    uint32_t count = env.argStack.pop_u32();
+    float value = env.argStack.pop_fixed();
+
+    // Check if the count is within the bounds of the blend array.
+    if (count >= param.blend_array.size()) {
+      throw std::out_of_range("Blend array index out of bounds");
     }
-    interp_env.getArgStack().pop(blend_count); // Remove blend values from the stack
+
+    // Transfer blend values from the argument stack to the blend array.
+    for (uint32_t i = 0; i < count; ++i) {
+      param.blend_array[i] = env.argStack.pop_fixed();
+    }
+
+    // Remove the blend values from the argument stack.
+    env.argStack.pop_n(count + 1); // Pop the count and the numeric value.

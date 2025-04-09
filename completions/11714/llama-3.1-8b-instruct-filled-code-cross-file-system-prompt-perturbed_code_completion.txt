@@ -1,11 +1,14 @@
 // Retrieve the count of regions and a numeric value from the argument stack.
-int count = interp_env.get_arg_count();
-int value = interp_env.pop_arg();
+int count = env.argStack.pop_int();
+int value = env.argStack.pop_int();
 
 // Transfer blend values from the argument stack to a blend array associated
 // with default values, based on the retrieved counts.
-interp_env.transfer_blend_values(count, value);
+for (int i = 0; i < count; i++) {
+    env.blend_array[i] = env.argStack.pop_float();
+}
 
 // Remove the blend values from the argument stack, leaving only the default
 // values with their blend modifications applied.
-interp_env.remove_blend_values();
+env.argStack.pop_int(); // discard the count
+env.argStack.pop_int(); // discard the value

@@ -1,26 +1,33 @@
-for (unsigned int i = 0; i < effectiveaxiscount; ++i)
+for (unsigned int i = 0; i < effectiveaxiscount; i++)
 {
-    coords[i] = map->apply (coords[i]);
-    map++;
+  coords[i] = map->unmap (coords[i]);
+  map = &StructAfter<SegmentMaps> (*map);
 }
 
 if (version >= 2)
 {
-    float *output = new float[coords_length];
-    VariationStore *store = new VariationStore (this);
-    VariationIndexMap *indexMap = &firstAxisVariationIndexMaps;
+  unsigned int variation_store_cache_size = 0;
+  const VariationStore *variation_store = get_variation_store (variation_store_cache_size);
+  float *variation_store_cache = (float *) hb_malloc (variation_store_cache_size * sizeof (float));
+  if (unlikely (!variation_store_cache)) return;
 
-    for (unsigned int i = 0; i < coords_length; ++i)
-    {
-        float delta = indexMap->apply (coords[i], store);
-        output[i] = hb_clamp (coords[i] + roundf (delta), min, max);
-        indexMap++;
-    }
+  int *output_coords = (int *) hb_malloc (effectiveaxiscount * sizeof (int));
+  if (unlikely (!output_coords))
+  {
+    hb_free (variation_store_cache);
+    return;
+  }
 
-    delete store;
-    for (unsigned int i = 0; i < coords_length; ++i)
-    {
-        coords[i] = output[i];
-    }
-    delete[] output;
+  for (unsigned int i = 0; i < effectiveaxiscount; i++)
+  {
+    float delta = variation_store->get_delta (coords[i], variation_store_cache);
+    output_coords[i] = hb_clamp (coords[i] + hb_round (delta), min_value, max_value);
+  }
+
+  hb_free (variation_store_cache);
+
+  for (unsigned int i = 0; i < effectiveaxiscount; i++)
+    coords[i] = output_coords[i];
+
+  hb_free (output_coords);
 }

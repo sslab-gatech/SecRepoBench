@@ -1,11 +1,7 @@
-if (get_type() == Type::Extension && get_edit_count() == 0)
-    {
-        auto subTables = get_subtables<TSubTable>();
-        for (const auto& subTable : subTables)
-        {
-            if (subTable.get_type() != get_type())
-            {
-                return_trace(false);
-            }
+if (unlikely (get_type() != TSubTable::TYPE_EXTEND)) {
+      for (const auto &subtable : get_subtables<TSubTable>()) {
+        if (subtable.get_type() != TSubTable::TYPE_EXTEND) {
+          return_trace(false);
         }
+      }
     }

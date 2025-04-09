@@ -1,28 +1,56 @@
-if (hb_face_get_table(faceptr, HB_TAG('h', 'e', 'a', 'd'), 0, &head_table) !=
-          HB_OK) {
+// Calculate num_glyphs using the length of the loca_table, adjusting for offset format.
+      hb_face_t *face = faceptr;
+      hb_blob_t *head_blob = hb_face_reference_table(face, HB_TAG('h', 'e', 'a', 'd'));
+      if (unlikely(!head_blob)) {
+        hb_face_destroy(face);
         return;
       }
 
-      if (head_table->version != HB_VERSION_MAKE(1, 0, 0, 0) &&
-          head_table->version != HB_VERSION_MAKE(1, 1, 0, 0)) {
+      hb_ot_head_table_t head_table;
+      if (hb_blob_get_length(head_blob) < sizeof(head_table) ||
+          !hb_sanitize_context(face, &head_table, head_blob, 0, sizeof(head_table))) {
+        hb_blob_destroy(head_blob);
+        hb_face_destroy(face);
         return;
       }
 
-      short_offset = (head_table->indexToLocFormat == 0) ? 0 : 1;
+      hb_blob_destroy(head_blob);
 
-      if (hb_face_get_table(faceptr, HB_TAG('l', 'o', 'c', 'a'), 0, &loca_table) !=
-          HB_OK) {
+      if (head_table.indexToLocFormat != 0 && head_table.indexToLocFormat != 1) {
+        hb_face_destroy(face);
         return;
       }
 
-      if (hb_face_get_table(faceptr, HB_TAG('g', 'l', 'y', 'f'), 0, &glyf_table) !=
-          HB_OK) {
+      short_offset = head_table.indexToLocFormat == 0 ? 0 : 1;
+
+      hb_blob_t *loca_blob = hb_face_reference_table(face, HB_TAG('l', 'o', 'c', 'a'));
+      if (unlikely(!loca_blob)) {
+        hb_face_destroy(face);
         return;
       }
 
-      num_glyphs = 0;
-      unsigned int offset = 0;
-      while (offset < loca_table->num_glyphs * (short_offset ? 2 : 1)) {
-        num_glyphs++;
-        offset += (short_offset ? 2 : 1);
+      hb_ot_index_map_t loca_table;
+      if (!hb_sanitize_context(face, &loca_table, loca_blob, 0, sizeof(loca_table))) {
+        hb_blob_destroy(loca_blob);
+        hb_face_destroy(face);
+        return;
       }
+
+      hb_blob_destroy(loca_blob);
+
+      hb_blob_t *glyf_blob = hb_face_reference_table(face, HB_TAG('g', 'l', 'y', 'f'));
+      if (unlikely(!glyf_blob)) {
+        hb_face_destroy(face);
+        return;
+      }
+
+      hb_ot_glyf_t glyf_table;
+      if (!hb_sanitize_context(face, &glyf_table, glyf_blob, 0, sizeof(glyf_table))) {
+        hb_blob_destroy(glyf_blob);
+        hb_face_destroy(face);
+        return;
+      }
+
+      hb_blob_destroy(glyf_blob);
+
+      num_glyphs = (loca_table.length() - short_offset) / (head_table.indexToLocFormat == 0 ? 2 : 4);

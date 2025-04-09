@@ -1,6 +1,4 @@
-QuantumPixels(image,(CacheView *) NULL,quantum_info,
-                BlueQuantum,pixels,exception);
-              if (TIFFWritePixels(tiff,&tiff_info,y,2,image) == -1)
+if (TIFFWritePixels(tiff,&tiff_info,y,2,image) == -1)
                 break;
             }
             if (image->previous == (Image *) NULL)
@@ -26,7 +24,7 @@ QuantumPixels(image,(CacheView *) NULL,quantum_info,
             break;
           }
           case StripInterlace:
-          case TileInterlace:
+          case SeparateInterlace:
           {
             /*
               Strip interlacing:  RRRRRR...GGGGGG...BBBBBB...
@@ -104,11 +102,11 @@ QuantumPixels(image,(CacheView *) NULL,quantum_info,
               }
             break;
           }
-          case StripInterlace:
           case TileInterlace:
+          case SeparateTileInterlace:
           {
             /*
-              Strip interlacing:  RRRRRR...GGGGGG...BBBBBB...
+              Tile interlacing:  RRRRRR...GGGGGG...BBBBBB...
             */
             for (y=0; y < (ssize_t) image->rows; y++)
             {
@@ -183,11 +181,11 @@ QuantumPixels(image,(CacheView *) NULL,quantum_info,
               }
             break;
           }
-          case StripInterlace:
-          case TileInterlace:
+          case ContiguousInterlace:
+          case SeparateContiguousInterlace:
           {
             /*
-              Strip interlacing:  RRRRRR...GGGGGG...BBBBBB...
+              Contiguous interlacing:  RRRRRR...GGGGGG...BBBBBB...
             */
             for (y=0; y < (ssize_t) image->rows; y++)
             {
@@ -262,11 +260,11 @@ QuantumPixels(image,(CacheView *) NULL,quantum_info,
               }
             break;
           }
-          case StripInterlace:
-          case TileInterlace:
+          case LooseInterlace:
+          case SeparateLooseInterlace:
           {
             /*
-              Strip interlacing:  RRRRRR...GGGGGG...BBBBBB...
+              Loose interlacing:  RRRRRR...GGGGGG...BBBBBB...
             */
             for (y=0; y < (ssize_t) image->rows; y++)
             {
@@ -341,11 +339,11 @@ QuantumPixels(image,(CacheView *) NULL,quantum_info,
               }
             break;
           }
-          case StripInterlace:
-          case TileInterlace:
+          case PackBitsInterlace:
+          case SeparatePackBitsInterlace:
           {
             /*
-              Strip interlacing:  RRRRRR...GGGGGG...BBBBBB...
+              PackBits interlacing:  RRRRRR...GGGGGG...BBBBBB...
             */
             for (y=0; y < (ssize_t) image->rows; y++)
             {
@@ -366,4 +364,5 @@ QuantumPixels(image,(CacheView *) NULL,quantum_info,
                 if (status == MagickFalse)
                   break;
               }
-            for (y=0; y
+            for (y=0; y < (ssize_t) image->rows; y++)
+            {

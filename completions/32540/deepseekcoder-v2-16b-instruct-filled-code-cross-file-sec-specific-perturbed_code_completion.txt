@@ -3,19 +3,25 @@
     // and cleared as needed. Then, obtain the glyph set associated with the lookup index.
     // Determine if the parent active glyphs are a subset of the obtained glyph set.
     // If they are a subset, return true to indicate the lookup is done; otherwise, return false.
-    if (glyph_sets.find(indexlookup) == glyph_sets.end()) {
-        // Initialize and clear the glyph set if not already done
-        if (!glyph_sets[indexlookup]) {
-            glyph_sets[indexlookup] = hb_set_create();
-        } else {
-            hb_set_clear(glyph_sets[indexlookup]);
-        }
+    if (indexlookup >= done_lookups_glyph_count->length) {
+        done_lookups_glyph_count->resize(indexlookup + 1);
+    }
+    if (!done_lookups_glyph_count->get(indexlookup)) {
+        done_lookups_glyph_count->set(indexlookup, true);
+        hb_set_clear(covered_glyph_set);
+    }
 
-        // Obtain the glyph set associated with the lookup index
-        hb_font_get_glyph_set(font, glyph_sets[indexlookup]);
+    hb_set_t *glyph_set = done_lookups_glyph_set->get(indexlookup);
+    if (!glyph_set) {
+        glyph_set = hb_set_create();
+        done_lookups_glyph_set->set(indexlookup, glyph_set);
+    }
 
-        // Determine if the parent active glyphs are a subset of the obtained glyph set
-        if (hb_set_is_subset(parent_active_glyphs(), glyph_sets[indexlookup])) {
-            return true;
-        }
+    hb_set_t *parent_glyphs = parent_active_glyphs();
+    hb_set_union(covered_glyph_set, parent_glyphs);
+
+    if (hb_set_is_subset(parent_glyphs, glyph_set)) {
+        return true;
+    } else {
+        return false;
     }

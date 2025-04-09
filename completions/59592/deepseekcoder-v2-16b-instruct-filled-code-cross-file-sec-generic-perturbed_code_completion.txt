@@ -1,55 +1,36 @@
-hb_bool_t result = true;
-    hb_glyph_info_t *glyph_infos = nullptr;
-    hb_glyph_position_t *glyph_positions = nullptr;
-    unsigned int num_glyphs = 0;
+bool result = false;
+    hb_font_t *font = context->plan->normalized_coords ? _create_font_for_instancing (context->plan) : nullptr;
+    if (unlikely (!font))
+      return_trace (false);
 
-    // Extract glyphs and positions from the font
-    if (!hb_font_collect_glyphs(font, &glyph_infos, &glyph_positions, &num_glyphs)) {
-        result = false;
-        goto cleanup;
-    }
+    // Generate a subset of glyphs based on the provided plan and font.
+    // Populate a list of subset glyphs, checking for failure in the process.
+    // Destroy the font if it was created for instancing, after using it.
+    // Calculate padded offsets for each subset glyph and determine if a short loca table can be used.
+    // Initialize a new glyf object for serialization.
+    // Serialize the subset of glyphs into the glyf object, using the determined loca format.
+    // Handle any necessary cleanup of resources, particularly the compiled subset glyphs, if required.
+    // Return the result of the serialization process as the function's output.
 
-    // Create a subset of glyphs based on the plan
-    hb_glyph_set_t *glyph_set = hb_glyph_set_create();
-    if (unlikely(!glyph_set)) {
-        result = false;
-        goto cleanup;
-    }
+    hb_face_t *source = context->plan->source;
+    hb_face_t *subset_face = hb_face_reference (source);
+    hb_face_set_index (subset_face, 0);
 
-    for (unsigned int i = 0; i < num_glyphs; i++) {
-        if (context->plan->glyph_include_func(context->plan, &glyph_infos[i], &glyph_positions[i])) {
-            hb_glyph_set_add(glyph_set, &glyph_infos[i], &glyph_positions[i]);
-        }
-    }
+    hb_subset_plan_t *subset_plan = hb_subset_plan_create ();
+    subset_plan->source = subset_face;
+    subset_plan->flags = context->plan->flags;
+    subset_plan->normalized_coords = context->plan->normalized_coords;
 
-    // Serialize the subset glyphs into the glyf object
-    hb_glyf_t *glyf = hb_glyf_create();
-    if (unlikely(!glyf)) {
-        result = false;
-        goto cleanup;
-    }
+    hb_subset_context_t *subset_context = hb_subset_context_create (subset_plan);
+    subset_context->plan = subset_plan;
 
-    if (!hb_glyf_serialize(glyf, glyph_set)) {
-        result = false;
-        goto cleanup;
-    }
+    result = subset (subset_context);
 
-    // Handle any necessary cleanup
-cleanup:
-    if (font) {
-        hb_font_destroy(font);
-    }
-    if (glyph_infos) {
-        free(glyph_infos);
-    }
-    if (glyph_positions) {
-        free(glyph_positions);
-    }
-    if (glyph_set) {
-        hb_glyph_set_destroy(glyph_set);
-    }
-    if (glyf) {
-        hb_glyf_destroy(glyf);
-    }
+    hb_subset_context_destroy (subset_context);
+    hb_subset_plan_destroy (subset_plan);
+    hb_face_destroy (subset_face);
 
-    return result;
+    if (context->plan->normalized_coords)
+      hb_font_destroy (font);
+
+    return_trace (result);

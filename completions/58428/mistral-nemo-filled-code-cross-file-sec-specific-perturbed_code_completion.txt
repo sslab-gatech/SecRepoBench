@@ -1,9 +1,17 @@
-contour_points.clear();
+// <MASK>
+    contour_points.clear();
     if (phantom_only) {
-        return true;
+      return true;
     }
-    contour_points.reserve(num_contours * 2); // Reserve space for phantom points
-    for (HBUINT32 i = 0; i < num_contours; ++i) {
-        contour_points.emplace_back(endPtsOfContours[i].x, endPtsOfContours[i].y);
-        contour_points.emplace_back(endPtsOfContours[i + 1].x, endPtsOfContours[i + 1].y);
+    const HBUINT8 *end = p + num_contours * 2 * HBINT16::static_size;
+    if (unlikely (end > bytes.arrayZ + bytes.length)) return false;
+    for (unsigned i = 0; i < num_contours; ++i) {
+      contour_point_t point;
+      if (unlikely (p + HBINT16::static_size > end)) return false;
+      point.x = *(const HBINT16 *) p;
+      p += HBINT16::static_size;
+      if (unlikely (p + HBINT16::static_size > end)) return false;
+      point.y = *(const HBINT16 *) p;
+      p += HBINT16::static_size;
+      contour_points.push_back(point);
     }

@@ -1,9 +1,27 @@
-;
+ary = regs[a];
+      mrb_value v = mrb_ary_new_from_values(mrb, b, &regs[a+1]);
+      ary = mrb_ary_plus(mrb, ary, v);
+      regs[a] = ary;
+      mrb_gc_arena_restore(mrb, ai);
+      NEXT;
+    }
+
+    CASE(OP_ARYPUSH, BB) {
+      mrb_value ary = regs[a];
+      mrb_ary_push(mrb, ary, regs[a+1]);
+      mrb_gc_arena_restore(mrb, ai);
+      NEXT;
+    }
+
+    CASE(OP_ARYUNSHIFT, BB) {
+      mrb_value ary = regs[a];
+      mrb_ary_unshift(mrb, ary, regs[a+1]);
+      mrb_gc_arena_restore(mrb, ai);
+      NEXT;
     }
 
     CASE(OP_HASH, BB) {
       mrb_value v = mrb_hash_new_with_size(mrb, b);
-      mrb_hash_set(mrb, v, regs[a], regs[a+1]);
       regs[a] = v;
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
@@ -11,252 +29,206 @@
 
     CASE(OP_HASH2, BBB) {
       mrb_value v = mrb_hash_new_with_size(mrb, c);
-      mrb_hash_set(mrb, v, regs[b], regs[b+1]);
       regs[a] = v;
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_STR, BB) {
-      mrb_value v = mrb_str_new_from_values(mrb, b, &regs[a]);
-      regs[a] = v;
+    CASE(OP_HASHSET, BBB) {
+      mrb_hash_set(mrb, regs[a], regs[b], regs[b+1]);
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_STR2, BBB) {
-      mrb_value v = mrb_str_new_from_values(mrb, c, &regs[b]);
-      regs[a] = v;
+    CASE(OP_HASHDELETE, B) {
+      mrb_hash_delete(mrb, regs[a], regs[a+1]);
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_SYM, BB) {
-      mrb_value v = mrb_symbol_value(syms[b]);
-      regs[a] = v;
+    CASE(OP_HASHCLEAR, B) {
+      mrb_hash_clear(mrb, regs[a]);
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_TWOARY, BB) {
-      mrb_value ary1 = regs[a];
-      mrb_value ary2 = regs[a+1];
-      mrb_value v;
-
-      if (!mrb_array_p(ary1) || !mrb_array_p(ary2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twoary expects two array arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+    CASE(OP_HASHKEYP, BB) {
+      if (mrb_hash_has_key(mrb, regs[a], regs[b])) {
+        SET_TRUE_VALUE(regs[a]);
       }
-      v = mrb_ary_new_from_values(mrb, RARRAY_LEN(ary1) + RARRAY_LEN(ary2),
-                                  RARRAY_PTR(ary1), RARRAY_PTR(ary2));
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOSTR, BB) {
-      mrb_value str1 = regs[a];
-      mrb_value str2 = regs[a+1];
-      mrb_value v;
-
-      if (!mrb_str_p(str1) || !mrb_str_p(str2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twostr expects two string arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+      else {
+        SET_FALSE_VALUE(regs[a]);
       }
-      v = mrb_str_plus(mrb, str1, str2);
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_TWOSTR2, BBB) {
-      mrb_value str1 = regs[b];
-      mrb_value str2 = regs[b+1];
-      mrb_value v;
+    CASE(OP_HASHSIZE, B) {
+      SET_INT_VALUE(mrb, regs[a], mrb_hash_size(mrb, regs[a]));
+      NEXT;
+    }
 
-      if (!mrb_str_p(str1) || !mrb_str_p(str2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twostr2 expects two string arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+    CASE(OP_HASHEMPTYP, B) {
+      SET_BOOL_VALUE(regs[a], mrb_hash_empty_p(mrb, regs[a]));
+      NEXT;
+    }
+
+    CASE(OP_STRCAT, B) {
+      mrb_value str = regs[a];
+      mrb_value v = regs[a+1];
+      if (mrb_str_p(str) && mrb_str_p(v)) {
+        str = mrb_str_plus(mrb, str, v);
       }
-      v = mrb_str_plus(mrb, str1, str2);
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOINT, BB) {
-      mrb_int x = mrb_integer(regs[a]);
-      mrb_int y = mrb_integer(regs[a+1]);
-      mrb_value v;
-
-      if (mrb_int_add_overflow(x, y, &x)) {
-        goto L_INT_OVERFLOW;
+      else {
+        str = mrb_str_new_lit(mrb, "");
+        str = mrb_str_plus(mrb, str, regs[a]);
+        str = mrb_str_plus(mrb, str, regs[a+1]);
       }
-      v = mrb_int_value(mrb, x);
-      regs[a] = v;
+      regs[a] = str;
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_TWOINT2, BBB) {
-      mrb_int x = mrb_integer(regs[b]);
-      mrb_int y = mrb_integer(regs[b+1]);
-      mrb_int z;
-      mrb_value v;
-
-      if (mrb_int_add_overflow(x, y, &z)) {
-        goto L_INT_OVERFLOW;
+    CASE(OP_STRCAT2, BB) {
+      mrb_value str = regs[a];
+      mrb_value v = mrb_ary_new_from_values(mrb, b, &regs[a+1]);
+      if (mrb_str_p(str) && mrb_ary_p(v)) {
+        str = mrb_str_plus(mrb, str, v);
       }
-      v = mrb_int_value(mrb, z);
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOFLT, BB) {
-      mrb_float x = mrb_float(regs[a]);
-      mrb_float y = mrb_float(regs[a+1]);
-      mrb_value v;
-
-      v = mrb_float_value(mrb, x + y);
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOFLT2, BBB) {
-      mrb_float x = mrb_float(regs[b]);
-      mrb_float y = mrb_float(regs[b+1]);
-      mrb_float z;
-      mrb_value v;
-
-      z = x + y;
-      v = mrb_float_value(mrb, z);
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOSTR3, BBB) {
-      mrb_value str1 = regs[b];
-      mrb_value str2 = regs[b+1];
-      mrb_value v;
-
-      if (!mrb_str_p(str1) || !mrb_str_p(str2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twostr3 expects two string arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+      else {
+        str = mrb_str_new_lit(mrb, "");
+        str = mrb_str_plus(mrb, str, regs[a]);
+        str = mrb_str_plus(mrb, str, v);
       }
-      v = mrb_str_plus(mrb, str1, str2);
-      regs[a] = v;
+      regs[a] = str;
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_TWOARY2, BBBB) {
-      mrb_value ary1 = regs[b];
-      mrb_value ary2 = regs[b+1];
-      mrb_value v;
-
-      if (!mrb_array_p(ary1) || !mrb_array_p(ary2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twoary2 expects two array arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+    CASE(OP_STRCAT3, BBB) {
+      mrb_value str = regs[a];
+      mrb_value v1 = mrb_ary_new_from_values(mrb, c, &regs[b]);
+      mrb_value v2 = mrb_ary_new_from_values(mrb, c, &regs[b+c]);
+      if (mrb_str_p(str) && mrb_ary_p(v1)) {
+        str = mrb_str_plus(mrb, str, v1);
       }
-      v = mrb_ary_new_from_values(mrb, RARRAY_LEN(ary1) + RARRAY_LEN(ary2),
-                                  RARRAY_PTR(ary1), RARRAY_PTR(ary2));
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOARY3, BBBB) {
-      mrb_value ary1 = regs[b];
-      mrb_value ary2 = regs[b+1];
-      mrb_value v;
-
-      if (!mrb_array_p(ary1) || !mrb_array_p(ary2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twoary3 expects two array arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+      else {
+        str = mrb_str_new_lit(mrb, "");
+        str = mrb_str_plus(mrb, str, regs[a]);
+        str = mrb_str_plus(mrb, str, v1);
       }
-      v = mrb_ary_new_from_values(mrb, RARRAY_LEN(ary1) + RARRAY_LEN(ary2),
-                                  RARRAY_PTR(ary1), RARRAY_PTR(ary2));
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOSTR4, BBBB) {
-      mrb_value str1 = regs[b];
-      mrb_value str2 = regs[b+1];
-      mrb_value v;
-
-      if (!mrb_str_p(str1) || !mrb_str_p(str2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twostr4 expects two string arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+      if (mrb_ary_p(v2)) {
+        str = mrb_str_plus(mrb, str, v2);
       }
-      v = mrb_str_plus(mrb, str1, str2);
-      regs[a] = v;
+      regs[a] = str;
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_TWOSTR5, BBBB) {
-      mrb_value str1 = regs[b];
-      mrb_value str2 = regs[b+1];
-      mrb_value v;
-
-      if (!mrb_str_p(str1) || !mrb_str_p(str2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twostr5 expects two string arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+    CASE(OP_STRCAT4, BBB) {
+      mrb_value str = regs[a];
+      mrb_value v1 = mrb_ary_new_from_values(mrb, c, &regs[b]);
+      mrb_value v2 = mrb_ary_new_from_values(mrb, c, &regs[b+c]);
+      mrb_value v3 = mrb_ary_new_from_values(mrb, c, &regs[b+2*c]);
+      if (mrb_str_p(str) && mrb_ary_p(v1)) {
+        str = mrb_str_plus(mrb, str, v1);
       }
-      v = mrb_str_plus(mrb, str1, str2);
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOSTR6, BBBB) {
-      mrb_value str1 = regs[b];
-      mrb_value str2 = regs[b+1];
-      mrb_value v;
-
-      if (!mrb_str_p(str1) || !mrb_str_p(str2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twostr6 expects two string arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+      else {
+        str = mrb_str_new_lit(mrb, "");
+        str = mrb_str_plus(mrb, str, regs[a]);
+        str = mrb_str_plus(mrb, str, v1);
       }
-      v = mrb_str_plus(mrb, str1, str2);
-      regs[a] = v;
-      mrb_gc_arena_restore(mrb, ai);
-      NEXT;
-    }
-
-    CASE(OP_TWOSTR7, BBBB) {
-      mrb_value str1 = regs[b];
-      mrb_value str2 = regs[b+1];
-      mrb_value v;
-
-      if (!mrb_str_p(str1) || !mrb_str_p(str2)) {
-        mrb_value exc = mrb_exc_new_lit(mrb, E_TYPE_ERROR, "twostr7 expects two string arguments");
-        mrb_exc_set(mrb, exc);
-        goto L_RAISE;
+      if (mrb_ary_p(v2)) {
+        str = mrb_str_plus(mrb, str, v2);
       }
-      v = mrb_str_plus(mrb, str1, str2);
-      regs[a] = v;
+      if (mrb_ary_p(v3)) {
+        str = mrb_str_plus(mrb, str, v3);
+      }
+      regs[a] = str;
       mrb_gc_arena_restore(mrb, ai);
       NEXT;
     }
 
-    CASE(OP_TWOSTR8, BBBB) {
-      mrb_value str1 = regs[b];
-      mrb_value str2 = regs[b+1];
-      mrb_value v;
+    CASE(OP_STRCAT5, BBB) {
+      mrb_value str = regs[a];
+      mrb_value v1 = mrb_ary_new_from_values(mrb, c, &regs[b]);
+      mrb_value v2 = mrb_ary_new_from_values(mrb, c, &regs[b+c]);
+      mrb_value v3 = mrb_ary_new_from_values(mrb, c, &regs[b+2*c]);
+      mrb_value v4 = mrb_ary_new_from_values(mrb, c, &regs[b+3*c]);
+      if (mrb_str_p(str) && mrb_ary_p(v1)) {
+        str = mrb_str_plus(mrb, str, v1);
+      }
+      else {
+        str = mrb_str_new_lit(mrb, "");
+        str = mrb_str_plus(mrb, str, regs[a]);
+        str = mrb_str_plus(mrb, str, v1);
+      }
+      if (mrb_ary_p(v2)) {
+        str = mrb_str_plus(mrb, str, v2);
+      }
+      if (mrb_ary_p(v3)) {
+        str = mrb_str_plus(mrb, str, v3);
+      }
+      if (mrb_ary_p(v4)) {
+        str = mrb_str_plus(mrb, str, v4);
+      }
+      regs[a] = str;
+      mrb_gc_arena_restore(mrb, ai);
+      NEXT;
+    }
 
-      if (!mrb_str_p(str1) || !mrb_str_p(str
+    CASE(OP_STRCAT6, BBB) {
+      mrb_value str = regs[a];
+      mrb_value v1 = mrb_ary_new_from_values(mrb, c, &regs[b]);
+      mrb_value v2 = mrb_ary_new_from_values(mrb, c, &regs[b+c]);
+      mrb_value v3 = mrb_ary_new_from_values(mrb, c, &regs[b+2*c]);
+      mrb_value v4 = mrb_ary_new_from_values(mrb, c, &regs[b+3*c]);
+      mrb_value v5 = mrb_ary_new_from_values(mrb, c, &regs[b+4*c]);
+      if (mrb_str_p(str) && mrb_ary_p(v1)) {
+        str = mrb_str_plus(mrb, str, v1);
+      }
+      else {
+        str = mrb_str_new_lit(mrb, "");
+        str = mrb_str_plus(mrb, str, regs[a]);
+        str = mrb_str_plus(mrb, str, v1);
+      }
+      if (mrb_ary_p(v2)) {
+        str = mrb_str_plus(mrb, str, v2);
+      }
+      if (mrb_ary_p(v3)) {
+        str = mrb_str_plus(mrb, str, v3);
+      }
+      if (mrb_ary_p(v4)) {
+        str = mrb_str_plus(mrb, str, v4);
+      }
+      if (mrb_ary_p(v5)) {
+        str = mrb_str_plus(mrb, str, v5);
+      }
+      regs[a] = str;
+      mrb_gc_arena_restore(mrb, ai);
+      NEXT;
+    }
+
+    CASE(OP_STRCAT7, BBB) {
+      mrb_value str = regs[a];
+      mrb_value v1 = mrb_ary_new_from_values(mrb, c, &regs[b]);
+      mrb_value v2 = mrb_ary_new_from_values(mrb, c, &regs[b+c]);
+      mrb_value v3 = mrb_ary_new_from_values(mrb, c, &regs[b+2*c]);
+      mrb_value v4 = mrb_ary_new_from_values(mrb, c, &regs[b+3*c]);
+      mrb_value v5 = mrb_ary_new_from_values(mrb, c, &regs[b+4*c]);
+      mrb_value v6 = mrb_ary_new_from_values(mrb, c, &regs[b+5*c]);
+      if (mrb_str_p(str) && mrb_ary_p(v1)) {
+        str = mrb_str_plus(mrb, str, v1);
+      }
+      else {
+        str = mrb_str_new_lit(mrb, "");
+        str = mrb_str_plus(mrb, str, regs[a]);
+        str = mrb_str_plus(mrb, str, v1);
+      }
+      if (mrb_ary_p(v2)) {
+        str = mrb_str_plus(mrb, str, v2);
+      }
+      if (mrb_ary_p(v3)) {
+        str = mrb_str_plus(mrb, str, v3);
+      }
+      if (mrb_ary_p(v4)) {
+        str = mrb_str_plus(mrb, str,

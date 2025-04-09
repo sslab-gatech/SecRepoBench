@@ -1,19 +1,25 @@
-for (unsigned int i = 0; i < effectiveaxiscount; ++i) {
-  coords[i] = map->apply(coords[i]);
-  map++;
-}
+int *output = new int[effectiveaxiscount];
+    for (unsigned int i = 0; i < effectiveaxiscount; i++)
+    {
+      output[i] = map->map(coords[i]);
+      map = &StructAfter<SegmentMaps> (*map);
+    }
 
-if (version >= 2) {
-  std::vector<int> output(coords_length);
-  VariationStoreCache variationStoreCache(this);
-  for (unsigned int i = 0; i < effectiveaxiscount; ++i) {
-    int variationIndex = variationIndexMap->get(i);
-    int delta = variationStoreCache.getDelta(variationIndex);
-    int transformed = coords[i] + round(delta);
-    transformed = hb_clamp(transformed, minValue, maxValue);
-    output[i] = transformed;
-  }
-  coords_length = output.size();
-  coords = output.data();
-  variationStoreCache.deallocate();
-}
+    if (version >= 2)
+    {
+      VariationStoreCache variationStoreCache;
+      variationStoreCache.allocate(variationStore, variationIndexMap, variationStoreSize);
+
+      for (unsigned int i = 0; i < effectiveaxiscount; i++)
+      {
+        int variationIndex = variationIndexMap[i];
+        float delta = variationStore[variationIndex];
+        output[i] += round(delta);
+        output[i] = hb_clamp(output[i], minValue, maxValue);
+      }
+
+      variationStoreCache.deallocate();
+    }
+
+    delete[] coords;
+    coords = output;

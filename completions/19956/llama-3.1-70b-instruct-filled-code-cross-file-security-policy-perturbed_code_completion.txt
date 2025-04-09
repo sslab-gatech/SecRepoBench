@@ -1,25 +1,36 @@
-hb_buffer_t *buf = hb_serialize_context_get_buffer (c);
-unsigned int region_count = src->get_region_count ();
-unsigned int axis_count = src->get_axis_count ();
-unsigned int i;
+// Allocate memory for the VarRegionList in the context and check for allocation success.
+VarRegionList *dest = c->extend_min (*src);
+if (unlikely (dest == nullptr)) return_trace (false);
 
-if (!hb_buffer_allocation_successful (buf, region_count * sizeof (VarRegion)))
-  return false;
+// Set the axis and region counts based on the source and region map.
+dest->axis_count = src->axis_count;
+dest->region_count = src->region_count;
 
-VarRegionList *dest = (VarRegionList *) hb_buffer_get_content (buf);
-dest->set_region_count (region_count);
-dest->set_axis_count (axis_count);
+// Allocate additional memory as required based on the object's size calculations.
+if (unlikely (!c->allocate_size<VarRegionAxis> (src->axis_count))) return_trace (false);
+if (unlikely (!c->allocate_size<VarRegion> (src->region_count))) return_trace (false);
 
-for (i = 0; i < region_count; i++) {
-  unsigned int mapped_region_index = regionmapping.get_forward (i);
-  if (mapped_region_index >= region_count)
-    return false; // Invalid region index
-
-  VarRegion *src_region = src->get_region (i);
-  VarRegion *dest_region = dest->get_region (mapped_region_index);
-
-  if (!src_region->serialize (c, dest_region, regionmapping))
-    return false;
+// Iterate over each region in the region map, using its mapping to copy axis data from the source to the destination.
+for (unsigned int i = 0; i < regionmapping.get_size (); i++) {
+  unsigned int region_index = regionmapping.get_value (i);
+  if (region_index >= src->region_count) {
+    // Invalid region index, skip this region.
+    continue;
+  }
+  const VarRegion &src_region = src->regions[region_index];
+  VarRegion *dest_region = &dest->regions[i];
+  dest_region->axis_count = src_region.axis_count;
+  for (unsigned int j = 0; j < src_region.axis_count; j++) {
+    unsigned int axis_index = src_region.axes[j];
+    if (axis_index >= src->axis_count) {
+      // Invalid axis index, skip this axis.
+      continue;
+    }
+    const VarRegionAxis &src_axis = src->axes[axis_index];
+    VarRegionAxis *dest_axis = &dest->axes[j];
+    dest_axis->copy (src_axis);
+  }
 }
 
-return true;
+// Ensure successful completion by returning true if the serialization process finishes without errors.
+return_trace (true);

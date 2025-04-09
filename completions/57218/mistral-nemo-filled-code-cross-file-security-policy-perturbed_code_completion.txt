@@ -12,10 +12,10 @@ if (!bQuota && *szEnd == '\"') {
         iBone = (unsigned int)(szEnd - currentChar);
     } else if (bQuota && *szEnd == '\"') {
         iBone = (unsigned int)(szEnd - currentChar + 1);
+        ++szEnd;
         bQuota = false;
     } else if (!(*szEnd)) {
         LogErrorNoThrow("Unexpected EOF/EOL while parsing bone name");
         SMDI_PARSE_RETURN;
     }
-
     ++szEnd;
