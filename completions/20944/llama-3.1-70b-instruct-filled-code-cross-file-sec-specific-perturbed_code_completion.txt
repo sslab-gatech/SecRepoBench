@@ -1,26 +1,21 @@
-// Calculate num_glyphs based on the length of the loca_table
-if (short_offset == 0) {
-    num_glyphs = (loca_table_length - 2) / 2;
-} else {
-    num_glyphs = (loca_table_length - 6) / 4;
-}
+// Initialize the glyph set.
+hb_set_t *glyph_set = hb_set_create ();
+hb_set_add_range (glyph_set, 0, num_glyphs);
 
-// Validate num_glyphs to prevent potential heap overflow
-if (num_glyphs > INT_MAX / sizeof(hb_glyph_info_t)) {
-    // Handle error: num_glyphs exceeds maximum allowed value
-    return;
-}
+// Initialize the glyph names.
+hb_face_t *face = hb_face_create (faceptr, 0);
+hb_face_set_index (face, 0);
+hb_face_set_upem (face, 1024);
+hb_face_set_glyph_count (face, num_glyphs);
+hb_face_set_table_func (face, HB_OT_TAG_GLYF, glyf_table);
+hb_face_set_table_func (face, HB_OT_TAG_LOCA, loca_table);
 
-// Allocate memory for glyf_table using a secure allocation function
-glyf_table = calloc(num_glyphs, sizeof(hb_glyph_info_t));
-if (glyf_table == NULL) {
-    // Handle error: Memory allocation failed
-    return;
-}
+// Initialize the glyph shaping plan.
+hb_font_t *font = hb_font_create (face);
+hb_font_set_ppem (font, 1024, 1024);
+hb_font_set_scale (font, 1024, 1024);
+hb_font_set_funcs (font, hb_set_get_empty ());
+hb_font_set_funcs (font, glyph_set);
 
-// Initialize glyf_table with default values
-for (int i = 0; i < num_glyphs; i++) {
-    glyf_table[i].glyph_index = i;
-    glyf_table[i].glyph_offset = 0;
-    glyf_table[i].glyph_len = 0;
-}
+// Clean up.
+hb_face_destroy (face);

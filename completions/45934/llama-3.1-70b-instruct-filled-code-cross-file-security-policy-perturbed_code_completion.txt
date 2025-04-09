@@ -1,12 +1,362 @@
-if (LocaleCompare(keyword,"id") == 0)
-{
-  (void) CopyMagickString(id,options);
-  break;
+;
+
+  entry=AcquireMagickInfo("PNM","PNM","Portable Pixmap image format (PPM,PGM)");
+  entry->decoder=(DecodeImageHandler *) ReadPNMImage;
+  entry->encoder=(EncodeImageHandler *) WritePNMImage;
+  entry->magick=(IsImageFormatHandler *) IsPNM;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  entry=AcquireMagickInfo("PBM","PBM","Portable Bitmap image format (PBM,PBMRAW)");
+  entry->decoder=(DecodeImageHandler *) ReadPNMImage;
+  entry->encoder=(EncodeImageHandler *) WritePNMImage;
+  entry->magick=(IsImageFormatHandler *) IsPNM;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  entry=AcquireMagickInfo("PGM","PGM","Portable Graymap image format (PGM,PGMRAW)");
+  entry->decoder=(DecodeImageHandler *) ReadPNMImage;
+  entry->encoder=(EncodeImageHandler *) WritePNMImage;
+  entry->magick=(IsImageFormatHandler *) IsPNM;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  entry=AcquireMagickInfo("PPM","PPM","Portable Pixmap image format (PPM,PPMRAW)");
+  entry->decoder=(DecodeImageHandler *) ReadPNMImage;
+  entry->encoder=(EncodeImageHandler *) WritePNMImage;
+  entry->magick=(IsImageFormatHandler *) IsPNM;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
 }
-if (LocaleCompare(keyword,"iterations") == 0)
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
 {
-  output_image->iterations=StringToUnsignedLong(options);
-  break;
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
 }
-(void) SetImageProperty(output_image,keyword,options,exception);
-break;
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderAdjoinFlag;
+  (void) RegisterMagickInfo(entry);

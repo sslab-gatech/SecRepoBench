@@ -1,26 +1,15 @@
-// Initialize the contour points based on the end points of the contours.
-contour_points.reserve(num_contours + 1);
-contour_points.resize(num_contours + 1);
+if (unlikely (p + HBINT16::static_size > end)) return false;
+HBUINT16 num_points = * (const HBINT16 *) p;
+p += HBINT16::static_size;
 
-// Retrieve the end points of the contours from the header and validate the range.
-if (unlikely (num_contours > endPtsOfContours[num_contours]))
-  return false;
+if (unlikely (num_points == 0)) return true;
 
-// Allocate memory for the contour points, including space for phantom points.
-if (phantom_only)
-  {
-    contour_points.reserve(endPtsOfContours[num_contours] + 1);
-    contour_points.resize(endPtsOfContours[num_contours] + 1);
-  }
-else
-  {
-    contour_points.reserve(endPtsOfContours[num_contours] + num_contours);
-    contour_points.resize(endPtsOfContours[num_contours] + num_contours);
-  }
+if (unlikely (contour_points.length!= num_points)) return false;
 
-// Set the end points of each contour in the points array.
-for (HBUINT16 i = 0; i < num_contours; i++)
-  {
-    contour_points[i].x = 0;
-    contour_points[i].y = 0;
-  }
+if (unlikely (!has_data ())) return true;
+
+if (unlikely (!is_valid ())) return false;
+
+if (unlikely (!unpack_deltas (p, contour_points.deltas, end))) return false;
+
+if (unlikely (!read_flags (p, contour_points, end))) return false;

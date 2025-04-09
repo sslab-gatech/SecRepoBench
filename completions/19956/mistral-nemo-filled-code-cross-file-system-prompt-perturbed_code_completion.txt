@@ -1,16 +1,21 @@
-// <MASK>
-    if (!hb_serialize_allocate(c, sizeof(VarRegionList), &dest)) {
-      return false;
-    }
+// Serialize the VarRegionList object
+    VarRegionList *dest = c->extend_min (*src);
+    if (unlikely (dest == nullptr)) return_trace (false);
+
     dest->axis_count = src->axis_count;
-    dest->region_count = regionmapping.size();
-    dest->axis_data = (VarRegionAxis *)hb_serialize_allocate(c, dest->region_count * sizeof(VarRegionAxis), NULL);
-    if (!dest->axis_data) {
-      return false;
+    dest->region_count = src->region_count;
+
+    if (unlikely (!c->allocate_size<VarRegion> (dest->region_count * VarRegion::min_size)))
+      return_trace (false);
+
+    for (unsigned int i = 0; i < dest->region_count; i++)
+    {
+      VarRegion *region = &dest->regions[i];
+      const VarRegion *src_region = &src->regions[regionmapping[i]];
+      region->axis = src_region->axis;
+      region->start = src_region->start;
+      region->end = src_region->end;
+      region->default_ = src_region->default_;
     }
-    for (const auto &mapping : regionmapping) {
-      const VarRegionAxis *src_axis = &src->axis_data[mapping.first];
-      VarRegionAxis *dest_axis = &dest->axis_data[mapping.second];
-      *dest_axis = *src_axis;
-    }
-    return true;
+
+    return_trace (true);

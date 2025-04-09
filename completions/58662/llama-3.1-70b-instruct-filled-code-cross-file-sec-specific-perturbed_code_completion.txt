@@ -10,7 +10,7 @@ for (++iterator; iterator; ++iterator)
   else
   {
     range_rec.last = prev_gid;
-    record->last = range_rec.last;
+    record->last = prev_gid;
 
     range_rec.first = gid;
     range_rec.last = gid;
@@ -26,14 +26,11 @@ for (++iterator; iterator; ++iterator)
   prev_klass = klass;
 }
 
-record->last = prev_gid;
-rangeRecord.len = num_ranges;
-
-// Sort the range records to handle any unsorted glyph order.
-// This is a simplified example and actual implementation may vary.
-RangeRecord<Types>* records = c->get_records();
-std::sort(records, records + rangeRecord.len, [](const RangeRecord<Types>& a, const RangeRecord<Types>& b) {
-  return a.first < b.first;
-});
+if (num_ranges)
+{
+  record->last = prev_gid;
+  rangeRecord.len = num_ranges;
+  c->sort_and_embed (this);
+}
 
 return_trace (true);

@@ -1,33 +1,33 @@
-// <MASK>
-  hb_vector_t<hb_codepoint_t> full_glyphs;
-  full_glyphs.create (initial_gids_to_retain->len);
-  hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-  while (initial_gids_to_retain->next (&gid))
+hb_codepoint_t gid;
+  for (gid = 0; initial_gids_to_retain->has (gid); ++gid)
   {
     if (gid > face->num_glyphs())
     {
-      DEBUG_MSG(SUBSET, nullptr, "Drop GID %d; out of range", gid);
+      DEBUG_MSG(SUBSET, nullptr, "Drop GID %u; out of range", gid);
       continue;
     }
-    full_glyphs.push_back (gid);
-    hb_ot_glyf_glyph_t *glyph = glyf.get (gid);
-    if (glyph->num_contours > 0)
+    full_glyphs_to_retain->add (gid);
+    hb_ot_glyf_glyph_t glyph;
+    if (glyf.get (gid, &glyph))
     {
-      for (unsigned int i = 0; i < glyph->num_components; i++)
+      for (unsigned int i = 0; i < glyph.num_contours; ++i)
       {
-        hb_codepoint_t component_gid = glyph->components[i].gid;
+        hb_codepoint_t component_gid = glyph.contour_end[i];
         if (component_gid > face->num_glyphs())
         {
-          DEBUG_MSG(SUBSET, nullptr, "Drop component GID %d; out of range", component_gid);
+          DEBUG_MSG(SUBSET, nullptr, "Drop component GID %u; out of range", component_gid);
           continue;
         }
-        full_glyphs.push_back (component_gid);
+        full_glyphs_to_retain->add (component_gid);
       }
     }
   }
-  full_glyphs.sort ();
-  full_glyphs.unique ();
-  full_glyphs.destroy ();
   hb_set_destroy (initial_gids_to_retain);
-  return full_glyphs.release();
-  // </MASK>
+  glyphs->resize (full_glyphs_to_retain->len());
+  for (gid = 0; full_glyphs_to_retain->has (gid); ++gid)
+  {
+    glyphs->push_back (gid);
+  }
+  cmap.fini();
+  glyf.fini();
+  return full_glyphs_to_retain;

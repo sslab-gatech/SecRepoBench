@@ -1,15 +1,17 @@
-bool is_lookup_done (unsigned int indexlookup)
-  {
-    if (done_lookups_glyph_count->in_error () ||
-        done_lookups_glyph_set->in_error ())
-      return true;
+// <MASK>
+if (done_lookups_glyph_count->in_error () ||
+    done_lookups_glyph_set->in_error ())
+  return true;
 
-    // Check if the current set of glyphs for the given lookup index has already been processed.
-    // If not, update the glyph count for this lookup index and ensure the glyph set is initialized
-    // and cleared as needed. Then, obtain the glyph set associated with the lookup index.
-    // Determine if the parent active glyphs are a subset of the obtained glyph set.
-    // If they are a subset, return true to indicate the lookup is done; otherwise, return false.
-    hb_set_difference (covered_glyph_set, parent_active_glyphs ());
-    hb_set_difference (covered_glyph_set, obtained_glyph_set);
-    return hb_set_is_subset (parent_active_glyphs (), covered_glyph_set);
-  }
+hb_set_t* glyph_set = get_glyph_set (indexlookup);
+if (glyph_set == nullptr)
+  return false;
+
+hb_set_t* parent_active_glyphs = parent_active_glyphs ();
+if (hb_set_subset (glyph_set, parent_active_glyphs))
+  return true;
+
+hb_set_union (covered_glyph_set, parent_active_glyphs);
+done_lookups_glyph_count->update (indexlookup);
+done_lookups_glyph_set->set (indexlookup, glyph_set);
+return false;

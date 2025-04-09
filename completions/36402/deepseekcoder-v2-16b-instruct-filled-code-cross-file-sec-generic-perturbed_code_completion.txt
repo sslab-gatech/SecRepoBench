@@ -1,23 +1,17 @@
-#include <unordered_map>
+#include <algorithm> // for std::lower_bound
 
-class FontTable {
-private:
-    std::unordered_map<hb_tag_t, unsigned int> table_index_map;
+bool find_table_index (hb_tag_t hb_tag, unsigned int *table_index) const
+{
+  // Determine the index of the table entry corresponding to the given tag.
+  // Use the appropriate search method based on table entry size.
+  const auto& tables = this->tables.arrayZ;
+  auto it = std::lower_bound(tables.begin(), tables.end(), hb_tag, [](const TableRecord& rec, hb_tag_t tag) {
+    return rec.tag < tag;
+  });
 
-public:
-    FontTable() {
-        // Initialize the map with some values for demonstration purposes
-        table_index_map[HB_TAG('A', 'A', 'A', 'A')] = 0;
-        table_index_map[HB_TAG('B', 'B', 'B', 'B')] = 1;
-        // ... more entries
-    }
-
-    bool find_table_index(hb_tag_t hb_tag, unsigned int *table_index) const {
-        auto it = table_index_map.find(hb_tag);
-        if (it != table_index_map.end()) {
-            *table_index = it->second;
-            return true;
-        }
-        return false;
-    }
-};
+  if (it != tables.end() && it->tag == hb_tag) {
+    *table_index = std::distance(tables.begin(), it);
+    return true;
+  }
+  return false;
+}

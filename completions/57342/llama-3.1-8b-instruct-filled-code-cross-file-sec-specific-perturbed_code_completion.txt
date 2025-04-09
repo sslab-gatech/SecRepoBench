@@ -1,30 +1,34 @@
-// <MASK>
-bool axis_not_pinned = false;
-for (unsigned int i = 0; i < axes.length; i++)
+// If the axis is present in the user's axis location settings,
+// normalize its value using user settings.
+// If 'avar' data is available, remap the normalized value using the segment maps.
+// Set the normalized value in the plan's axes location and coordinates.
+// If the normalized value is not zero, mark the plan as not pinned at default.
+// Update segment maps for 'avar' for the next axis, if applicable.
+if (plan->user_axes_location.has_axis (axes[i].tag))
 {
-  const OT::AxisRecord &axis = axes[i];
-  if (!plan->user_axes_location.has (axis.tag))
+  float normalized_value = plan->user_axes_location.get_axis_value (axes[i].tag);
+  if (has_avar)
   {
-    axis_not_pinned = true;
-    plan->normalized_coords[i] = axis.get_default ();
+    // Get the segment maps for the current axis.
+    const OT::SegmentMap *seg_map = face->table.avar->get_segment_map (axes[i].tag);
+    if (seg_map)
+    {
+      // Remap the normalized value using the segment maps.
+      normalized_value = seg_map->remap (normalized_value);
+    }
   }
-  else
+  plan->normalized_coords[i] = normalized_value;
+  if (normalized_value!= 0)
+    plan->all_axes_pinned = false;
+  if (has_avar)
   {
-    const OT::AxisValue &user_value = plan->user_axes_location.get (axis.tag);
-    plan->normalized_coords[i] = user_value.value;
+    // Update the segment maps for the next axis.
+    face->table.avar->update_segment_map (axes[i].tag, normalized_value);
   }
 }
-
-if (has_avar)
+else
 {
-  const OT::SegmentMaps &seg_maps = fontface->table.avar->get_segment_maps ();
-  for (unsigned int i = 0; i < axes.length; i++)
-  {
-    const OT::AxisRecord &axis = axes[i];
-    if (axis.tag == OT::AxisTag::UNPINNED)
-      continue;
-    plan->normalized_coords[i] = seg_maps.remap (plan->normalized_coords[i], axis.tag);
-  }
+  // If the axis is not set by the user, mark it as not pinned and update the index map.
+  axis_not_pinned = true;
+  plan->index_map[axes[i].tag] = i;
 }
-
-plan->all_axes_pinned =!axis_not_pinned;

@@ -1,18 +1,16 @@
-hb_buffer_t *buf = hb_serialize_context_get_buffer (c);
-VarRegionList *dest = hb_buffer_alloc (buf, sizeof (VarRegionList), &regionmapping);
-if (unlikely (!dest)) return false;
-
-dest->axes = src->axes;
-dest->region_count = regionmapping.size;
-
-for (unsigned int i = 0; i < regionmapping.size; i++) {
-  VarRegion *region = hb_buffer_alloc (buf, sizeof (VarRegion), &regionmapping);
-  if (unlikely (!region)) return false;
-
-  region->axis = src->regions[regionmapping.forward[i]].axis;
-  region->peak = src->regions[regionmapping.forward[i]].peak;
-  region->start = src->regions[regionmapping.forward[i]].start;
-  region->end = src->regions[regionmapping.forward[i]].end;
+VarRegionList *dest = c->extend_min (*src);
+if (unlikely (dest == nullptr)) return false;
+dest->axis_count = regionmapping.get_size ();
+dest->region_count = src->region_count;
+if (unlikely (!c->allocate_size<VarRegionAxis> (dest->axis_count))) return false;
+if (unlikely (!c->allocate_size<VarRegion> (dest->region_count))) return false;
+for (unsigned int i = 0; i < regionmapping.get_size (); i++)
+{
+  unsigned int axis_index = regionmapping.get_value (i);
+  dest->axes[i] = src->axes[axis_index];
 }
-
+for (unsigned int i = 0; i < src->region_count; i++)
+{
+  dest->regions[i] = src->regions[i];
+}
 return true;

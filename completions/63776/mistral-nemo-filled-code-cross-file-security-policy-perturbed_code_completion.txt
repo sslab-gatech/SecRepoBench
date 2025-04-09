@@ -37,17 +37,17 @@ if (obj->type != DWG_TYPE_JUMP_r11)
       #endif
 
       // Calculate offset for trailing unknown data and allocate memory if necessary
-      if (obj->size > 0 && (bit_chain->byte + obj->size) > bit_chain->size)
+      size_t trailing_unknown_data_size = bit_chain->byte - oldpos - obj->size;
+      if (trailing_unknown_data_size > 0)
       {
-        size_t offset = bit_chain->size - bit_chain->byte;
-        obj->trailing_unknown_data = bit_read_bytes (bit_chain, offset);
+        obj->trailing_unknown_data = bit_read_bytes (bit_chain, trailing_unknown_data_size);
         if (!obj->trailing_unknown_data)
         {
           LOG_ERROR ("Failed to extract trailing unknown data\n");
           return DWG_ERR_OUTOFMEM;
         }
-        LOG_TRACE ("Trailing unknown data [%zu bytes]: ", offset);
-        LOG_TRACE_TF (obj->trailing_unknown_data, offset);
+        LOG_TRACE ("Trailing unknown data [%zu bytes]: ", trailing_unknown_data_size);
+        LOG_TRACE_TF (obj->trailing_unknown_data, trailing_unknown_data_size);
         LOG_TRACE ("\n");
       }
     }

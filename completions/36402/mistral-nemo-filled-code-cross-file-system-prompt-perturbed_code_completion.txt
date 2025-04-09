@@ -1,16 +1,13 @@
-switch (hb_tag_size(hb_tag)) {
-  case 1:
-    *table_index = hb_tag_to_index1(hb_tag);
+switch (hb_tag) {
+  case HB_OT_TAG_GSUB:
+    get_stage_lookups(0, 1, &lookups, &lookup_count);
     break;
-  case 2:
-    *table_index = hb_tag_to_index2(hb_tag);
-    break;
-  case 3:
-    *table_index = hb_tag_to_index3(hb_tag);
-    break;
-  case 4:
-    *table_index = hb_tag_to_index4(hb_tag);
+  case HB_OT_TAG_GPOS:
+    get_stage_lookups(1, 1, &lookups, &lookup_count);
     break;
   default:
+    *table_index = UINT_MAX;
     return false;
 }
+*table_index = 0;
+return true;

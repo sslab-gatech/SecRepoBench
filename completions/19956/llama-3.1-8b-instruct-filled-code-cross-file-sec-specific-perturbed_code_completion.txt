@@ -1,30 +1,31 @@
 // Allocate memory for the VarRegionList in the context and check for allocation success.
-if (!hb_serialize_context_allocate(c, sizeof(VarRegionList))) {
-  return false;
-}
-
-VarRegionList *dst = (VarRegionList *)c->data;
-dst->axis_count = src->axis_count;
-dst->region_count = src->region_count;
-
+// Set the axis and region counts based on the source and region map.
 // Allocate additional memory as required based on the object's size calculations.
-size_t axis_data_size = src->axis_count * sizeof(hb_axis_t);
-size_t region_data_size = src->region_count * sizeof(hb_region_t);
-
-if (!hb_serialize_context_allocate(c, axis_data_size) ||!hb_serialize_context_allocate(c, region_data_size)) {
-  return false;
-}
-
 // Iterate over each region in the region map, using its mapping to copy axis data from the source to the destination.
-for (size_t i = 0; i < regionmapping.size(); ++i) {
-  const hb_bimap_t::value_type &region = regionmapping[i];
-  const hb_region_t *src_region = &src->regions[region.first];
-  hb_region_t *dst_region = &dst->regions[region.second];
+// Ensure successful completion by returning true if the serialization process finishes without errors.
+VarRegionList *dest = c->extend_min (*this);
+if (unlikely (dest == nullptr)) return_trace (false);
+dest->axis_count = src->axis_count;
+dest->region_count = regionmapping.size();
+unsigned int axis_size = dest->axis_count * sizeof (hb_axis_t);
+unsigned int region_size = dest->region_count * sizeof (hb_region_t);
+if (unlikely (!c->allocate_size<hb_axis_t> (axis_size) ||!c->allocate_size<hb_region_t> (region_size)))
+  return_trace (false);
 
-  // Copy axis data from the source to the destination.
-  for (size_t j = 0; j < src_region->axis_count; ++j) {
-    dst_region->axes[j] = src_region->axes[j];
-  }
+// Copy axis data from the source to the destination.
+for (unsigned int i = 0; i < src->axis_count; i++)
+  memcpy (&dest->axes[i], &src->axes[i], sizeof (hb_axis_t));
+
+// Copy region data from the source to the destination using the region map.
+for (unsigned int i = 0; i < regionmapping.size(); i++)
+{
+  hb_region_t *src_region = &src->regions[regionmapping[i].src];
+  hb_region_t *dest_region = &dest->regions[i];
+  dest_region->axis = regionmapping[i].dst;
+  dest_region->count = src_region->count;
+  dest_region->data = c->allocate_size<hb_codepoint_t> (src_region->count * sizeof (hb_codepoint_t));
+  if (unlikely (dest_region->data == nullptr))
+    return_trace (false);
+  memcpy (dest_region->data, src_region->data, src_region->count * sizeof (hb_codepoint_t));
 }
-
-return true;
+return_trace (true);

@@ -1,18 +1,18 @@
-if (!iterator) {
-        c->set_starting_glyph_index(0);
-        c->set_class_value_length(0);
-        return true;
+if (iterator.is_null()) {
+      starting_glyph_index = 0;
+      class_value_length = 0;
+      return true;
     }
 
-    int32_t min_glyph = iterator->get_min_glyph();
-    int32_t max_glyph = iterator->get_max_glyph();
-    int32_t glyph_count = max_glyph - min_glyph + 1;
+    auto it = hb_iter (iterator);
+    glyph_count = it.end() - it.begin();
+    starting_glyph_index = it.begin().glyph_index();
+    if (unlikely (!c->extend_min (glyph_count))) return false;
 
-    c->set_starting_glyph_index(min_glyph);
-    if (!c->serialize_class_value(glyph_count)) return false;
+    if (!c->serialize (class_value, glyph_count)) return false;
 
-    for (int32_t i = min_glyph; i <= max_glyph; ++i) {
-        c->assign_class_value(i - min_glyph, iterator->get_class_value(i));
+    for (auto it = hb_iter (iterator); it != hb_iter_end (iterator); ++it) {
+      it->set_class (it->glyph_index() - starting_glyph_index);
     }
 
     return true;

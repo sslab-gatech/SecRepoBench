@@ -1,35 +1,53 @@
 hb_set_t *full_glyphs_to_retain = hb_set_create ();
-hb_vector_t<hb_codepoint_t> glyph_ids;
+hb_vector_t<hb_codepoint_t> glyphs_to_retain;
 hb_map_t *old_gid_to_new_gid_map = hb_map_create ();
 _create_old_gid_to_new_gid_map (*glyphs, old_gid_to_new_gid_map);
 
 hb_codepoint_t gid = HB_SET_VALUE_INVALID;
-while (initial_gids_to_retain->next (&gid))
+hb_set_t::iterator it = initial_gids_to_retain->begin ();
+while (it!= initial_gids_to_retain->end ())
 {
-  hb_codepoint_t new_gid = HB_SET_VALUE_INVALID;
-  if (old_gid_to_new_gid_map->get (gid, &new_gid))
+  gid = *it;
+  it++;
+  if (gid!= HB_SET_VALUE_INVALID)
   {
-    full_glyphs_to_retain->add (new_gid);
-  }
-  else
-  {
-    hb_vector_t<hb_codepoint_t> component_glyphs;
-    hb_face_get_glyph_components (face, gid, &component_glyphs);
-    for (unsigned int i = 0; i < component_glyphs.len; i++)
+    hb_set_t *component_gids = hb_set_create ();
+    hb_codepoint_t component_gid = HB_SET_VALUE_INVALID;
+    hb_set_t::iterator it2 = initial_gids_to_retain->begin ();
+    while (it2!= initial_gids_to_retain->end ())
     {
-      full_glyphs_to_retain->add (component_glyphs[i]);
+      component_gid = *it2;
+      it2++;
+      if (component_gid!= HB_SET_VALUE_INVALID)
+      {
+        if (_is_gid_consecutive (&face->cmap->subtable_long_group, gid, component_gid))
+        {
+          component_gids->add (component_gid);
+        }
+      }
     }
+    if (component_gids->len > 0)
+    {
+      hb_set_t *new_component_gids = hb_set_create ();
+      hb_codepoint_t new_gid = HB_SET_VALUE_INVALID;
+      hb_set_t::iterator it3 = component_gids->begin ();
+      while (it3!= component_gids->end ())
+      {
+        new_gid = old_gid_to_new_gid_map->get (*it3);
+        it3++;
+        if (new_gid!= HB_SET_VALUE_INVALID)
+        {
+          new_component_gids->add (new_gid);
+        }
+      }
+      full_glyphs_to_retain->add (gid);
+      full_glyphs_to_retain->add (new_component_gids);
+      hb_set_destroy (new_component_gids);
+    }
+    hb_set_destroy (component_gids);
   }
 }
-
 hb_set_destroy (initial_gids_to_retain);
 hb_map_destroy (old_gid_to_new_gid_map);
-
-hb_vector_t<hb_codepoint_t> *glyph_ids = hb_vector_create ();
-for (unsigned int i = 0; i < full_glyphs_to_retain->len; i++)
-{
-  glyph_ids->push_back (hb_set_value_at (full_glyphs_to_retain, i));
-}
 hb_set_destroy (full_glyphs_to_retain);
-
-return glyph_ids;
+return full_glyphs_to_retain;

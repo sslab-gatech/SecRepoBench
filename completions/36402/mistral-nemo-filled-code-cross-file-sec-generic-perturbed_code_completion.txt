@@ -1,13 +1,13 @@
-switch (sizeof(hb_tag_t)) {
-  case 1:
-    *table_index = std::find(table.begin(), table.end(), hb_tag) - table.begin();
+switch (hb_tag) {
+  case HB_OT_TAG_GSUB:
+    get_stage_lookups(0, 0, &lookups, &lookup_count);
     break;
-  case 2:
-    *table_index = std::find(table.begin(), table.end(), hb_tag) - table.begin();
-    break;
-  case 4:
-    *table_index = std::find(table.begin(), table.end(), hb_tag) - table.begin();
+  case HB_OT_TAG_GPOS:
+    get_stage_lookups(1, 0, &lookups, &lookup_count);
     break;
   default:
+    *table_index = 0;
     return false;
 }
+*table_index = 0;
+return true;

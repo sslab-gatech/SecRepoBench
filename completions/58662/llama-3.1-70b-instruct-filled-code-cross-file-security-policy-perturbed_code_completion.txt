@@ -5,15 +5,17 @@ for (++iterator; iterator; ++iterator)
 
   if (gid == prev_gid + 1 && klass == prev_klass)
   {
-    range_rec.last = gid;
+    record->last = gid;
   }
   else
   {
-    range_rec.last = prev_gid;
-    if (unlikely (!c->copy (range_rec))) return_trace (false);
     range_rec.first = gid;
     range_rec.last = gid;
     range_rec.value = klass;
+
+    record = c->copy (range_rec);
+    if (unlikely (!record)) return_trace (false);
+
     num_ranges++;
   }
 
@@ -21,10 +23,12 @@ for (++iterator; iterator; ++iterator)
   prev_klass = klass;
 }
 
-range_rec.last = prev_gid;
-if (unlikely (!c->copy (range_rec))) return_trace (false);
-
 rangeRecord.len = num_ranges;
-if (unlikely (!c->sort_and_unique (rangeRecord))) return_trace (false);
+if (num_ranges > 1)
+{
+  // Sort the range records to handle any unsorted glyph order.
+  // This is a simplified example and actual implementation may vary.
+  std::sort (rangeRecord.arrayZ, rangeRecord.arrayZ + num_ranges);
+}
 
 return_trace (true);

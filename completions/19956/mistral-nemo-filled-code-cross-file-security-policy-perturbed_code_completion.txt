@@ -1,7 +1,13 @@
-for (size_t i = 0; i < regionmapping.size(); ++i) {
-  const auto &region = regionmapping[i];
-  if (region.first < src->regions.size()) {
-    // Copy axis data from the source to the destination
-    // ...
-  }
-}
+// Iterate over each region in the region map, using its mapping to copy axis data from the source to the destination.
+    for (unsigned int i = 0; i < regionmapping.length; i++) {
+      if (regionmapping[i].first < src->regions.length) {
+        const VarRegion &src_region = src->regions[regionmapping[i].first];
+        VarRegion *dest_region = c->allocate_size<VarRegion> (src_region.get_size ());
+        if (unlikely (dest_region == nullptr)) return_trace (false);
+        *dest_region = src_region;
+        c->add_region (dest_region);
+      } else {
+        // Handle out-of-range index
+        return_trace (false);
+      }
+    }

@@ -1,7 +1,14 @@
-int region_count = interp_env.getArgStack().popInt();
-    float numeric_value = interp_env.getArgStack().popFloat();
-    std::vector<float> blend_values(region_count);
-    for (int i = 0; i < region_count; ++i) {
-        blend_values[i] = interp_env.getArgStack().popFloat();
+// Retrieve the count of regions and a numeric value from the argument stack.
+    uint32_t region_count = env.argStack.pop_u32();
+    float numeric_value = env.argStack.pop_fixed();
+
+    // Transfer blend values from the argument stack to a blend array associated
+    // with default values, based on the retrieved counts.
+    for (uint32_t i = 0; i < region_count; ++i) {
+      float blend_value = env.argStack.pop_fixed();
+      param.blend_values[i] = blend_value;
     }
-    interp_env.setBlendValues(blend_values, numeric_value);
+
+    // Remove the blend values from the argument stack, leaving only the default
+    // values with their blend modifications applied.
+    env.argStack.pop_n(region_count);

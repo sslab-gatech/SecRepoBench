@@ -1,14 +1,17 @@
 // <MASK>
 int i = 0;
-while (inputvalue > arrayZ[i].fromCoord && i < len - 1)
+while (i < len) {
+  if (inputvalue <= fromCoord) {
+    return inputvalue;
+  } else if (inputvalue >= toCoord) {
+    return inputvalue;
+  } else if (i == 0 || fromCoord!= arrayZ[i - 1].fromCoord) {
+    denom = toCoord - fromCoord;
+  } else {
+    denom = arrayZ[i - 1].toCoord - arrayZ[i - 1].fromCoord;
+  }
   i++;
-if (i == 0)
-  return arrayZ[i].toCoord;
-if (i == len - 1)
-  return arrayZ[i].toCoord;
-if (arrayZ[i].fromCoord == arrayZ[i+1].fromCoord)
-  return arrayZ[i-1].toCoord + (arrayZ[i].toCoord - arrayZ[i-1].toCoord) * (inputvalue - arrayZ[i-1].fromCoord) / (arrayZ[i].fromCoord - arrayZ[i-1].fromCoord);
-int denom = arrayZ[i].fromCoord - arrayZ[i-1].fromCoord;
-return arrayZ[i-1].toCoord +
-       ((arrayZ[i].toCoord - arrayZ[i-1].toCoord) *
-        (inputvalue - arrayZ[i-1].fromCoord) + denom/2) / denom;
+}
+return arrayZ[i - 1].toCoord +
+       ((arrayZ[i].toCoord - arrayZ[i - 1].toCoord) *
+        (inputvalue - arrayZ[i - 1].fromCoord) + denom/2) / denom;

@@ -1,35 +1,66 @@
-// <MASK>
-    std::vector<hb_codepoint_t> subset_glyphs;
-    if (!generate_subset_glyphs(context->plan, font, &subset_glyphs)) {
-      return_trace(false);
+hb_vector_t<hb_glyph_info_t> glyphs;
+    if (unlikely (!glyphs.alloc (context->plan->glyphs.get_length (), true)))
+      return_trace (false);
+
+    for (auto _ : context->plan->glyphs)
+      glyphs.push ({_.first, _.second});
+
+    hb_glyph_info_t *subset_glyphs = glyphs.arrayZ;
+    unsigned num_glyphs = glyphs.get_length ();
+
+    hb_glyph_info_t *subset_glyphs_end = subset_glyphs + num_glyphs;
+    hb_glyph_info_t *subset_glyphs_iter = subset_glyphs;
+
+    hb_vector_t<hb_glyph_info_t> compiled_subset_glyphs;
+    if (unlikely (!compiled_subset_glyphs.alloc (num_glyphs, true)))
+      return_trace (false);
+
+    hb_glyph_info_t *compiled_subset_glyphs_start = compiled_subset_glyphs.arrayZ;
+    hb_glyph_info_t *compiled_subset_glyphs_end = compiled_subset_glyphs_start + num_glyphs;
+
+    for (; subset_glyphs_iter != subset_glyphs_end; ++subset_glyphs_iter)
+    {
+      hb_glyph_info_t glyph_info = *subset_glyphs_iter;
+      if (unlikely (!glyph_info.glyph))
+      {
+        DEBUG_MSG (SUBSET, nullptr,
+                   "glyph %u not present in source font, dropping from subset.",
+                   glyph_info.codepoint);
+        continue;
+      }
+
+      if (unlikely (!context->serializer->add_glyph (glyph_info.glyph)))
+      {
+        DEBUG_MSG (SUBSET, nullptr,
+                   "failed to add glyph %u to subset, dropping from subset.",
+                   glyph_info.codepoint);
+        continue;
+      }
+
+      *compiled_subset_glyphs_start++ = glyph_info;
     }
 
-    if (font) {
-      _destroy_font(font);
+    if (likely (compiled_subset_glyphs_start != compiled_subset_glyphs_end))
+    {
+      hb_glyph_info_t *compiled_subset_glyphs_start = compiled_subset_glyphs.arrayZ;
+      hb_glyph_info_t *compiled_subset_glyphs_end = compiled_subset_glyphs_start + num_glyphs;
+
+      hb_ot_glyf_t *glyf = hb_ot_glyf_create (compiled_subset_glyphs_start, compiled_subset_glyphs_end);
+      if (unlikely (!glyf))
+        return_trace (false);
+
+      if (unlikely (!context->serializer->embed (glyf)))
+      {
+        hb_ot_glyf_destroy (glyf);
+        return_trace (false);
+      }
+
+      if (likely (context->plan->normalized_coords))
+        _free_compiled_subset_glyphs (compiled_subset_glyphs_start, compiled_subset_glyphs_end);
     }
 
-    bool use_short_loca = determine_short_loca(subset_glyphs);
-    hb_glyph_info_t *glyph_info = hb_glyph_info_create(subset_glyphs.size());
-    if (!glyph_info) {
-      return_trace(false);
-    }
+    if (font)
+      hb_font_destroy (font);
 
-    hb_glyph_info_t *glyph_info_end = glyph_info;
-    for (auto glyph : subset_glyphs) {
-      *glyph_info_end++ = hb_glyph_info_t{glyph, 0, 0};
-    }
-
-    hb_glyph_storage_t *glyph_storage = hb_glyph_storage_create_for_glyphs(glyph_info, glyph_info_end);
-    if (!glyph_storage) {
-      hb_glyph_info_destroy(glyph_info);
-      return_trace(false);
-    }
-
-    hb_glyph_storage_serialize(glyph_storage, use_short_loca, &result);
-    hb_glyph_storage_destroy(glyph_storage);
-
-    if (result.is_valid()) {
-      _free_compiled_subset_glyphs(subset_glyphs);
-    }
-
-    return result.is_valid();
+    return_trace (true);
+  }

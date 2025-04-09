@@ -1,24 +1,11 @@
 unsigned int offset = 0;
-this->offsets.set (fontDicts.length);
+hb_vector_t<unsigned int> offsets(fontDicts.length, 0);
 for (unsigned int i = 0; i < fontDicts.length; i++)
-{
   if (fdmap.includes (i))
   {
-    this->offsets[i] = offset;
-    FontDict *dict = c->start_embed<FontDict> ();
-    if (dict)
-    {
-      unsigned int dictSize = dict->serialize (c, fontDicts[i], opszr, privateInfos[fdmap[i]]);
-      offset += dictSize;
-    }
-    else
-    {
-      return_trace (false);
-    }
+    unsigned int dictSize = FontDict::calculate_serialized_size (fontDicts[i], opszr);
+    offsets[i] = offset;
+    offset += dictSize;
   }
-  else
-  {
-    this->offsets[i] = 0;
-  }
-}
+this->offsets.set (offsets);
 this->lastOffset.set (offset);

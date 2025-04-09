@@ -1,11 +1,7 @@
-if (get_type() == Type::Extension && get_edit_count() == 0)
-    {
-        const auto& subtables = get_subtables<TSubTable>();
-        for (unsigned i = 0; i < subtables.get_count(); ++i)
-        {
-            if (subtables[i].get_type() != get_type())
-            {
-                return_trace(false);
-            }
-        }
+if (unlikely (subtablecount == 0)) return_trace (false);
+    for (unsigned int i = 0; i < subtablecount; i++) {
+      const Offset16To<TSubTable> &subtable = get_subtable<TSubTable> (i);
+      if (subtable.get_type () != get_type ()) {
+        return_trace (false);
+      }
     }

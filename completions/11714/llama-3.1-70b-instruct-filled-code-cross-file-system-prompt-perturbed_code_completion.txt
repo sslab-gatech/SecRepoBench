@@ -1,9 +1,12 @@
-int region_count = interp_env.pop();
-int num_value = interp_env.pop();
-int* blend_array = param.get_blend_array();
-for (int i = 0; i < region_count; i++) {
-    blend_array[i] = interp_env.pop();
+uint count = interp_env.pop_uint ();
+uint num = interp_env.pop_uint ();
+float *blend_values = new float[count];
+for (uint i = 0; i < count; i++) {
+  blend_values[i] = interp_env.pop_float ();
 }
-for (int i = 0; i < region_count; i++) {
-    interp_env.push(param.get_default_value(i) * blend_array[i]);
+float *default_values = param.get_default_blend_values ();
+for (uint i = 0; i < count; i++) {
+  default_values[i] *= blend_values[i];
 }
+delete[] blend_values;
+interp_env.clear_args ();

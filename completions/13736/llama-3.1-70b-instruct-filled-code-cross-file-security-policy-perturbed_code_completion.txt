@@ -1,6 +1,5 @@
 // Allocate memory for storing offsets of font dictionaries based on the offset size and count of font dictionaries.
-hb_vector_t<unsigned int> offsets;
-if (!offsets.resize (fdCount + 1)) return_trace (false);
+unsigned int *offsets = c->allocate_array<unsigned int> (fdCount);
 
 // Initialize offset tracking variables for serialization of font dictionary offsets.
 unsigned int offset = 0;
@@ -10,14 +9,12 @@ for (unsigned int i = 0; i < fontDicts.length; i++)
   if (fdmap.includes (i))
   {
     // For included font dictionaries, set their respective offsets in a serializable format.
-    if (i < offsets.length) offsets[i] = offset;
+    offsets[i] = offset;
 
     // Compute and accumulate the serialized size of each included font dictionary into the offset variable.
     FontDict *dict = c->start_embed<FontDict> ();
-    if (unlikely (!dict->serialize (c, fontDicts[i], opszr, privateInfos[fdmap[i]])))
-      return_trace (false);
-    offset += dict->get_size ();
-
-    // Update the last offset to mark the end of the serialized data for font dictionaries.
-    if (i + 1 < offsets.length) offsets[i + 1] = offset;
+    offset += dict->calculate_serialized_size (fontDicts[i], opszr, privateInfos[fdmap[i]]);
   }
+
+// Update the last offset to mark the end of the serialized data for font dictionaries.
+offsets[fdCount - 1] = offset;

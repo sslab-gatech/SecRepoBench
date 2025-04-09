@@ -1,101 +1,339 @@
-{
-  if (mng_info->magn_methx > 0 && mng_info->magn_methx <= 5 &&
-      mng_info->magn_methy > 0 && mng_info->magn_methy <= 5)
-  {
-    png_uint_32
-       magnified_height,
-       magnified_width;
+q);
+                        SetPixelGreen(current_image,ScaleShortToQuantum(
+                          GetPixelGreen(current_image,q)),q);
+                        SetPixelBlue(current_image,ScaleShortToQuantum(
+                          GetPixelBlue(current_image,q)),q);
+                        SetPixelAlpha(current_image,ScaleShortToQuantum(
+                          GetPixelAlpha(current_image,q)),q);
+                        q+=GetPixelChannels(current_image);
+                     }
 
-    if (current_image->columns == 1)
-      mng_info->magn_methx = 1;
-    if (current_image->rows == 1)
-      mng_info->magn_methy = 1;
-    if (mng_info->magn_methx == 1)
-    {
-      magnified_width=mng_info->magn_ml;
+                     if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                       break;
+                   }
+                }
+#endif
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
 
-      if (current_image->columns > 1)
-         magnified_width += mng_info->magn_mr;
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
 
-      if (current_image->columns > 2)
-         magnified_width += (png_uint_32)
-            ((current_image->columns-2)*(mng_info->magn_mx));
-    }
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
 
-    else
-    {
-      magnified_width=(png_uint_32) current_image->columns;
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
 
-      if (current_image->columns > 1)
-         magnified_width += mng_info->magn_ml-1;
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
 
-      if (current_image->columns > 2)
-         magnified_width += mng_info->magn_mr-1;
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
 
-      if (current_image->columns > 3)
-         magnified_width += (png_uint_32)
-            ((current_image->columns-3)*(mng_info->magn_mx-1));
-    }
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
 
-    if (mng_info->magn_methy == 1)
-    {
-      magnified_height=mng_info->magn_mt;
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
 
-      if (current_image->rows > 1)
-         magnified_height += mng_info->magn_mb;
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
 
-      if (current_image->rows > 2)
-         magnified_height += (png_uint_32)
-            ((current_image->rows-2)*(mng_info->magn_my));
-    }
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
 
-    else
-    {
-      magnified_height=(png_uint_32) current_image->rows;
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
 
-      if (current_image->rows > 1)
-         magnified_height += mng_info->magn_mt-1;
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
 
-      if (current_image->rows > 2)
-         magnified_height += mng_info->magn_mb-1;
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
 
-      if (current_image->rows > 3)
-         magnified_height += (png_uint_32)
-            ((current_image->rows-3)*(mng_info->magn_my-1));
-    }
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
 
-    if (magnified_height > current_image->rows ||
-        magnified_width > current_image->columns)
-    {
-      Image
-        *large_image;
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
 
-      int
-        yy;
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
 
-      Quantum
-        *next,
-        *prev;
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
 
-      png_uint_16
-        magn_methx,
-        magn_methy;
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
 
-      ssize_t
-        m,
-        y;
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
 
-      Quantum
-        *n,
-        *q;
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
 
-      ssize_t
-        x;
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
 
-      Quantum
-        *pixels;
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
 
-      // ... (rest of the code for magnifying the image)
-    }
-  }
-}
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
+
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
+
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
+
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
+
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
+
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
+
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
+
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
+
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
+
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
+
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
+
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
+
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
+
+                    for (x=(ssize_t) current_image->columns-1; x >= 0; x--)
+                    {
+                      SetPixelRed(current_image,ScaleShortToQuantum(
+                        GetPixelRed(current_image,q)),q);
+                      SetPixelGreen(current_image,ScaleShortToQuantum(
+                        GetPixelGreen(current_image,q)),q);
+                      SetPixelBlue(current_image,ScaleShortToQuantum(
+                        GetPixelBlue(current_image,q)),q);
+                      SetPixelAlpha(current_image,ScaleShortToQuantum(
+                        GetPixelAlpha(current_image,q)),q);
+                      q+=GetPixelChannels(current_image);
+                    }
+
+                    if (SyncAuthenticPixels(current_image,exception) == MagickFalse)
+                      break;
+                  }
+                }
+              if (logging != MagickFalse)
+                (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                  "    Rescale pixels to Quantum");
+
+              if (mng_info->magn_methx == 1 && mng_info->magn_methy == 1)
+                {
+                  if (logging != MagickFalse)
+                    (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+                      "    Rescale pixels to Quantum");
+
+                  for (y=0; y < (ssize_t) current_image->rows; y++)
+                  {
+                    q=GetAuthenticPixels(current_image,0,y,current_image->columns,1,
+                      exception);
+                    if (q == (Quantum *) NULL)
+                      break;
+
+                    for (x=(ss

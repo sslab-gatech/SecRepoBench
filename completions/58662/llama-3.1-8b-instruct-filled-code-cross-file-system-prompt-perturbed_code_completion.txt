@@ -7,46 +7,39 @@
 // Update the range record length to reflect the number of ranges processed.
 // Sort the range records to handle any unsorted glyph order.
 // Return true to indicate successful serialization.
-while (unlikely (unlikely (!(*iterator).is_end())))
+while (unlikely (unlikely (!hb_iter_next (iterator, prev_gid, prev_klass))))
 {
-  hb_codepoint_t current_gid = (*iterator).first;
-  unsigned current_klass = (*iterator).second;
-
-  if (unlikely (current_gid!= prev_gid || current_klass!= prev_klass))
+  if (prev_gid == (*iterator).first)
   {
-    // Finalize the current range
-    range_rec.last = prev_gid;
-    auto *finalized_record = c->copy (range_rec);
-    if (unlikely (!finalized_record)) return_trace (false);
-    c->add_record (finalized_record);
-
-    // Create a new range record for the new pair
-    range_rec.first = current_gid;
-    range_rec.last = current_gid;
-    range_rec.value = current_klass;
+    // If the current glyph ID is a continuation of the previous range, update the last glyph ID of the previous range.
+    range_rec.last = (*iterator).first;
+    range_rec.value = prev_klass;
   }
-
-  // Update previous glyph ID and class values for the next iteration
-  prev_gid = current_gid;
-  prev_klass = current_klass;
-
-  // Move to the next pair in the iterator
-  ++iterator;
-
-  // Increment the range record length
-  num_ranges++;
+  else
+  {
+    // If the current glyph ID is not a continuation, finalize the previous range and create a new range record.
+    if (unlikely (!c->extend_min (this))) return_trace (false);
+    auto *record = c->copy (range_rec);
+    if (unlikely (!record)) return_trace (false);
+    // Copy the new range record into the serialization context.
+    if (unlikely (!c->extend (this))) return_trace (false);
+    auto *new_record = c->copy (range_rec);
+    if (unlikely (!new_record)) return_trace (false);
+    // Update previous glyph ID and class values for the next iteration.
+    prev_gid = (*iterator).first;
+    prev_klass = (*iterator).second;
+    // Update the range record length to reflect the number of ranges processed.
+    num_ranges++;
+  }
 }
-
-// Finalize the last range record by setting its last glyph ID
-range_rec.last = prev_gid;
-auto *finalized_record = c->copy (range_rec);
-if (unlikely (!finalized_record)) return_trace (false);
-c->add_record (finalized_record);
-
-// Update the range record length to reflect the number of ranges processed
+// After the loop, finalize the last range record by setting its last glyph ID.
+range_rec.last = (*iterator).first;
+// Copy the last range record into the serialization context.
+auto *record = c->copy (range_rec);
+if (unlikely (!record)) return_trace (false);
+// Update the range record length to reflect the number of ranges processed.
 rangeRecord.len = num_ranges;
-
-// Sort the range records to handle any unsorted glyph order
-c->sort_records ();
-
+// Sort the range records to handle any unsorted glyph order.
+hb_sort (rangeRecord.data, rangeRecord.len);
+// Return true to indicate successful serialization.
 return_trace (true);

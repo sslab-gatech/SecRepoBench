@@ -10,7 +10,7 @@ for (++iterator; iterator; ++iterator)
   else
   {
     range_rec.last = prev_gid;
-    record->last = range_rec.last;
+    record->last = prev_gid;
 
     range_rec.first = gid;
     range_rec.last = gid;
@@ -26,10 +26,14 @@ for (++iterator; iterator; ++iterator)
   prev_klass = klass;
 }
 
+range_rec.last = prev_gid;
 record->last = prev_gid;
+
 rangeRecord.len = num_ranges;
 
 if (num_ranges > 1)
+{
   c->sort (this);
+}
 
 return_trace (true);

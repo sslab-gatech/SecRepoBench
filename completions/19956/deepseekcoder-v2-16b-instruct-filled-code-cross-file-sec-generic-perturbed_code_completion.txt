@@ -1,25 +1,14 @@
-// Allocate memory for the VarRegionList in the context
-    if (!hb_serialize_context_push(c, sizeof(VarRegionList))) {
-        return false;
-    }
+unsigned int region_count = regionmapping.second.get_population();
+    VarRegionList *dest = c->allocate_size<VarRegionList> (VarRegionList::min_size + sizeof(hb_codepoint_t) * region_count);
+    if (unlikely (dest == nullptr)) return_trace (false);
 
-    // Set the axis and region counts based on the source and region map
-    VarRegionList *dest = hb_serialize_context_get(c);
     dest->axis_count = src->axis_count;
-    dest->region_count = regionmapping.size();
+    dest->region_count = region_count;
 
-    // Allocate additional memory as required based on the object's size calculations
-    if (!hb_serialize_context_push(c, dest->region_count * sizeof(Region))) {
-        return false;
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < region_count; i++) {
+        hb_codepoint_t region_id = regionmapping.second[i];
+        dest->regions[offset++] = region_id;
     }
 
-    // Iterate over each region in the region map, using its mapping to copy axis data from the source to the destination
-    for (const auto &pair : regionmapping) {
-        const auto &src_region = src->regions[pair.first];
-        auto &dest_region = dest->regions[pair.second];
-        // Copy axis data from the source to the destination
-        dest_region = src_region;
-    }
-
-    // Ensure successful completion by returning true if the serialization process finishes without errors
-    return true;
+    return_trace (true);

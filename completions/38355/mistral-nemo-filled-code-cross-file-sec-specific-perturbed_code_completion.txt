@@ -1,11 +1,14 @@
-if (get_type () == Type::Extension && get_edit_count () == 0) {
+if (get_type () == ExtensionType) {
   const auto& subtables = get_subtables<TSubTable>();
-  std::optional<Type> first_type;
+  if (subtables.empty ()) return_trace (false);
+
+  hb_set_t types;
   for (const auto& subtable : subtables) {
-    if (!first_type.has_value()) {
-      first_type = subtable.get_type();
-    } else if (subtable.get_type() != first_type.value()) {
-      return_trace(false);
-    }
+    if (!subtable.intersects (glyphs, lookup_context)) continue;
+    types.insert (subtable.get_type ());
   }
+
+  if (types.size () != 1) return_trace (false);
 }
+
+return_trace (true);

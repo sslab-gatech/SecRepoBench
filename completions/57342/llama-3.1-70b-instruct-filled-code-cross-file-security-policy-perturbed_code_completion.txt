@@ -1,25 +1,26 @@
+unsigned int avar_axis_count = has_avar? seg_maps->get_axis_count () : 0;
+unsigned int old_axis_idx = 0;
 bool axis_not_pinned = false;
-unsigned avar_axis_count = has_avar? seg_maps->get_axis_count () : 0;
-hb_map_t<unsigned, hb_tag_t> old_axis_idx_to_tag;
-for (unsigned old_axis_idx = 0; old_axis_idx < axes.length; old_axis_idx++) {
-  const OT::AxisRecord &axis = axes[old_axis_idx];
-  hb_tag_t axis_tag = axis.axisTag;
-  old_axis_idx_to_tag.set (old_axis_idx, axis_tag);
+
+for (unsigned int i = 0; i < axes.length; i++) {
+  const OT::AxisRecord &axis = axes[i];
+  hb_tag_t axis_tag = axis.get_axis_tag ();
+  plan->old_to_tag_map.set (old_axis_idx, axis_tag);
 
   if (plan->user_axes_location.has (axis_tag)) {
     float value = plan->user_axes_location.get (axis_tag);
-    int normalized = hb_clamp (value, axis.minimumValue, axis.maximumValue);
-    if (has_avar && old_axis_idx < avar_axis_count) {
-      int remapped = seg_maps->remap_axis (old_axis_idx, normalized);
-      plan->normalized_coords[old_axis_idx] = remapped;
-    } else {
-      plan->normalized_coords[old_axis_idx] = normalized;
-    }
-    if (normalized!= 0) {
-      plan->pinned_at_default = false;
-    }
+    int normalized_value = fontface->table.fvar->normalize_axis_value (i, value);
+    if (has_avar && old_axis_idx < avar_axis_count)
+      normalized_value = seg_maps->remap_axis_value (old_axis_idx, normalized_value);
+    plan->normalized_coords[i] = normalized_value;
+    if (normalized_value!= 0)
+      axis_not_pinned = true;
   } else {
+    plan->normalized_coords[i] = 0;
     axis_not_pinned = true;
-    plan->normalized_coords[old_axis_idx] = 0;
   }
+
+  if (has_avar && old_axis_idx < avar_axis_count)
+    seg_maps->update_segment_map (old_axis_idx, plan->normalized_coords[i]);
+  old_axis_idx++;
 }

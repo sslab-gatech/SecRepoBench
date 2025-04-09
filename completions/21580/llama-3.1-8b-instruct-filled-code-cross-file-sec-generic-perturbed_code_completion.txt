@@ -1,22 +1,30 @@
-if (iterator == nullptr) {
-  c->set_starting_glyph_index(0);
-  c->set_class_value_length(0);
-  return true;
-}
+// <MASK>
+bool serialize (hb_serialize_context_t *c,
+                  Iterator iterator)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
 
-hb_glyph_extents_t min_extents, max_extents;
-hb_glyph_extents_t *extents = iterator->get_extents(&min_extents, &max_extents);
-if (unlikely (extents == nullptr)) return_trace (false);
+    if (!iterator) {
+      c->set_starting_glyph_index (0);
+      c->set_class_value_length (0);
+      return true;
+    }
 
-uint32_t glyph_count = max_extents.advance - min_extents.advance + 1;
-c->set_starting_glyph_index(min_extents.advance);
-c->set_class_value_length(glyph_count);
+    hb_codepoint_t min_glyph_index = iterator->min ();
+    hb_codepoint_t max_glyph_index = iterator->max ();
+    hb_codepoint_t glyph_count = max_glyph_index - min_glyph_index + 1;
 
-hb_class_value_t class_value;
-if (unlikely (!c->serialize_class_value(class_value, glyph_count))) return_trace (false);
+    if (unlikely (!c->extend_min (glyph_count))) return_trace (false);
 
-uint32_t glyph_index = c->get_starting_glyph_index();
-for (Iterator::GlyphClassPair *pair : *iterator) {
-  pair->set_class_value(class_value);
-  pair->set_glyph_index(glyph_index++);
-}
+    c->set_starting_glyph_index (min_glyph_index);
+
+    if (unlikely (!c->serialize_class_value (glyph_count))) return_trace (false);
+
+    for (hb_codepoint_t i = min_glyph_index; i <= max_glyph_index; ++i) {
+      hb_codepoint_t glyph_index = i - min_glyph_index;
+      if (unlikely (!c->assign_class_value (glyph_index, iterator->at (i)))) return_trace (false);
+    }
+
+    return true;
+  }

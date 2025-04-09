@@ -1,39 +1,20 @@
-able-anymap");
-  entry->magick=(IsImageFormatHandler *) IsPNM;
-  entry->flags|=CoderAdjoinFlag;
-  (void) RegisterMagickInfo(entry);
+Info(entry);
   entry=AcquireMagickInfo("PNM","PBM","Portable bitmap format (black and white)");
   entry->decoder=(DecodeImageHandler *) ReadPNMImage;
   entry->encoder=(EncodeImageHandler *) WritePNMImage;
   entry->magick=(IsImageFormatHandler *) IsPNM;
-  entry->flags|=CoderAdjoinFlag;
+  entry->flags|=CoderDecoderSeekableStreamFlag;
   (void) RegisterMagickInfo(entry);
   entry=AcquireMagickInfo("PNM","PGM","Portable graymap format (grayscale)");
   entry->decoder=(DecodeImageHandler *) ReadPNMImage;
   entry->encoder=(EncodeImageHandler *) WritePNMImage;
   entry->magick=(IsImageFormatHandler *) IsPNM;
-  entry->flags|=CoderAdjoinFlag;
+  entry->flags|=CoderDecoderSeekableStreamFlag;
   (void) RegisterMagickInfo(entry);
   entry=AcquireMagickInfo("PNM","PPM","Portable pixmap format (color)");
   entry->decoder=(DecodeImageHandler *) ReadPNMImage;
   entry->encoder=(EncodeImageHandler *) WritePNMImage;
   entry->magick=(IsImageFormatHandler *) IsPNM;
-  entry->flags|=CoderAdjoinFlag;
-  (void) RegisterMagickInfo(entry);
-  return(MagickImageCoderSignature);
-}
-
-// the below code fragment can be found in:
-// coders/avs.c
-ModuleExport size_t RegisterAVSImage(void)
-{
-  MagickInfo
-    *entry;
-
-  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
-  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
-  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
-  entry->magick=(IsImageFormatHandler *) IsAVS;
   entry->flags|=CoderDecoderSeekableStreamFlag;
   (void) RegisterMagickInfo(entry);
   return(MagickImageCoderSignature);
@@ -360,4 +341,26 @@ ModuleExport size_t RegisterAVSImage(void)
 }
 
 // the below code fragment can be found in:
-// coders/avs
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AVS","AVS","AVS X image");
+  entry->decoder=(DecodeImageHandler *) ReadAVSImage;
+  entry->encoder=(EncodeImageHandler *) WriteAVSImage;
+  entry->magick=(IsImageFormatHandler *) IsAVS;
+  entry->flags|=CoderDecoderSeekableStreamFlag;
+  (void) RegisterMagickInfo(entry);
+  return(MagickImageCoderSignature);
+}
+
+// the below code fragment can be found in:
+// coders/avs.c
+ModuleExport size_t RegisterAVSImage(void)
+{
+  MagickInfo
+    *entry;
+
+  entry=AcquireMagickInfo("AV
