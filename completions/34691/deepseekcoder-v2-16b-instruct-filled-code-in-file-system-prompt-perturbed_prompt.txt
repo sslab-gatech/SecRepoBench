@@ -1,5 +1,4 @@
-Below is the content of a C/C++ file where a code block is masked by `// <MASK>`.
-```
+Only return the code snippet for the masked region (the part that replaces `// <MASK>`). Do not include or repeat any of the existing code before the mask. Below is the content of a C/C++ file with a masked code block indicated by `// <MASK>`.```
 /*
 ** array.c - Array class
 **
@@ -1367,4 +1366,4 @@ mrb_init_array(mrb_state *mrb)
 }
 ```
 
-Create a code snippet to fill in the masked region. Please wrap your answer in a code block (triple backquotes).
+Create a code snippet to fill in the masked region. Please output only the code snippet wrapped in triple backticks, without any additional text.

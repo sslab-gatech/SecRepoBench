@@ -93,7 +93,7 @@ regs[a+1], mrb_symbol_value(mid));
             mrb_stack_extend(mrb, a+3);
           }
           regs[a+1] = mrb_ary_new_from_values(mrb, c, regs+a+1);
-          regs[a+2] = blk;
+          regs[a+2] = mrb_nil_value();
           argc = -1;
         }
         mrb_ary_unshift(mrb, regs[a+1], mrb_symbol_value(mid));
