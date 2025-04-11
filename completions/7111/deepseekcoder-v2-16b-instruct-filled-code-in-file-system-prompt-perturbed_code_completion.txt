@@ -12,6 +12,9 @@ break;
         ThrowReaderException(CoderError,"UnknownCompression");
       }
     }
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Compression: %s",
+        GetCompressionInfo(image->compression,exception));
     if (TIFFGetFieldDefaulted(tiff,TIFFTAG_PREDICTOR,&value) == 1)
       {
         if (value == PREDICTOR_HORIZONTAL)
@@ -24,6 +27,16 @@ break;
         image->page.x=(ssize_t) pages;
         image->page.y=(ssize_t) pages;
       }
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_IMAGEDEPTH,&value) == 1)
+      image->depth=(size_t) value;
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_TILEWIDTH,&value) == 1)
+      image->tile.width=(size_t) value;
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_TILELENGTH,&value) == 1)
+      image->tile.height=(size_t) value;
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_TILEOFFSETS,&value) == 1)
+      image->tile.offset=(size_t) value;
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_TILEBYTECOUNTS,&value) == 1)
+      image->tile.length=(size_t) value;
     if (TIFFGetFieldDefaulted(tiff,TIFFTAG_SUBFILETYPE,&value) == 1)
       {
         if (value & FILETYPE_REDUCEDIMAGE)
