@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def main(args):
-    if 'gpt-' in args.model_name or 'claude-' in args.model_name or 'gemini-' in args.model_name or 'qwen-' in args.model_name:
+    
+    if 'gpt-' in args.model_name or 'claude-' in args.model_name or 'gemini-' in args.model_name or 'qwen-' in args.model_name or "llama4" in args.model_name or "llama-maverick" in args.model_name or "Qwen3" in args.model_name:
         evaler = APIEvaler(args.model_name, args.context_type, args.prompt_type, args.mode)
     else:
         evaler = ChatEvaler(args.model_name, args.context_type, args.prompt_type, args.mode)

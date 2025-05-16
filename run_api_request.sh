@@ -1,6 +1,7 @@
 #!/bin/bash
 
-MODELS=("llama4")
+
+MODELS=("llama4" "llama-maverick" "Qwen3" )
 CONTEXTS=("cross-file") 
 PROMPTS=( "system-prompt")
 MODES=("perturbed")
