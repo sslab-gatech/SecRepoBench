@@ -1,0 +1,26 @@
+/* 1) Prepare the cipher context */
+  if(!quic_ciphers_prepare(&ciphers, GCRY_MD_SHA256, GCRY_CIPHER_AES128, GCRY_CIPHER_MODE_GCM,
+                           client_secret, version)) {
+    NDPI_LOG_DBG(ndpi_struct, "Error quic_ciphers_prepare\n");
+    return NULL;
+  }
+
+  /* 2) Calculate the packet number offset by parsing the long header fields.
+     First byte (1) + Version (4) + Destination CID Len (1 + dest_conn_id_len)
+     + Source CID Len (1 + src_conn_id_len) + Token length varint + Token. */
+  pn_offset = 1 /* first byte */
+    + 4 /* version */
+    + 1 /* byte holding DCID length */
+    + dest_conn_id_len
+    + 1 /* byte holding SCID length */
+    + src_conn_id_len;
+
+  /* 3) Determine and skip the token. */
+  pn_offset += quic_len(&packet->payload[pn_offset], &token_length);
+  pn_offset += token_length;
+
+  /* 4) Retrieve the payload length from the varint at the new offset. */
+  pn_offset += quic_len(&packet->payload[pn_offset], &payload_length);
+
+  NDPI_LOG_DBG2(ndpi_struct, "pn_offset %u token_length %llu payload_length %llu\n",
+                pn_offset, (unsigned long long)token_length, (unsigned long long)payload_length);

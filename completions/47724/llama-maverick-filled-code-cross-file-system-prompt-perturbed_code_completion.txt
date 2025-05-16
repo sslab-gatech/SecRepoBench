@@ -1,0 +1,96 @@
+case 'a':
+case 'A':
+  if(ndpi_match_custom_header((char*)packet->line[i].ptr, packet->line[i].len,
+			      ndpi_struct->suspicious_http_header_list_A)) {
+    char suspicious_header[64];
+
+    snprintf(suspicious_header, sizeof(suspicious_header), "Suspicious HTTP header (A) found: %.*s",
+	     packet->line[i].len, packet->line[i].ptr);
+    ndpi_set_risk(ndpi_struct, ndpiflow, NDPI_HTTP_SUSPICIOUS_HEADER, suspicious_header);
+    return;
+  }
+  break;
+case 'c':
+case 'C':
+  if(ndpi_match_custom_header((char*)packet->line[i].ptr, packet->line[i].len,
+			      ndpi_struct->suspicious_http_header_list_C)) {
+    char suspicious_header[64];
+
+    snprintf(suspicious_header, sizeof(suspicious_header), "Suspicious HTTP header (C) found: %.*s",
+	     packet->line[i].len, packet->line[i].ptr);
+    ndpi_set_risk(ndpi_struct, ndpiflow, NDPI_HTTP_SUSPICIOUS_HEADER, suspicious_header);
+    return;
+  }
+  break;
+case 'd':
+case 'D':
+  if(ndpi_match_custom_header((char*)packet->line[i].ptr, packet->line[i].len,
+			      ndpi_struct->suspicious_http_header_list_D)) {
+    char suspicious_header[64];
+
+    snprintf(suspicious_header, sizeof(suspicious_header), "Suspicious HTTP header (D) found: %.*s",
+	     packet->line[i].len, packet->line[i].ptr);
+    ndpi_set_risk(ndpi_struct, ndpiflow, NDPI_HTTP_SUSPICIOUS_HEADER, suspicious_header);
+    return;
+  }
+  break;
+case 'e':
+case 'E':
+  if(ndpi_match_custom_header((char*)packet->line[i].ptr, packet->line[i].len,
+			      ndpi_struct->suspicious_http_header_list_E)) {
+    char suspicious_header[64];
+
+    snprintf(suspicious_header, sizeof(suspicious_header), "Suspicious HTTP header (E) found: %.*s",
+	     packet->line[i].len, packet->line[i].ptr);
+    ndpi_set_risk(ndpi_struct, ndpiflow, NDPI_HTTP_SUSPICIOUS_HEADER, suspicious_header);
+    return;
+  }
+  break;
+case 'p':
+case 'P':
+  if(ndpi_match_custom_header((char*)packet->line[i].ptr, packet->line[i].len,
+			      ndpi_struct->suspicious_http_header_list_P)) {
+    char suspicious_header[64];
+
+    snprintf(suspicious_header, sizeof(suspicious_header), "Suspicious HTTP header (P) found: %.*s",
+	     packet->line[i].len, packet->line[i].ptr);
+    ndpi_set_risk(ndpi_struct, ndpiflow, NDPI_HTTP_SUSPICIOUS_HEADER, suspicious_header);
+    return;
+  }
+  break;
+case 't':
+case 'T':
+  if(ndpi_match_custom_header((char*)packet->line[i].ptr, packet->line[i].len,
+			      ndpi_struct->suspicious_http_header_list_T)) {
+    char suspicious_header[64];
+
+    snprintf(suspicious_header, sizeof(suspicious_header), "Suspicious HTTP header (T) found: %.*s",
+	     packet->line[i].len, packet->line[i].ptr);
+    ndpi_set_risk(ndpi_struct, ndpiflow, NDPI_HTTP_SUSPICIOUS_HEADER, suspicious_header);
+    return;
+  }
+  break;
+case 'u':
+case 'U':
+  if(ndpi_match_custom_header((char*)packet->line[i].ptr, packet->line[i].len,
+			      ndpi_struct->suspicious_http_header_list_U)) {
+    char suspicious_header[64];
+
+    snprintf(suspicious_header, sizeof(suspicious_header), "Suspicious HTTP header (U) found: %.*s",
+	     packet->line[i].len, packet->line[i].ptr);
+    ndpi_set_risk(ndpi_struct, ndpiflow, NDPI_HTTP_SUSPICIOUS_HEADER, suspicious_header);
+    return;
+  }
+  break;
+case 'x':
+case 'X':
+  if(ndpi_match_custom_header((char*)packet->line[i].ptr, packet->line[i].len,
+			      ndpi_struct->suspicious_http_header_list_X)) {
+    char suspicious_header[64];
+
+    snprintf(suspicious_header, sizeof(suspicious_header), "Suspicious HTTP header (X) found: %.*s",
+	     packet->line[i].len, packet->line[i].ptr);
+    ndpi_set_risk(ndpi_struct, ndpiflow, NDPI_HTTP_SUSPICIOUS_HEADER, suspicious_header);
+    return;
+  }
+  break;

@@ -1,0 +1,259 @@
+if (strchr("(",(int) *expression) != (char *) NULL)
+    {
+      char
+        *e;
+  
+      (void) CopyMagickString(subexpression,expression+1,MagickPathExtent);
+      e=subexpression;
+      for (q=subexpression; (*q != ')') && (*q != '\0'); q++) ;
+      if (*q != ')')
+        {
+          (void) ThrowMagickException(exception,GetMagickModule(),OptionError,
+            "UnbalancedParenthesis","`%s'",expression);
+          FxReturn(0.0);
+        }
+      if (strlen(q) <= 1)
+        *q='\0';
+      else
+        {
+          *q='\0';
+          q++;
+        }
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,subexpression,depth+1,
+        beta,exception);
+      if (strlen(q) == 0)
+        FxReturn(alpha);
+      switch ((unsigned char) (*q))
+      {
+        case ',': break;
+        case '^':
+        {
+          gamma=FxEvaluateSubexpression(fx_info,channel,x,y,q+1,depth+1,
+            &gamma,exception);
+          *beta=pow(alpha,gamma);
+          FxReturn(*beta);
+        }
+        case '*':
+        {
+          gamma=FxEvaluateSubexpression(fx_info,channel,x,y,q+1,depth+1,
+            &gamma,exception);
+          *beta=alpha*gamma;
+          FxReturn(*beta);
+        }
+        case '/':
+        {
+          gamma=FxEvaluateSubexpression(fx_info,channel,x,y,q+1,depth+1,
+            &gamma,exception);
+          *beta=alpha*PerceptibleReciprocal(gamma);
+          FxReturn(*beta);
+        }
+        case '%':
+        {
+          gamma=FxEvaluateSubexpression(fx_info,channel,x,y,q+1,depth+1,
+            &gamma,exception);
+          *beta=fmod(alpha,gamma);
+          FxReturn(*beta);
+        }
+        case '+':
+        {
+          gamma=FxEvaluateSubexpression(fx_info,channel,x,y,q+1,depth+1,
+            &gamma,exception);
+          *beta=alpha+gamma;
+          FxReturn(*beta);
+        }
+        case '-':
+        {
+          gamma=FxEvaluateSubexpression(fx_info,channel,x,y,q+1,depth+1,
+            &gamma,exception);
+          *beta=alpha-gamma;
+          FxReturn(*beta);
+        }
+        default:
+        {
+          gamma=FxEvaluateSubexpression(fx_info,channel,x,y,q,depth+1,&gamma,
+            exception);
+          FxReturn(gamma);
+        }
+      }
+    }
+  if (IsFxFunction(expression,"abs",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      *beta=fabs(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"acos",4) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+4,depth+1,
+        beta,exception);
+      *beta=acos(alpha);
+      FxReturn(*beta);
+    }
+#if defined(MAGICKCORE_HAVE_ACOSH)
+  if (IsFxFunction(expression,"acosh",5) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+5,depth+1,
+        beta,exception);
+      *beta=acosh(alpha);
+      FxReturn(*beta);
+    }
+#endif
+  if (IsFxFunction(expression,"asin",4) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+4,depth+1,
+        beta,exception);
+      *beta=asin(alpha);
+      FxReturn(*beta);
+    }
+#if defined(MAGICKCORE_HAVE_ASINH)
+  if (IsFxFunction(expression,"asinh",5) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+5,depth+1,
+        beta,exception);
+      *beta=asinh(alpha);
+      FxReturn(*beta);
+    }
+#endif
+  if (IsFxFunction(expression,"atan",4) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+4,depth+1,
+        beta,exception);
+      *beta=atan(alpha);
+      FxReturn(*beta);
+    }
+#if defined(MAGICKCORE_HAVE_ATANH)
+  if (IsFxFunction(expression,"atanh",5) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+5,depth+1,
+        beta,exception);
+      *beta=atanh(alpha);
+      FxReturn(*beta);
+    }
+#endif
+  if (IsFxFunction(expression,"ceil",4) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+4,depth+1,
+        beta,exception);
+      *beta=ceil(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"cos",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      *beta=cos(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"cosh",4) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+4,depth+1,
+        beta,exception);
+      *beta=cosh(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"exp",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      *beta=exp(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"floor",5) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+5,depth+1,
+        beta,exception);
+      *beta=floor(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"log",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      *beta=log10(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"ln",2) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+2,depth+1,
+        beta,exception);
+      *beta=log(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"max",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      gamma=FxEvaluateSubexpression(fx_info,channel,x,y,++p,depth+1,&gamma,
+        exception);
+      *beta=alpha > gamma ? alpha : gamma;
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"min",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      gamma=FxEvaluateSubexpression(fx_info,channel,x,y,++p,depth+1,&gamma,
+        exception);
+      *beta=alpha < gamma ? alpha : gamma;
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"pow",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      gamma=FxEvaluateSubexpression(fx_info,channel,x,y,++p,depth+1,&gamma,
+        exception);
+      *beta=pow(alpha,gamma);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"sin",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      *beta=sin(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"sinh",4) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+4,depth+1,
+        beta,exception);
+      *beta=sinh(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"sqrt",4) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+4,depth+1,
+        beta,exception);
+      *beta=sqrt(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"tan",3) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+3,depth+1,
+        beta,exception);
+      *beta=tan(alpha);
+      FxReturn(*beta);
+    }
+  if (IsFxFunction(expression,"tanh",4) != MagickFalse)
+    {
+      alpha=FxEvaluateSubexpression(fx_info,channel,x,y,expression+4,depth+1,
+        beta,exception);
+      *beta=tanh(alpha);
+      FxReturn(*beta);
+    }
+  if (LocaleCompare(expression,"pi") == 0)
+    {
+      *beta=MagickPI;
+      FxReturn(*beta);
+    }
+  if (LocaleCompare(expression,"e") == 0)
+    {
+      *beta=2.7182818284590452354;
+      FxReturn(*beta);
+    }
+  if (LocaleCompare(expression,"quantumrange") == 0)
+    {
+      *beta=QuantumRange;
+      FxReturn(*beta);
+    }

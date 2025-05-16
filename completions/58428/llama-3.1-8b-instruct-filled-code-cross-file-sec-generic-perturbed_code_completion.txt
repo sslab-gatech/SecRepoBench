@@ -1,0 +1,20 @@
+// <MASK>
+if (phantom_only) {
+  // If phantom_only is true, we don't need to read the actual points.
+  // We can just set the end points of each contour in the points array.
+  for (unsigned i = 0; i < num_contours; i++) {
+    contour_points.arrayZ[i].x = endPtsOfContours[i].x;
+    contour_points.arrayZ[i].y = endPtsOfContours[i].y;
+  }
+  return true;
+}
+
+// If phantom_only is false, we need to read the actual points.
+// We can use the read_points function to read the x and y coordinates.
+// We need to call read_points twice, once for x and once for y.
+// We also need to call read_flags to read the flags.
+return read_flags (p, contour_points, end)
+        && read_points (p, contour_points, end, &contour_point_t::x,
+			FLAG_X_SHORT, FLAG_X_SAME)
+	&& read_points (p, contour_points, end, &contour_point_t::y,
+			FLAG_Y_SHORT, FLAG_Y_SAME);

@@ -1,0 +1,14 @@
+{
+  unsigned int glyph = 0;
+  for (const auto &_ : ranges)
+  {
+    unsigned int count = _.first;
+    hb_codepoint_t  sid = _.second;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      if (unlikely (glyph >= glyph_count)) return;
+      mapping->set (glyph, sid + i);
+      glyph++;
+    }
+  }
+}

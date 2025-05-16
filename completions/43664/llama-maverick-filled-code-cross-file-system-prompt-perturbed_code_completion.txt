@@ -1,0 +1,126 @@
+else if(extension_id == 43 /* supported versions */) {
+  u_int16_t s_offset = offset+extension_offset;
+  u_int8_t version_len =  packet->payload[s_offset];
+  u_int8_t i;
+
+#ifdef DEBUG_TLS
+  printf("Client TLS [TLS version len: %u]\n", version_len);
+#endif
+
+  s_offset++;
+  for(i = 0; i < version_len && s_offset + 1 < total_len; i += 2) {
+    u_int16_t tls_version = ntohs(*((u_int16_t*)&packet->payload[s_offset+i]));
+
+#ifdef DEBUG_TLS
+    printf("Client TLS [TLS version: 0x%04X]\n", tls_version);
+#endif
+
+    if(ja3.client.supported_versions[0] != '\0')
+      strncat(ja3.client.supported_versions, "-", sizeof(ja3.client.supported_versions) - strlen(ja3.client.supported_versions) - 1);
+    char tls_version_str[8];
+    snprintf(tls_version_str, sizeof(tls_version_str), "%04X", tls_version);
+    strncat(ja3.client.supported_versions, tls_version_str, sizeof(ja3.client.supported_versions) - strlen(ja3.client.supported_versions) - 1);
+
+    flow->protos.tls_quic.tls_supported_versions = tls_version;
+  }
+} else if(extension_id == 0x0033 /* encrypted server name */ &&
+          offset + extension_offset + 2 < total_len) {
+  u_int16_t s_offset = offset + extension_offset;
+  u_int16_t esni_len = ntohs(*((u_int16_t*)&packet->payload[s_offset]));
+
+  if(esni_len > 0 && esni_len + 2 == extension_len) {
+    if(flow->protos.tls_quic.encrypted_sni.esni == NULL)
+      flow->protos.tls_quic.encrypted_sni.esni = ndpi_malloc(esni_len + 1);
+
+    if(flow->protos.tls_quic.encrypted_sni.esni) {
+      memcpy(flow->protos.tls_quic.encrypted_sni.esni, &packet->payload[s_offset + 2], esni_len);
+      flow->protos.tls_quic.encrypted_sni.esni[esni_len] = '\0';
+      flow->protos.tls_quic.encrypted_sni.length = esni_len;
+    }
+  }
+} else if(extension_id == 0xffa5 /* quic transport parameters */ &&
+          offset + extension_offset + 4 < total_len) {
+  u_int16_t s_offset = offset+extension_offset;
+  u_int16_t tot_parameters_len = ntohs(*((u_int16_t*)&packet->payload[s_offset]));
+
+#ifdef DEBUG_TLS
+  printf("Client TLS [QUIC transport parameters: block_len=%u/len=%u]\n", extension_len, tot_parameters_len);
+#endif
+
+  s_offset += 2;
+  tot_parameters_len += s_offset;
+
+  while(s_offset < tot_parameters_len && s_offset < total_len) {
+    u_int64_t  parameter_id, parameter_len;
+    u_int8_t parameter_id_len = packet->payload[s_offset] >> 4;
+    u_int8_t parameter_len_len = packet->payload[s_offset] & 0x0F;
+
+    if(parameter_id_len == 0 || parameter_len_len == 0 ||
+       s_offset + 1 + parameter_id_len + parameter_len_len > total_len)
+      break;
+
+    if(parameter_id_len == 1)
+      parameter_id = packet->payload[s_offset + 1];
+    else if(parameter_id_len == 2)
+      parameter_id = ntohs(*((u_int16_t*)&packet->payload[s_offset + 1]));
+    else if(parameter_id_len == 4)
+      parameter_id = ntohl(*((u_int32_t*)&packet->payload[s_offset + 1]));
+    else /* if(parameter_id_len == 8) */ {
+      u_int64_t v1 = ntohl(*((u_int32_t*)&packet->payload[s_offset + 1]));
+      u_int64_t v2 = ntohl(*((u_int32_t*)&packet->payload[s_offset + 5]));
+
+      parameter_id = ((v1 << 32) + v2);
+    }
+
+    s_offset += 1 + parameter_id_len;
+
+    if(parameter_len_len == 1)
+      parameter_len = packet->payload[s_offset];
+    else if(parameter_len_len == 2)
+      parameter_len = ntohs(*((u_int16_t*)&packet->payload[s_offset]));
+    else if(parameter_len_len == 4)
+      parameter_len = ntohl(*((u_int32_t*)&packet->payload[s_offset]));
+    else /* if(parameter_len_len == 8) */ {
+      u_int64_t v1 = ntohl(*((u_int32_t*)&packet->payload[s_offset]));
+      u_int64_t v2 = ntohl(*((u_int32_t*)&packet->payload[s_offset + 4]));
+
+      parameter_len = ((v1 << 32) + v2);
+    }
+
+    s_offset += parameter_len_len;
+
+#ifdef DEBUG_TLS
+    printf("Client TLS [QUIC transport parameter: parameter_id=%llu/len=%llu]\n", parameter_id, parameter_len);
+#endif
+
+    if(s_offset + parameter_len > total_len)
+      break;
+
+    if(parameter_id == 0x39 /* user_agent */) {
+      u_int16_t s_offset2 = s_offset;
+
+      while(s_offset2 < s_offset + parameter_len && s_offset2 < total_len) {
+        u_int16_t len = ntohs(*((u_int16_t*)&packet->payload[s_offset2]));
+
+        s_offset2 += 2;
+
+        if((s_offset2 + len) <= (s_offset + parameter_len) &&
+           (s_offset2 + len) <= total_len) {
+          char ua_str[256];
+          u_int16_t ua_str_len = ndpi_min(len, sizeof(ua_str) - 1);
+
+          memcpy(ua_str, &packet->payload[s_offset2], ua_str_len);
+          ua_str[ua_str_len] = '\0';
+
+          if(flow->protos.tls_quic.user_agent == NULL)
+            flow->protos.tls_quic.user_agent = ndpi_strdup(ua_str);
+
+          s_offset2 += len;
+        } else
+          break;
+      }
+    }
+
+    s_offset += parameter_len;
+  }
+}

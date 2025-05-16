@@ -1,0 +1,27 @@
+{
+  /* If the second protocol in the stack is unknown, attempt to set both stack[0] and stack[1]
+   * according to whether we already have a detected protocol or only a guessed one.
+   */
+  if(http_flow->detected_protocol_stack[1] == NDPI_PROTOCOL_UNKNOWN) {
+    if(http_flow->detected_protocol_stack[0] == NDPI_PROTOCOL_UNKNOWN) {
+      /* "detected" in flow == 0, so "detected" = "guess" */
+      http_flow->detected_protocol_stack[0] = http_flow->guessed_protocol_id;
+    } else if(http_flow->guessed_protocol_id == NDPI_PROTOCOL_UNKNOWN) {
+      /* else "guess" = "detected" */
+      http_flow->guessed_protocol_id = http_flow->detected_protocol_stack[0];
+    }
+
+    /* Now place the guessed protocol in stack[1], if different from the main protocol. */
+    if(http_flow->guessed_protocol_id != NDPI_PROTOCOL_UNKNOWN &&
+       http_flow->guessed_protocol_id != http_flow->detected_protocol_stack[0]) {
+      http_flow->detected_protocol_stack[1] = http_flow->guessed_protocol_id;
+    }
+  } else {
+    /* If we already have something in stack[1], enforce consistency with the guessed protocol. */
+    if(http_flow->guessed_protocol_id == NDPI_PROTOCOL_UNKNOWN) {
+      http_flow->guessed_protocol_id = http_flow->detected_protocol_stack[1];
+    } else if(http_flow->detected_protocol_stack[0] == NDPI_PROTOCOL_UNKNOWN) {
+      http_flow->detected_protocol_stack[0] = http_flow->guessed_protocol_id;
+    }
+  }
+}

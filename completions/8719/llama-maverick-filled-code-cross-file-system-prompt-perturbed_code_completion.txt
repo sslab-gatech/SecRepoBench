@@ -1,0 +1,10 @@
+count=(size_t) ReadBlob(image,4,type);
+type[4]='\0';
+length=(size_t) mng_get_long((unsigned char *) type);
+if (length > GetBlobSize(image))
+  ThrowReaderException(CorruptImageError,"CorruptImage");
+count=(size_t) ReadBlob(image,4,type);
+if (logging != MagickFalse)
+  (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+    "  Reading %c%c%c%c chunk, length: %.20g","\""+(type[0] == ' '),
+    type[0],type[1],type[2],type[3],(double) length);

@@ -1,0 +1,22 @@
+if (strstr(urlString, "file://") == urlString) {
+    if (urlString[7] == ':' && urlString[8] == '/') {
+        // Handle "file:///" with a drive letter
+        memmove(urlString, urlString + 8, strlen(urlString) - 7);
+    } else {
+        // Handle "file://" without a drive letter
+        memmove(urlString, urlString + 7, strlen(urlString) - 6);
+    }
+}
+
+// Replace "%20" with spaces
+char *dst = urlString;
+char *src = urlString;
+while (*src) {
+    if (src[0] == '%' && src[1] == '2' && src[2] == '0') {
+        *dst++ = ' ';
+        src += 3;
+    } else {
+        *dst++ = *src++;
+    }
+}
+*dst = '\0';

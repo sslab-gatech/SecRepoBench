@@ -1,0 +1,6 @@
+#ifndef HB_NO_GLYF
+      /* Initialize the glyf and loca tables. */
+      loca_table = hb_sanitize_context_t ().reference_table<OT::loca> (faceptr);
+      glyf_table = hb_sanitize_context_t ().reference_table<OT::glyf> (faceptr);
+      num_glyphs = loca_table.get_length () / (short_offset ? 2 : 4);
+#endif

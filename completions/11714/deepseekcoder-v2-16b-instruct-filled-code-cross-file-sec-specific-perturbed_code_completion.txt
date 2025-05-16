@@ -1,0 +1,21 @@
+// Retrieve the count of regions and a numeric value from the argument stack.
+    unsigned int count = env.argStack.pop_uint32();
+    float numericValue = env.argStack.pop_float();
+
+    // Initialize the blend array with default values.
+    std::vector<float> blendArray(count, numericValue);
+
+    // Transfer blend values from the argument stack to the blend array.
+    for (unsigned int i = 0; i < count; ++i) {
+        blendArray[i] = env.argStack.pop_float();
+    }
+
+    // Apply the blend modifications to the default values.
+    for (unsigned int i = 0; i < count; ++i) {
+        blendArray[i] *= numericValue;
+    }
+
+    // Remove the blend values from the argument stack, leaving only the default values with their blend modifications applied.
+    for (unsigned int i = 0; i < count; ++i) {
+        env.argStack.push_float(blendArray[i]);
+    }

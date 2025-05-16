@@ -1,0 +1,61 @@
+if (input_string.empty()) {
+    return;
+}
+
+input_string.erase(0, input_string.find_first_not_of(" \n\r\t"));
+
+char separator = '/';
+#ifdef _WIN32
+    separator = '\\';
+#endif
+
+bool inURI = false;
+bool skipNext = false;
+
+std::string::iterator it = input_string.begin();
+while (it != input_string.end()) {
+    char c = *it;
+
+    if (skipNext) {
+        skipNext = false;
+        ++it;
+        continue;
+    }
+
+    if (c == '%' && inURI) {
+        if (std::distance(it, input_string.end()) >= 3) {
+            int val = 0;
+            try {
+                val = std::stoi(std::string(it + 1, it + 3), nullptr, 16);
+            } catch (...) {
+                // Ignore invalid escape sequences
+            }
+            if (val) {
+                c = static_cast<char>(val);
+                input_string.replace(it, it + 3, 1, c);
+            }
+        }
+        skipNext = true;
+        ++it;
+        continue;
+    }
+
+    if (c == ':' || c == '\\') {
+        inURI = false;
+    }
+
+    if (c == '/') {
+        inURI = true;
+    }
+
+    if (c == '/' || c == '\\') {
+        c = separator;
+        if (it != input_string.begin() && *(it - 1) == separator) {
+            it = input_string.erase(it);
+            continue;
+        }
+    }
+
+    *it = c;
+    ++it;
+}

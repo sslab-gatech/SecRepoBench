@@ -1,0 +1,92 @@
+is_epoch = FLB_FALSE;
+p->time_with_year = FLB_TRUE;
+p->time_with_tz = FLB_FALSE;
+timeptr = p->time_fmt;
+while (*timeptr != '\0') {
+    if (*timeptr == '%') {
+        timeptr++;
+        if (*timeptr == '\0') {
+            break;
+        }
+        else if (*timeptr == 'Y' || *timeptr == 'y') {
+            p->time_with_year = FLB_TRUE;
+        }
+        else if (*timeptr == 's') {
+            is_epoch = FLB_TRUE;
+            p->time_with_year = FLB_TRUE;
+        }
+        else if (*timeptr == 'L') {
+            /* Fractional seconds */
+            diff = (timeptr - p->time_fmt);
+            len = strlen(p->time_fmt);
+            size = (len - diff) + 1;
+            tmp = flb_malloc(size);
+            if (!tmp) {
+                flb_errno();
+                flb_free(p->time_fmt);
+                flb_free(p->time_fmt_full);
+                flb_free(p);
+                return NULL;
+            }
+            memcpy(tmp, timeptr + 1, size - 1);
+            tmp[size - 1] = '\0';
+            p->time_frac_str = tmp;
+            p->time_fmt_len = diff;
+            break;
+        }
+        else if (*timeptr == 'z' || *timeptr == 'Z') {
+#if !defined(HAVE_TIMEGM_R) && !defined(HAVE_TIMEGM)
+            flb_error("[parser] timezone parsing is not supported");
+            flb_free(p->time_fmt);
+            flb_free(p->time_fmt_full);
+            flb_free(p);
+            return NULL;
+#endif
+            p->time_with_tz = FLB_TRUE;
+        }
+    }
+    timeptr++;
+}
+
+if (is_epoch == FLB_TRUE) {
+    p->time_fmt_is_epoch = FLB_TRUE;
+    p->time_with_tz = FLB_FALSE;
+    flb_free(p->time_fmt);
+    p->time_fmt = NULL;
+    if (time_offset) {
+        p->time_offset = flb_strdup(time_offset);
+    }
+    return p;
+}
+
+if (p->time_with_year == FLB_FALSE) {
+    len = strlen(p->time_fmt);
+    size = 5 + len + 1;
+    tmp = flb_malloc(size);
+    if (!tmp) {
+        flb_errno();
+        flb_free(p->time_fmt);
+        flb_free(p->time_fmt_full);
+        flb_free(p);
+        return NULL;
+    }
+    snprintf(tmp, size, "%%Y%s", p->time_fmt);
+    p->time_fmt_year = tmp;
+}
+
+if (time_offset) {
+    len = strlen(p->time_fmt_full);
+    size = len + strlen(time_offset) + 2;
+    tmp = flb_malloc(size);
+    if (!tmp) {
+        flb_errno();
+        flb_free(p->time_fmt);
+        flb_free(p->time_fmt_full);
+        flb_free(p);
+        return NULL;
+    }
+    snprintf(tmp, size, "%s %s", p->time_fmt_full, time_offset);
+    flb_free(p->time_fmt_full);
+    p->time_offset = flb_strdup(time_offset);
+    p->time_fmt_full = tmp;
+}

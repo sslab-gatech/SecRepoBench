@@ -1,0 +1,9 @@
+/*
+    Retrieve EXIF properties unless explicitly disabled via the
+    "tiff:exif-properties" option. This call populates various image
+    properties (e.g., exif:DateTime, exif:Make, exif:Model, and so on)
+    from the TIFF's EXIF directory if present.
+  */
+  option=GetImageOption(image_info,"tiff:exif-properties");
+  if ((option == (char *) NULL) || (IsStringFalse(option) == MagickFalse))
+    (void) TIFFGetEXIFProperties(tiff,image,exception);

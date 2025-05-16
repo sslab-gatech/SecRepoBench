@@ -1,0 +1,100 @@
+less = 0;
+space = 0;
+port = 0;
+for (k = j; k < packet->line[i].len; k++) {
+  if (packet->line[i].ptr[k] == ' ') {
+    space++;
+    if (space == 3) {
+      k++;
+      while (k < packet->line[i].len && packet->line[i].ptr[k] >= '0'
+	     && packet->line[i].ptr[k] <= '9') {
+	port *= 10;
+	port += packet->line[i].ptr[k] - '0';
+	k++;
+      }
+      if (port != 0) {
+	if (src_id != NULL) {
+	  for (counter = 0; counter < src_id->irc_number_of_port; counter++) {
+	    if (src_id->irc_port[counter] == port) {
+	      less = 1;
+	      src_id->last_time_port_used[counter] =
+		packet->tick_timestamp;
+	      break;
+	    }
+	  }
+	  if (less == 0) {
+	    if (src_id->irc_number_of_port < MAX_IRC_PORTS) {
+	      src_id->irc_port[src_id->irc_number_of_port] = port;
+	      src_id->last_time_port_used[src_id->irc_number_of_port] =
+		packet->tick_timestamp;
+	      src_id->irc_number_of_port++;
+	    } else {
+	      u_int32_t min = 0;
+	      u_int8_t found = 0;
+	      for (counter = 0; counter < MAX_IRC_PORTS; counter++) {
+		if (src_id->irc_port[counter] == port) {
+		  found = 1;
+		  src_id->last_time_port_used[counter] =
+		    packet->tick_timestamp;
+		  break;
+		}
+	      }
+
+	      if (!found) {
+		for (counter = 0; counter < MAX_IRC_PORTS; counter++) {
+		  if (src_id->last_time_port_used[counter] <
+		      src_id->last_time_port_used[min]) {
+		    min = counter;
+		  }
+		}
+		src_id->irc_port[min] = port;
+		src_id->last_time_port_used[min] = packet->tick_timestamp;
+	      }
+	    }
+	  }
+	}
+	if (dst != NULL) {
+	  less = 0;
+	  for (counter = 0; counter < dst->irc_number_of_port; counter++) {
+	    if (dst->irc_port[counter] == port) {
+	      less = 1;
+	      dst->last_time_port_used[counter] = packet->tick_timestamp;
+	      break;
+	    }
+	  }
+	  if (less == 0) {
+	    if (dst->irc_number_of_port < MAX_IRC_PORTS) {
+	      dst->irc_port[dst->irc_number_of_port] = port;
+	      dst->last_time_port_used[dst->irc_number_of_port] =
+		packet->tick_timestamp;
+	      dst->irc_number_of_port++;
+	    } else {
+	      u_int32_t min = 0;
+	      u_int8_t found = 0;
+	      for (counter = 0; counter < MAX_IRC_PORTS; counter++) {
+		if (dst->irc_port[counter] == port) {
+		  found = 1;
+		  dst->last_time_port_used[counter] =
+		    packet->tick_timestamp;
+		  break;
+		}
+	      }
+
+	      if (!found) {
+		for (counter = 0; counter < MAX_IRC_PORTS; counter++) {
+		  if (dst->last_time_port_used[counter] <
+		      dst->last_time_port_used[min]) {
+		    min = counter;
+		  }
+		}
+		dst->irc_port[min] = port;
+		dst->last_time_port_used[min] = packet->tick_timestamp;
+	      }
+	    }
+	  }
+	}
+      }
+      break;
+    }
+  }
+}

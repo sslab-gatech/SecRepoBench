@@ -1,0 +1,34 @@
+/*
+    If floating-point format, clamp the quantum depth.
+  */
+  if (quantumdata->format == FloatingPointQuantumFormat)
+    {
+      if (quantumdata->depth <= 16)
+        quantumdata->depth=16;
+      else if (quantumdata->depth <= 32)
+        quantumdata->depth=32;
+      else
+        quantumdata->depth=64;
+    }
+
+  /*
+    Calculate required buffer size.
+  */
+  {
+    const size_t channels=GetPixelChannels(image);
+    quantum=(channels*quantumdata->depth)+quantumdata->pad;
+    extent=(((quantum+7)/8)*((size_t) image->columns)*((size_t) image->rows));
+
+    /*
+      Reallocate quantum buffer if needed.
+    */
+    if (extent > quantumdata->extent)
+      {
+        quantumdata->pixels=(unsigned char *) ResizeQuantumMemory(
+          quantumdata->pixels,extent,sizeof(*quantumdata->pixels));
+        if (quantumdata->pixels == (unsigned char *) NULL)
+          return(MagickFalse);
+        quantumdata->extent=extent;
+      }
+  }
+  return(MagickTrue);

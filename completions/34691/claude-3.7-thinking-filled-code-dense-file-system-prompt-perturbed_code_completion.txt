@@ -1,0 +1,15 @@
+if (n < 0) {
+  mrb_raise(mrb, E_ARGUMENT_ERROR, "negative array size");
+}
+if (n == 0) {
+  return mrb_ary_new(mrb);
+}
+if (len == 0) {
+  return mrb_nil_value();
+}
+if (n > len) {
+  n = len;
+}
+
+ary_modify_check(mrb, ary);
+val = ary_subseq(mrb, ary, 0, n);

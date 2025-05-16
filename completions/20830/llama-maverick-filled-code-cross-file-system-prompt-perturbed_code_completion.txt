@@ -1,0 +1,61 @@
+char temp_str[64];
+u_int i, j, k, max_len;
+u_int8_t found_quote1 = 0, found_quote2 = 0, found_quote3 = 0;
+
+max_len = sizeof(temp_str) - 1;
+if (command_start + 6 >= flow_packet->payload_packet_len)
+  return;
+
+i = command_start + 5; /* LOGIN */
+j = 0;
+
+while (i < flow_packet->payload_packet_len && j < max_len) {
+  temp_str[j++] = flow_packet->payload[i++];
+  if (flow_packet->payload[i - 1] == ' ' || flow_packet->payload[i - 1] == '\r' || flow_packet->payload[i - 1] == '\n')
+    break;
+}
+
+temp_str[j] = '\0';
+
+#ifdef IMAP_DEBUG
+printf("**** %s() [IMAP: %s]\n", __FUNCTION__, temp_str);
+#endif
+
+i = command_start + 6; /* Skip "LOGIN " */
+while (i < flow_packet->payload_packet_len) {
+  if (!found_quote1) {
+    if (flow_packet->payload[i] == '"') {
+      i++;
+      found_quote1 = 1;
+      j = 0;
+      continue;
+    }
+  } else {
+    if (!found_quote2) {
+      if (flow_packet->payload[i] == '"') {
+        found_quote2 = 1;
+        flow->protos.ftp_imap_pop_smtp.username[j] = '\0';
+#ifdef IMAP_DEBUG
+        printf("**** %s() [1st param: %s][%d]\n", __FUNCTION__, flow->protos.ftp_imap_pop_smtp.username, j);
+#endif
+        i++;
+        j = 0;
+        continue;
+      } else
+        flow->protos.ftp_imap_pop_smtp.username[j++] = flow_packet->payload[i];
+    } else {
+      if (!found_quote3) {
+        if (flow_packet->payload[i] == '"') {
+          found_quote3 = 1;
+          flow->protos.ftp_imap_pop_smtp.password[j] = '\0';
+#ifdef IMAP_DEBUG
+          printf("**** %s() [2nd param: %s][%d]\n", __FUNCTION__, flow->protos.ftp_imap_pop_smtp.password, j);
+#endif
+        } else
+          flow->protos.ftp_imap_pop_smtp.password[j++] = flow_packet->payload[i];
+      }
+    }
+  }
+
+  i++;
+}

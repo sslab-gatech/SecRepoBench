@@ -1,0 +1,19 @@
+if (lookupType == 7 && c->edit_count == 0)
+{
+  // If this is an Extension lookup with edit_count == 0, ensure all subtables
+  // reference the same extension type. If they differ, fail sanitization.
+  if (subtablecount > 0)
+  {
+    // Read the extension lookup type from the first subtable.
+    const auto &first_ext_subtable = get_subtable<TSubTable>(0);
+    HBUINT16 extension_type = first_ext_subtable.extensionLookupType;
+
+    // Compare extension lookup types for all remaining subtables.
+    for (unsigned j = 1; j < subtablecount; j++)
+    {
+      const auto &ext_subtable = get_subtable<TSubTable>(j);
+      if (ext_subtable.extensionLookupType != extension_type)
+        return_trace (false);
+    }
+  }
+}

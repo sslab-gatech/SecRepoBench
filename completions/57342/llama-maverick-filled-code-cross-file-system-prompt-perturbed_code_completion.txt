@@ -1,0 +1,25 @@
+unsigned axis_index = 0;
+bool axis_not_pinned = false;
+for (const auto& axis : axes)
+{
+  float user_value = plan->user_axes_location.get (axis.tag);
+  if (user_value == HB_VARIATION_COORD_NO_VALUE)
+  {
+    axis_not_pinned = true;
+    plan->normalized_coords[axis_index] = 0; // Not pinned, set to default normalized value
+    plan->axes_location.set (axis.tag, axis.defaultValue);
+  }
+  else
+  {
+    int normalized = axis.normalize (user_value);
+    if (has_avar)
+      seg_maps = &face->table.avar->get_axis_map (axis_index);
+    if (seg_maps != nullptr && seg_maps->has_data ())
+      normalized = seg_maps->map (normalized);
+    plan->normalized_coords[axis_index] = normalized;
+    plan->axes_location.set (axis.tag, user_value);
+    if (normalized != 0)
+      plan->pinned_at_default = false;
+  }
+  axis_index++;
+}

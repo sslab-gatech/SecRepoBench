@@ -1,0 +1,8 @@
+if (checkcompoundrep && cpdrep_check(compound_word.c_str() + i, len - i)) {
+  st[i] = compound_word[i - 1];
+  if (check_forbidden(st.substr(i)) != 0) {
+    st[i] = ch;
+    continue;
+  }
+  st[i] = ch;
+}

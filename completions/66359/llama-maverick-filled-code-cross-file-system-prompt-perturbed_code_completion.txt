@@ -1,0 +1,21 @@
+i = 0;
+while (i + 4 < vosh_size) {
+	frame = memchr(decoderconfig + i + 4, 'D', vosh_size - i - 4);
+	if (!frame) break;
+	if ((frame[1] == 'i') && (frame[2] == 'v') && (frame[3] == 'X')) {
+		ctx->is_packed = GF_TRUE;
+		if (frame[4] == 'M') {
+			if ((frame[5] == 'p') && (frame[6] == '4') && (frame[7] == ' ') && (frame[8] == 'p')) {
+				ctx->is_packed = GF_FALSE;
+			}
+		} else {
+			frame = memchr(decoderconfig + i + 4, 'p', vosh_size - i - 4);
+			if (frame) {
+				ctx->forced_packed = GF_TRUE;
+				frame[0] = 'n';
+			}
+		}
+		break;
+	}
+	i = (u32) (frame - decoderconfig);
+}

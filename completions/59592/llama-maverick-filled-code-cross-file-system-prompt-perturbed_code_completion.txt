@@ -1,0 +1,68 @@
+hb_subset_plan_t *plan = context->plan;
+unsigned num_glyphs = plan->num_output_glyphs ();
+if (unlikely (!num_glyphs))
+  return_trace (true);
+
+const hb_vector_t<hb_codepoint_t> &glyphs = plan->glyphs;
+
+hb_vector_t<glyph_info_t> subset_glyphs;
+if (unlikely (!subset_glyphs.resize (num_glyphs)))
+  return_trace (false);
+
+for (unsigned i = 0; i < num_glyphs; i++)
+{
+  subset_glyphs[i].glyph = glyphs[i];
+  if (!get_glyph_info (subset_glyphs[i], font))
+    return_trace (false);
+}
+
+unsigned max_glyph_size = 0;
+for (unsigned i = 0; i < num_glyphs; i++)
+  max_glyph_size = hb_max (max_glyph_size, subset_glyphs[i].glyph->get_size ());
+
+bool short_loca = max_glyph_size < 0x20000;
+if (!short_loca && !has_long_loca (plan->source))
+  return_trace (false);
+
+OT::glyf::accelerator_t glyf_accelerator;
+glyf_accelerator.init (plan->source);
+
+hb_vector_t<unsigned> loca_values;
+if (unlikely (!loca_values.resize (num_glyphs + 1)))
+  return_trace (false);
+
+unsigned glyph_offset = 0;
+for (unsigned i = 0; i < num_glyphs; i++)
+{
+  loca_values[i] = glyph_offset;
+  const glyph_info_t &info = subset_glyphs[i];
+  glyph_offset += info.glyph->get_size ();
+}
+loca_values[num_glyphs] = glyph_offset;
+
+bool result = true;
+if (!context->serializer->start_serialize<OT::glyf> ())
+  return_trace (false);
+
+for (unsigned i = 0; i < num_glyphs; i++)
+{
+  const glyph_info_t &info = subset_glyphs[i];
+  if (!info.glyph->serialize (context->serializer, info, &glyf_accelerator, short_loca ? 1 : 0))
+  {
+    result = false;
+    break;
+  }
+}
+
+for (unsigned i = 0; i < num_glyphs; i++)
+  subset_glyphs[i].glyph->free_compiled_bytes ();
+
+glyf_accelerator.fini ();
+
+if (result)
+  result = context->serializer->check_success (OT::glyf::serialize_loca (context->serializer, loca_values, short_loca ? 1 : 0));
+
+if (font)
+  hb_font_destroy (font);
+
+return_trace (result);

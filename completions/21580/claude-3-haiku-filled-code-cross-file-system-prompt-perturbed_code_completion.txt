@@ -1,0 +1,33 @@
+// If the iterator is null, set the starting glyph index and class value length to zero, and return true.
+if (unlikely (iterator == nullptr))
+{
+  startGlyphIndex = 0;
+  classValueLength = 0;
+  return_trace (true);
+}
+
+// Determine the minimum and maximum glyph indices from the iterator to calculate the glyph count.
+hb_codepoint_t minGlyphIndex = HB_SET_VALUE_INVALID;
+hb_codepoint_t maxGlyphIndex = 0;
+for (const auto& pair : iterator)
+{
+  minGlyphIndex = hb_min (minGlyphIndex, pair.first);
+  maxGlyphIndex = hb_max (maxGlyphIndex, pair.first);
+}
+unsigned glyphCount = maxGlyphIndex - minGlyphIndex + 1;
+
+// Set the starting glyph index to the minimum glyph index.
+startGlyphIndex = minGlyphIndex;
+
+// Serialize the class value using the serialization context and the calculated glyph count.
+if (unlikely (!c->allocate_size<HBUINT16> (glyphCount)))
+  return_trace (false);
+
+// Iterate over the glyph-class pairs in the iterator, and assign the class value to each glyph index relative to the starting glyph index.
+classValueLength = glyphCount;
+for (const auto& pair : iterator)
+{
+  c->copy<HBUINT16> (static_cast<HBUINT16> (pair.second));
+}
+
+return_trace (true);

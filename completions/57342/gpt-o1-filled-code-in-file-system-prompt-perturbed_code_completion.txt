@@ -1,0 +1,51 @@
+if (has_avar)
+{
+  seg_maps = &fontface->table.avar->get_segments ();
+}
+
+bool axis_not_pinned = false;
+
+for (unsigned i = 0; i < axes.length; i++)
+{
+  hb_tag_t axis_tag = axes[i].axisTag;
+  plan->axes_old_index_tag_map.set (i, axis_tag);
+
+  // Check whether user has specified a value for this axis
+  if (!plan->user_axes_location.has (axis_tag))
+  {
+    // If no user-specified value, axis is not pinned, normalize to zero
+    axis_not_pinned = true;
+    plan->axes_location.del (axis_tag);
+    plan->normalized_coords[i] = 0.0f;
+    continue;
+  }
+
+  float user_value = plan->user_axes_location.get (axis_tag);
+  float axis_min = axes[i].minValue;
+  float axis_def = axes[i].defaultValue;
+  float axis_max = axes[i].maxValue;
+
+  // Clamp user value if out of range
+  if (user_value < axis_min)
+    user_value = axis_min;
+  else if (user_value > axis_max)
+    user_value = axis_max;
+
+  // Compute normalized coordinate
+  float denom = axis_max - axis_def;
+  float normalized = (fabsf (denom) > 1e-6f)
+                     ? (user_value - axis_def) / denom
+                     : 0.0f;
+
+  // If 'avar' table is present, remap the normalized value
+  if (has_avar && i < seg_maps->get_length ())
+    normalized = seg_maps->get (i).map (normalized);
+
+  // Update plan with final user value and normalized value
+  plan->axes_location.set (axis_tag, user_value);
+  plan->normalized_coords[i] = normalized;
+
+  // Check if axis is pinned at default or not
+  if (fabsf (normalized) > 1e-9f)
+    plan->pinned_at_default = false;
+}

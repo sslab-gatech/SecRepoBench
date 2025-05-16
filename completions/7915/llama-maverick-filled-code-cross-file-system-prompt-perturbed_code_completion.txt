@@ -1,0 +1,10 @@
+n=0;
+  if (primitive_info->primitive == UndefinedPrimitive)
+    return((PathInfo *) NULL);
+  for (i=0; primitive_info[i].primitive != UndefinedPrimitive; i++) ;
+  path_info=(PathInfo *) AcquireQuantumMemory((size_t) i+2UL,sizeof(*path_info));
+  if (path_info == (PathInfo *) NULL)
+    return((PathInfo *) NULL);
+  coordinates=0;
+  q.x=(-1.0);
+  q.y=(-1.0);

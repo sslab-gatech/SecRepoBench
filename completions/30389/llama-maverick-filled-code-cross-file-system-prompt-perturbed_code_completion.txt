@@ -1,0 +1,34 @@
+if(len > 0) {
+      if(memcmp(tag, "SNI\0", 4) == 0) {
+        if(sni_len + len >= sizeof(flow->protos.tls_quic_stun.tls_quic.client_requested_server_name)) {
+          NDPI_LOG_DBG(detectionmodule, "SNI too long [%u]", len);
+          return;
+        }
+        memcpy(&flow->protos.tls_quic_stun.tls_quic.client_requested_server_name[sni_len], &crypto_data[offset], len);
+        sni_len += len;
+        flow->protos.tls_quic_stun.tls_quic.client_requested_server_name[sni_len] = '\0';
+
+#ifdef QUIC_DEBUG
+        NDPI_LOG_DBG(detectionmodule, "Client TLS SNI: %s\n",
+                     flow->protos.tls_quic_stun.tls_quic.client_requested_server_name);
+#endif
+
+        ndpi_match_hostname_protocol(detectionmodule, flow,
+                                     &ret_match,
+                                     flow->protos.tls_quic_stun.tls_quic.client_requested_server_name,
+                                     sni_len, NDPI_PROTOCOL_TLS);
+        check_dga_match(detectionmodule, flow, &ret_match);
+
+        sni_found = 1;
+      } else if(memcmp(tag, "UAID", 4) == 0) {
+#ifdef QUIC_DEBUG
+        NDPI_LOG_DBG(detectionmodule, "Found UAID");
+#endif
+        http_process_user_agent(detectionmodule, flow,
+                                &crypto_data[offset], len);
+        ua_found = 1;
+      }
+    }
+
+    if(sni_found && ua_found)
+      return;

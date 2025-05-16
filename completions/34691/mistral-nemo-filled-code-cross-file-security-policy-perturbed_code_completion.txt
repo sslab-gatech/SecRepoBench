@@ -1,0 +1,21 @@
+if (n < 0) {
+    mrb_raise(mrb, E_ARGUMENT_ERROR, "negative shift count");
+  }
+  if (len > ARY_SHIFT_SHARED_MIN) {
+    ary_make_shared(mrb, ary);
+    goto L_SHIFT;
+  }
+  else if (n == len) {
+    ARY_SET_LEN(ary, 0);
+  }
+  else {
+    mrb_value *ptr = ARY_PTR(ary);
+    mrb_int size = len - n;
+
+    while (size--) {
+      *ptr = *(ptr + n);
+      ++ptr;
+    }
+    ARY_SET_LEN(ary, len - n);
+  }
+  return mrb_nil_value();

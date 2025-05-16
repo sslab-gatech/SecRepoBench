@@ -1,0 +1,31 @@
+if (dpx.file.image_offset > offset)
+  {
+    MagickOffsetType
+      data_offset;
+
+    data_offset=(MagickOffsetType) dpx.file.image_offset;
+    if (data_offset < offset)
+      offset=SeekBlob(image,data_offset,SEEK_SET);
+    else
+      for ( ; offset < data_offset; offset++)
+      {
+        int
+          c;
+
+        c=ReadBlobByte(image);
+        if (c == EOF)
+          {
+            ThrowReaderException(CorruptImageError,"UnexpectedEndOfFile");
+            break;
+          }
+      }
+    if (offset != data_offset)
+      ThrowReaderException(CorruptImageError,"UnableToReadImageData");
+  }
+if (image_info->ping != MagickFalse)
+  {
+    (void) CloseBlob(image);
+    return(GetFirstImageInList(image));
+  }
+image->columns=dpx.image.pixels_per_line;
+image->rows=dpx.image.lines_per_element;

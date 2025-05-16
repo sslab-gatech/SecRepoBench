@@ -1,0 +1,29 @@
+long i;
+bitint x, y, z;
+const char *s0 = ys, *s;
+const char *end = ys + n - m;
+
+if (m > (long)sizeof(bitint)) goto fallback;
+x = *(const bitint*)needle;
+if (x & MASK3) return -1; /* needle contains '\0' and never match */
+y = x & MASK2;
+y += MASK1;
+y &= MASK3;
+if (y) {
+  y = ~y;
+  y &= MASK2;
+  y += MASK1;
+  y &= MASK3;
+  i = (long)ffs(y) / 8 - 1;
+  needle += i; m -= i;
+}
+x = *(const bitint*)needle;
+#if defined(MRB_ENDIAN_BIG)
+x = (x >> (sizeof(bitint) - m) * CHAR_BIT) & (((bitint)1 << (m * CHAR_BIT)) - 1);
+#endif
+for (; s0 <= end; s0++) {
+  s = s0;
+  if (*(const bitint*)s == x) return (mrb_int)(s - ys);
+}
+fallback:
+i = 0;

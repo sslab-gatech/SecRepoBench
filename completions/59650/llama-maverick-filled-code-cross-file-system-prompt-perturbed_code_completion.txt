@@ -1,0 +1,20 @@
+if (record.isNull())
+{
+    return resRec;
+}
+
+uint8_t* nextRecPtr = record.getRecordBasePtr() + record.getRecordTotalSize();
+if (nextRecPtr + sizeof(uint8_t) > tlvBufferPtr + tlvDataLen)
+{
+    resRec.assign(NULL);
+}
+else
+{
+    resRec = TLVRecordType(nextRecPtr);
+    if (resRec.getRecordTotalSize() == 0)
+    {
+        resRec.assign(NULL);
+    }
+}
+
+return resRec;

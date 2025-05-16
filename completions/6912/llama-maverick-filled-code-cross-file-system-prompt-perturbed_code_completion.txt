@@ -1,0 +1,34 @@
+for (s=t; *s != '\0'; s++)
+{
+  double
+    subpath_offset[MaxPathElements];
+
+  ssize_t
+    n;
+
+  GetNextToken(s,&s,extent,primitive_token);
+  n=0;
+  subpath_offset[n]=0.0;
+  if (*primitive_token == ',')
+    GetNextToken(s,&s,extent,primitive_token);
+  while (IsPoint(primitive_token) != MagickFalse)
+  {
+    subpath_offset[n]+=StringToDouble(primitive_token,&next_token);
+    if (primitive_token == next_token)
+      ThrowPointExpectedException(primitive_token,exception);
+    GetNextToken(s,&s,extent,primitive_token);
+    if (*primitive_token == ',')
+      GetNextToken(s,&s,extent,primitive_token);
+    n++;
+    if (n >= MaxPathElements)
+      break;
+    subpath_offset[n]=0.0;
+  }
+  if (n == 0)
+    continue;
+  points_extent=0.0;
+  for (j=0; j < n; j++)
+    points_extent+=subpath_offset[j];
+  points_extent=(double) (BezierQuantum*points_extent);
+  break;
+}

@@ -1,0 +1,48 @@
+mrb_value val = GETARG();
+char fbuf[32];
+mrb_float fval;
+int need;
+
+fval = mrb_to_flo(mrb, val);
+if (isnan(fval) || isinf(fval)) {
+  const char *expr;
+  int elen;
+  char sign = '\0';
+
+  if (isnan(fval)) {
+    expr = "NaN";
+    elen = 3;
+  }
+  else {
+    expr = "Inf";
+    elen = 3;
+    if (fval < 0) {
+      sign = '-';
+      width--;
+    }
+    else if (flags & FPLUS) {
+      sign = '+';
+      width--;
+    }
+    else if (flags & FSPACE) {
+      sign = ' ';
+      width--;
+    }
+  }
+  width -= elen;
+  if (width > 0 && !(flags & FMINUS)) {
+    CHECK(width);
+    FILL(' ', width);
+  }
+  if (sign) {
+    CHECK(1);
+    PUSH(&sign, 1);
+  }
+  CHECK(elen);
+  PUSH(expr, elen);
+  if (width > 0 && (flags & FMINUS)) {
+    CHECK(width);
+    FILL(' ', width);
+  }
+  break;
+}

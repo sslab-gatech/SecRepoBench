@@ -1,0 +1,76 @@
+/*
+    Rasterize the Postscript image to a file.
+  */
+  filedescriptor=AcquireUniqueFileResource(postscript_filename);
+  if (filedescriptor != -1)
+    filedescriptor=close(filedescriptor)-1;
+  (void) FormatLocaleString(command,MagickPathExtent,"\"%s\" \"-sstdout=%s\" "
+    "\"-sOutputFile=%s\" -dQUIET -dSAFER -dBATCH -dNOPAUSE "
+    "-dMaxBitmap=500000000 -dAlignToPixels=0 -dGridFitTT=0 "
+    "-sDEVICE=pnmraw -dTextAlphaBits=%d -dGraphicsAlphaBits=%d "
+    "-r%gx%g \"%s\"",(const char *) delegate_info->commands,
+    (image_info->antialias != MagickFalse ? "%%stdout" : "%%stderr"),
+    postscript_filename,(int) (image_info->antialias != MagickFalse ? 4 : 1),
+    (int) (image_info->antialias != MagickFalse ? 4 : 1),density_info->rho,
+    density_info->sigma,input_filename);
+  if (image_info->debug != MagickFalse)
+    (void) LogMagickEvent(CoderEvent,GetMagickModule(),"  command: %s",command);
+  if (image_info->verbose != MagickFalse)
+    (void) fprintf(stdout,"%s",command);
+  status=SystemCommand(image_info->debug,command,exception);
+  if (status == 0)
+    {
+      (void) RelinquishUniqueFileResource(postscript_filename);
+      (void) ThrowMagickException(exception,GetMagickModule(),DelegateError,
+        "PostscriptDelegateFailed","`%s'",command);
+      image=DestroyImageList(image);
+      return((Image *) NULL);
+    }
+  /*
+    Read results from Ghostscript.
+  */
+  read_info=CloneImageInfo(image_info);
+  (void) FormatLocaleString(read_info->filename,MagickPathExtent,"%s",
+    postscript_filename);
+  (void) RelinquishUniqueFileResource(postscript_filename);
+  postscript_image=ReadImages(read_info,exception);
+  read_info=DestroyImageInfo(read_info);
+  if (postscript_image == (Image *) NULL)
+    {
+      image=DestroyImageList(image);
+      return((Image *) NULL);
+    }
+  if (image_info->ping == MagickFalse)
+    {
+      Image
+        *profile_image;
+
+      profile_image=GetFirstImageInList(postscript_image);
+      if ((profile_image != (Image *) NULL) &&
+          (image != (Image *) NULL))
+        {
+          /*
+            Set profile from the Postscript 'ImageData' comment.
+          */
+          option=GetImageOption(image_info,"profile:icm");
+          if (option == (const char *) NULL)
+            option=GetImageOption(image_info,"profile:icc");
+          if (option != (const char *) NULL)
+            {
+              StringInfo
+                *profile;
+
+              profile=BlobToStringInfo((const void *) NULL,(size_t) 0);
+              (void) SetImageProfile(profile_image,"ICC",profile,exception);
+              profile=DestroyStringInfo(profile);
+            }
+        }
+    }
+  image=GetFirstImageInList(postscript_image);
+  for (next=image; next != (Image *) NULL; next=GetNextImageInList(next))
+  {
+    (void) CopyMagickString(next->magick_filename,input_filename,
+      MagickPathExtent);
+    (void) CopyMagickString(next->filename,input_filename,MagickPathExtent);
+    next->depth=GetImageQuantumDepth(image,MagickTrue);
+  }

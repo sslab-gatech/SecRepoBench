@@ -1,0 +1,23 @@
+if(!FLAC__bitreader_read_unary_unsigned(br, &msbs))
+	return false;
+x = msbs;
+b = br->buffer[cwords];
+ucbits = FLAC__BITS_PER_WORD;
+if(parameter <= ucbits) {
+	lsbs = (FLAC__uint32)(b >> (ucbits - parameter));
+	ucbits -= parameter;
+	b <<= parameter;
+}
+else {
+	/* there are still bits left to read, they will all be in the next word */
+	cwords++;
+	if (cwords >= wordcount)
+		goto incomplete_lsbs;
+	b = br->buffer[cwords];
+	ucbits += FLAC__BITS_PER_WORD - parameter;
+	lsbs = (FLAC__uint32)(b >> ucbits);
+	b <<= FLAC__BITS_PER_WORD - ucbits;
+}
+x = (x << parameter) | lsbs;
+*val++ = (int)(x >> 1) ^ -(int)(x & 1);
+cwords++;

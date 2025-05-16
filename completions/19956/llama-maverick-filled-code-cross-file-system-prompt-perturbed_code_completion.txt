@@ -1,0 +1,15 @@
+TRACE_SERIALIZE (this);
+VarRegionList *dest = c->allocate_size<VarRegionList> (VarRegionList::min_size + VarRegionAxisList::static_size * src->get_axis_count () * regionmapping.get_population ());
+if (unlikely (dest == nullptr)) return_trace (false);
+dest->axisCount = src->get_axis_count ();
+dest->regionCount = regionmapping.get_population ();
+unsigned int count = 0;
+for (unsigned int i = 0; i < src->get_region_count (); i++)
+  if (regionmapping[i] != HB_MAP_VALUE_INVALID)
+  {
+    unsigned int region_index = regionmapping[i];
+    VarRegionAxisList &axis = dest->get_region_axes (region_index);
+    memcpy (&axis, &src->get_region_axes (i), VarRegionAxisList::get_size (src->get_axis_count ()));
+    count++;
+  }
+return_trace (count == dest->regionCount);

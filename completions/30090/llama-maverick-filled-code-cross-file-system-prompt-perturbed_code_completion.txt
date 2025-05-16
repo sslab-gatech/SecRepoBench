@@ -1,0 +1,22 @@
+if (k == NULL || v == NULL) {
+    time_lookup = 0;
+    tmfrac = 0;
+}
+else {
+    ret = flb_parser_time_lookup(v->via.str.ptr, v->via.str.size,
+                                 parser->time_fmt, parser->time_offset,
+                                 &time_lookup, &tmfrac);
+    if (ret == -1) {
+        if (parser->time_strict == FLB_TRUE) {
+            flb_free(*out_buf);
+            *out_buf = NULL;
+            msgpack_unpacked_destroy(&result);
+            return -1;
+        }
+        else {
+            flb_warn("[parser] time lookup failed");
+        }
+        time_lookup = 0;
+        tmfrac = 0;
+    }
+}

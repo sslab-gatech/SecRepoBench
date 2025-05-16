@@ -1,0 +1,32 @@
+if (uc == endptr) {
+	goto out;
+}
+switch (*uc++) {
+case '"':
+case '\\':
+case '/':
+	/* valid 1-char escape */
+	break;
+case 'b':
+case 'f':
+case 'n':
+case 'r':
+case 't':
+	/* valid 1-char escape */
+	break;
+case 'u':
+	/* 4 hex digits */
+	if (uc + 4 > endptr) {
+		goto out;
+	}
+	for (i = 0; i < 4; i++) {
+		if (!isxdigit(uc[i])) {
+			goto out;
+		}
+	}
+	uc += 4;
+	break;
+default:
+	/* invalid escape sequence */
+	goto out;
+}

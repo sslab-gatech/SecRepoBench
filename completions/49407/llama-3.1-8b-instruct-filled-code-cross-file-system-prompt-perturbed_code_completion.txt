@@ -1,0 +1,27 @@
+if (version >= 2)
+  {
+    VariationStore *var_store = new VariationStore (coords_length);
+    for (unsigned int i = 0; i < coords_length; i++)
+      {
+        VariationIndexMap *var_index_map = &firstAxisVariationIndexMap;
+        VariationStoreEntry *var_entry = var_store->get_entry (coords[i]);
+        if (var_entry == nullptr)
+          {
+            var_entry = var_store->add_entry (coords[i]);
+            var_entry->set_delta (0);
+          }
+        VariationIndexMapEntry *var_index_entry = var_index_map->get_entry (coords[i]);
+        if (var_index_entry!= nullptr)
+          {
+            var_entry->set_delta (var_index_entry->get_delta ());
+          }
+        coords[i] += var_entry->get_delta ();
+        coords[i] = hb_clamp (coords[i], 0, 1);
+      }
+    unmap_coords (coords, coords_length);
+    delete var_store;
+  }
+else
+  {
+    unmap_coords (coords, coords_length);
+  }

@@ -1,0 +1,27 @@
+int i, class, index;
+VLC *vlc;
+MJpegDecodeContext *s = mjpegdecodecontext;
+
+for (i = 0; i < FF_ARRAY_ELEMS(ff_mjpeg_default_huffman_tables); i++) {
+    const uint8_t *bits = ff_mjpeg_default_huffman_tables[i].bits;
+    const uint8_t *values = ff_mjpeg_default_huffman_tables[i].values;
+    class = ff_mjpeg_default_huffman_tables[i].class;
+    index = ff_mjpeg_default_huffman_tables[i].index;
+    vlc = &s->vlcs[class][index];
+    ff_mjpeg_build_vlc(vlc, bits, values, 0, class > 0);
+    if (class <= 1) {
+        if (!ff_mjpeg_default_huffman_tables[i].unlimited) {
+            memcpy(s->raw_huffman_lengths[class][index], bits, sizeof(s->raw_huffman_lengths[class][index]));
+            memcpy(s->raw_huffman_values[class][index], values, sizeof(s->raw_huffman_values[class][index]));
+        } else {
+            int count = 0;
+            for (int j = 0; j < sizeof(s->raw_huffman_lengths[class][index]); j++) {
+                count += bits[j];
+                if (count > sizeof(s->raw_huffman_values[class][index]))
+                    count = sizeof(s->raw_huffman_values[class][index]);
+                s->raw_huffman_lengths[class][index][j] = bits[j];
+                s->raw_huffman_values[class][index][j] = values[j];
+            }
+        }
+    }
+}

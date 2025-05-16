@@ -1,0 +1,5 @@
+{
+  unsigned tail_len = static_cast<unsigned> (c->tail - init_tail);
+  this->length = c->length () - initial_table_position;
+  this->numVarSelectorRecords = obj_indices.length;
+}

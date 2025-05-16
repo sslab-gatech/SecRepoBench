@@ -1,0 +1,58 @@
+len = in->end - in->cur;
+buf = in->cur;
+
+while (len > 0) {
+    if (incomment) {
+        if ((buf[0] == '-') && (buf[1] == '-') && (buf[2] == '>')) {
+            in->cur += 3;
+            incomment = 0;
+            break;
+        }
+        buf++;
+        len--;
+        continue;
+    } else if (invalue) {
+        if ((buf[0] == valdellim) && (len > 1)) {
+            invalue = 0;
+            valdellim = 0;
+            buf++;
+            len--;
+        } else {
+            buf++;
+            len--;
+            continue;
+        }
+    } else if (ignoreAttrValue && (buf > in->cur) &&
+               ((buf[-1] == '=') ||
+                ((buf[-1] == '"') && (buf[-2] != '\\')) ||
+                ((buf[-1] == '\'') && (buf[-2] != '\\')))) {
+        if ((buf[0] == '"') || (buf[0] == '\'')) {
+            valdellim = buf[0];
+            buf++;
+            len--;
+            invalue = 1;
+            continue;
+        }
+    } else if ((buf[0] == '<') && (buf[1] == '!') &&
+               (buf[2] == '-') && (buf[3] == '-')) {
+        incomment = 1;
+        buf += 4;
+        len -= 4;
+        continue;
+    } else if ((first != 0) && (buf[0] == first)) {
+        if ((next == 0) || ((len > 1) && (buf[1] == next))) {
+            if ((third == 0) ||
+                ((len > 2) && (buf[2] == third))) {
+                ctxt->checkIndex = 0;
+                return (buf - in->cur);
+            }
+        }
+        ctxt->checkIndex = 1;
+        if (next == 0)
+            return (buf - in->cur);
+    } else {
+        ctxt->checkIndex = 0;
+    }
+    buf++;
+    len--;
+}

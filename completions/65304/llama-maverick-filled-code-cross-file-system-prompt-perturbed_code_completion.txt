@@ -1,0 +1,20 @@
+if(sa_size > 0) {
+  ja.client.num_signature_algorithms = sa_size;
+  if(ndpi_struct->enable_tls_signature_algorithms) {
+    size_t memsize = sa_size * sizeof(u_int16_t);
+    ja.client.signature_algorithms = ndpi_malloc(memsize);
+    if(ja.client.signature_algorithms) {
+      u_int16_t *sa = (u_int16_t*)&packet->payload[sessoffset];
+      memcpy(ja.client.signature_algorithms, sa, memsize);
+    }
+  }
+
+  for(i = 0; i < tot_signature_algorithms_len && sessoffset + (int)i + 2 < packet->payload_packet_len; i += 2) {
+    u_int16_t signature_algo = ntohs(*((u_int16_t*)&packet->payload[sessoffset + i]));
+    int rc = ndpi_snprintf(&ja.client.signature_algorithms_str[i * 2],
+                           sizeof(ja.client.signature_algorithms_str) - (i * 2),
+                           "%04X", signature_algo);
+    if(rc <= 0)
+      break;
+  }
+}

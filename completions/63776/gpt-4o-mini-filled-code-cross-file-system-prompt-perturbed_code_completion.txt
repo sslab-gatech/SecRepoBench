@@ -1,0 +1,9 @@
+if (obj->size != (dat->byte - previous_byte_position))
+                {
+                    size_t unknown_size = (dat->byte - previous_byte_position) - obj->size;
+                    if (unknown_size > 0)
+                    {
+                        LOG_WARN("Unknown data found after object at 0x%zx, size: %zu", previous_byte_position, unknown_size);
+                        error |= dwg_decode_unknown_bits(dat, obj);
+                    }
+                }

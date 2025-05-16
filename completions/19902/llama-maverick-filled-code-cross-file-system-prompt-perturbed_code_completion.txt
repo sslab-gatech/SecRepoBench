@@ -1,0 +1,4 @@
+const char *p, *pend;
+char *buf, *n;
+double d;
+const char *end;

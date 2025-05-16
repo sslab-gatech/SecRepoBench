@@ -1,0 +1,79 @@
+const char *s = char_buffer;
+const char *send = s + len;
+char *n = buf;
+
+// Trim leading whitespace
+while (s < send && ISSPACE(*s)) s++;
+
+// Check for empty string after trimming
+if (s >= send) {
+  if (badcheck) goto bad;
+  return 0.0;
+}
+
+// Handle sign
+if (*s == '+' || *s == '-') {
+  *n++ = *s++;
+}
+
+// Check for hex prefix
+int is_hex = 0;
+if (s+1 < send && *s == '0' && (s[1] == 'x' || s[1] == 'X')) {
+  is_hex = 1;
+  *n++ = *s++;
+  *n++ = *s++;
+}
+
+mrb_bool has_digit = FALSE;
+mrb_bool prev_digit = FALSE;
+
+for (; s < send; s++) {
+  char c = *s;
+  if (c == '_') {
+    if (!prev_digit || (s+1 >= send) || !(ISDIGIT(*(s+1)) || (is_hex && ISHEX(*(s+1))))) {
+      if (badcheck) goto bad;
+      continue;
+    }
+    prev_digit = FALSE;
+    continue;
+  }
+
+  if (is_hex) {
+    if (ISDIGIT(c)) {
+      *n++ = c;
+      prev_digit = TRUE;
+      has_digit = TRUE;
+    } else if ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+      *n++ = tolower(c);
+      prev_digit = TRUE;
+      has_digit = TRUE;
+    } else if (c == '.' || tolower(c) == 'p') {
+      *n++ = tolower(c);
+      prev_digit = FALSE;
+    } else {
+      if (badcheck) goto bad;
+      continue;
+    }
+  } else {
+    if (ISDIGIT(c)) {
+      *n++ = c;
+      prev_digit = TRUE;
+      has_digit = TRUE;
+    } else if (c == '.' || tolower(c) == 'e') {
+      *n++ = tolower(c);
+      prev_digit = FALSE;
+    } else {
+      if (badcheck) goto bad;
+      continue;
+    }
+  }
+}
+
+if (!has_digit) {
+  if (badcheck) goto bad;
+  return 0.0;
+}
+
+*n = '\0';
+p = buf;
+pend = n;

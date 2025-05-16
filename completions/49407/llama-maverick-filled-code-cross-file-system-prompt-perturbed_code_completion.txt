@@ -1,0 +1,28 @@
+for (unsigned int i = 0; i < effectiveaxiscount; i++)
+{
+  coords[i] = map->map (coords[i]);
+  map = &StructAfter<SegmentMaps> (*map);
+}
+
+if (version >= 2)
+{
+  const VariationStore &varStore = get_var_store ();
+  hb_vector_t<int> deltas;
+
+  if (unlikely (!deltas.resize (effectiveaxiscount))) return;
+  for (unsigned int i = 0; i < effectiveaxiscount; i++)
+  {
+    const ItemVariationData *varData = varStore.get_item_var_data (i);
+    if (!varData) continue;
+
+    int delta = varData->get_delta (coords, varStore.get_var_store_index_map ());
+    delta = (int) hb_roundf ((float) delta / (1 << 14));
+    deltas[i] = delta;
+  }
+
+  for (unsigned int i = 0; i < effectiveaxiscount; i++)
+  {
+    float normalizedCoord = coords[i] + deltas[i];
+    coords[i] = roundf (hb_clamp (normalizedCoord, -1.f, +1.f) * 16384.f);
+  }
+}

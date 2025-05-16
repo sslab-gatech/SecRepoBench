@@ -1,0 +1,8 @@
+// <MASK>
+  if (short_offset == 0) {
+    short_offset = 0x10000;
+  }
+  hb_ot_name_table_t *name_table = hb_ot_name_table_get(faceptr, 0, 0, 0);
+  if (name_table) {
+    hb_ot_name_table_fini(name_table);
+  }

@@ -1,0 +1,34 @@
+// If the axis is present in the user's axis location settings,
+// normalize its value using user settings.
+// If 'avar' data is available, remap the normalized value using the segment maps.
+// Set the normalized value in the plan's axes location and coordinates.
+// If the normalized value is not zero, mark the plan as not pinned at default.
+// Update segment maps for 'avar' for the next axis, if applicable.
+if (plan->user_axes_location.has_axis (axes[i].tag))
+{
+  float normalized_value = plan->user_axes_location.get_axis_value (axes[i].tag);
+  if (has_avar)
+  {
+    // Get the segment maps for the current axis.
+    const OT::SegmentMap *seg_map = face->table.avar->get_segment_map (axes[i].tag);
+    if (seg_map)
+    {
+      // Remap the normalized value using the segment maps.
+      normalized_value = seg_map->remap (normalized_value);
+    }
+  }
+  plan->normalized_coords[i] = normalized_value;
+  if (normalized_value!= 0)
+    plan->all_axes_pinned = false;
+  if (has_avar)
+  {
+    // Update the segment maps for the next axis.
+    face->table.avar->update_segment_map (axes[i].tag, normalized_value);
+  }
+}
+else
+{
+  // If the axis is not set by the user, mark it as not pinned and update the index map.
+  axis_not_pinned = true;
+  plan->index_map[axes[i].tag] = i;
+}

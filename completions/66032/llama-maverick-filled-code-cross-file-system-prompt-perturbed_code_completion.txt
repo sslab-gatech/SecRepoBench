@@ -1,0 +1,40 @@
+//strip XML header and comments
+while (probelength) {
+	//skip leading white space
+	while (probelength && strchr("\n\r\t ", (char) *probe_data)) {
+		probelength--;
+		probe_data++;
+	}
+	if (!strncmp(probe_data, "<?", 2)) {
+		const char *end_h = my_strstr(probe_data, "?>", probelength);
+		if (!end_h) goto exit;
+		probelength -= (u32) (end_h + 2 - probe_data);
+		probe_data = end_h + 2;
+		continue;
+	}
+	if (!strncmp(probe_data, "<!--", 4)) {
+		const char *end_c = my_strstr(probe_data, "-->", probelength);
+		if (!end_c) goto exit;
+		probelength -= (u32) (end_c + 3 - probe_data);
+		probe_data = end_c + 3;
+		continue;
+	}
+	if (!strncmp(probe_data, "<!DOCTYPE", 9)) {
+		u32 nb_open = 0;
+		while (probelength) {
+			if (*probe_data=='<') nb_open++;
+			else if (*probe_data=='>') {
+				nb_open--;
+				if (!nb_open) {
+					probe_data++;
+					probelength--;
+					break;
+				}
+			}
+			probe_data++;
+			probelength--;
+		}
+		continue;
+	}
+	break;
+}

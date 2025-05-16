@@ -1,0 +1,15 @@
+xmlBufPtr raw = in->raw;
+xmlBufPtr buf = in->buffer;
+
+if (raw == NULL) {
+    raw = xmlBufCreate();
+    if (raw == NULL) {
+        xmlErrMemory(ctxt, NULL);
+        return(-1);
+    }
+    in->raw = raw;
+}
+
+xmlBufAddBuf(raw, buf);
+xmlBufShrink(buf, xmlBufUse(buf));
+xmlBufResetInput(buf, inputStream);

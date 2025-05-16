@@ -1,0 +1,37 @@
+bool VarRegionList::serialize (hb_serialize_context_t *c,
+                               const VarRegionList *src,
+                               const hb_bimap_t &regionmapping)
+{
+  TRACE_SERIALIZE (this);
+
+  if (unlikely (!c->extend_min (*this)))
+    return_trace (false);
+
+  axisCount = src->axisCount;
+  regionCount = regionmapping.get_population ();
+
+  // If there are no axes or no mapped regions, we're done.
+  if (unlikely (!axisCount || !regionCount))
+  {
+    axesZ.len = 0;
+    return_trace (true);
+  }
+
+  // Allocate space for (axisCount * regionCount) VarRegionAxis entries:
+  if (unlikely (!axesZ.serialize (c, (unsigned int) axisCount * (unsigned int) regionCount)))
+    return_trace (false);
+
+  // Copy each mapped region from the source to this instance.
+  for (unsigned int new_region_index = 0; new_region_index < regionCount; new_region_index++)
+  {
+    unsigned int old_region_index = regionmapping.backward (new_region_index);
+
+    for (unsigned int axis = 0; axis < axisCount; axis++)
+    {
+      axesZ[new_region_index * axisCount + axis] =
+        src->axesZ[old_region_index * src->axisCount + axis];
+    }
+  }
+
+  return_trace (true);
+}

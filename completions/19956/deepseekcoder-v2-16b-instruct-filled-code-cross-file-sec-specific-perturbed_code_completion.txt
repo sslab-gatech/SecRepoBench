@@ -1,0 +1,17 @@
+// Allocate memory for the VarRegionList in the context and check for allocation success.
+    VarRegionList *dest = c->allocate_size<VarRegionList> (src->get_size());
+    if (unlikely (dest == nullptr)) return false;
+
+    // Set the axis and region counts based on the source and region map.
+    dest->axis_count = src->axis_count;
+    dest->region_count = src->region_count;
+
+    // Allocate additional memory as required based on the object's size calculations.
+    // Iterate over each region in the region map, using its mapping to copy axis data from the source to the destination.
+    for (unsigned int i = 0; i < regionmapping.get_population(); i++) {
+        hb_codepoint_t src_axis = src->get_axis(regionmapping[i].first);
+        dest->set_axis(regionmapping[i].second, src_axis);
+    }
+
+    // Ensure successful completion by returning true if the serialization process finishes without errors.
+    return true;

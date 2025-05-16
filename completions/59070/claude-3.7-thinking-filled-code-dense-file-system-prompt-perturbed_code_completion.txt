@@ -1,0 +1,21 @@
+size_t i;
+for (i = 0; i < 128 && i < *length; ++i)
+{
+    suffix[i] = (char)(curin[i]);
+    if (curin[i] == '\0')
+        break;
+}
+if (i == *length || (i == 128 && curin[i] != '\0'))
+    return EXR_ERR_CORRUPT_CHUNK;  // String too long or not null-terminated
+
+len = i + 1;  // Including the null terminator
+
+// Allocate memory for the string
+mem = (char*)(alloc_fn)(len);
+if (!mem)
+    return EXR_ERR_OUT_OF_MEMORY;
+memcpy(mem, suffix, len);  // Copy including null terminator
+
+// Store the pointer in the output structure
+out->_suffix = mem;
+out->_allocated = 1;  // Mark as dynamically allocated

@@ -1,0 +1,80 @@
+size_t
+    number_vertices;
+
+  MagickBooleanType
+    closed_path;
+
+  PrimitiveInfo
+    *polygon_primitive;
+
+  PointInfo
+    *path_p,
+    *path_q;
+
+  register ssize_t
+    i,
+    n;
+
+  /*
+    Determine the number of vertices and whether the subpath is closed.
+  */
+  number_vertices=primitivedata->coordinates;
+  closed_path=primitivedata->closed_subpath;
+
+  /*
+    Allocate a temporary copy of the primitive array.
+  */
+  polygon_primitive=(PrimitiveInfo *) AcquireQuantumMemory((size_t)
+    (number_vertices+1UL),sizeof(*polygon_primitive));
+  if (polygon_primitive == (PrimitiveInfo *) NULL)
+    return((PrimitiveInfo *) NULL);
+  (void) memcpy(polygon_primitive,primitivedata,(size_t) number_vertices*
+    sizeof(*polygon_primitive));
+  polygon_primitive[number_vertices]=primitivedata[0];
+  polygon_primitive[number_vertices].primitive=UndefinedPrimitive;
+
+  /*
+    If the path is closed and the line join is round or miter, add an extra
+    vertex to make sure we can properly cap the join.
+  */
+  if ((closed_path != MagickFalse) &&
+      ((draw_info->linejoin == RoundJoin) || (draw_info->linejoin == MiterJoin)))
+    {
+      number_vertices++;
+      polygon_primitive[number_vertices]=polygon_primitive[0];
+      polygon_primitive[number_vertices].primitive=UndefinedPrimitive;
+    }
+
+  /*
+    Find the last non-coincident vertex.
+  */
+  n=(ssize_t) number_vertices-1;
+  for (i=0; i < (ssize_t) number_vertices; i++)
+  {
+    if ((fabs(polygon_primitive[i].point.x -
+              polygon_primitive[n].point.x) >= MagickEpsilon) ||
+        (fabs(polygon_primitive[i].point.y -
+              polygon_primitive[n].point.y) >= MagickEpsilon))
+      break;
+  }
+  /*
+    If all points are coincident, there is no meaningful line to draw.
+  */
+  if (i == (ssize_t) number_vertices)
+    {
+      polygon_primitive=(PrimitiveInfo *) RelinquishMagickMemory(polygon_primitive);
+      return((PrimitiveInfo *) NULL);
+    }
+
+  /*
+    Allocate arrays for the two path outlines.
+  */
+  path_p=(PointInfo *) AcquireQuantumMemory((size_t) (2UL*number_vertices+2UL),
+    sizeof(*path_p));
+  if (path_p == (PointInfo *) NULL)
+    {
+      polygon_primitive=(PrimitiveInfo *) RelinquishMagickMemory(polygon_primitive);
+      return((PrimitiveInfo *) NULL);
+    }
+  path_q=(PointInfo *) AcquireQuantumMemory((size_t) (2UL*number_vertices+2UL),
+    sizeof(*path_q));

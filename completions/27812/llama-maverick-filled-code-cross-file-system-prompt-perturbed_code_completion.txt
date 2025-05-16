@@ -1,0 +1,2 @@
+int64_t trailer_offset = header_len + cbytes;
+  int32_t usermeta_len_network;

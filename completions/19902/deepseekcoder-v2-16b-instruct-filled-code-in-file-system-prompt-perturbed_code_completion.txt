@@ -1,0 +1,295 @@
+uppercase
+ *  and the remainder to lowercase.
+ *
+ *     "hello".capitalize   #=> "Hello"
+ *     "HELLO".capitalize   #=> "Hello"
+ *     "123ABC".capitalize  #=> "123abc"
+ */
+static mrb_value
+mrb_str_capitalize(mrb_state *mrb, mrb_value str)
+{
+  struct RString *s = str_new(mrb, 0, 0);
+
+  str_with_class(s, str);
+  mrb_str_replace(mrb, s, mrb_str_capitalize_bang(mrb, str));
+  return mrb_obj_value(s);
+}
+
+/* 15.2.10.5.9  */
+/*
+ *  call-seq:
+ *     str.downcase!   => str or nil
+ *
+ *  Converts <i>str</i> to lowercase, returning <code>nil</code> if no changes
+ *  are made.
+ *
+ *     a = "HELLO"
+ *     a.downcase!   #=> "hello"
+ *     a             #=> "hello"
+ *     a.downcase!   #=> nil
+ */
+static mrb_value
+mrb_str_downcase_bang(mrb_state *mrb, mrb_value str)
+{
+  char *p, *pend;
+  mrb_bool modify = FALSE;
+  struct RString *s = mrb_str_ptr(str);
+
+  mrb_str_modify(mrb, s);
+  if (RSTR_LEN(s) == 0 || !RSTR_PTR(s)) return mrb_nil_value();
+  p = RSTR_PTR(s); pend = RSTR_PTR(s) + RSTR_LEN(s);
+  while (p < pend) {
+    if (ISUPPER(*p)) {
+      *p = TOLOWER(*p);
+      modify = TRUE;
+    }
+    p++;
+  }
+  if (modify) return str;
+  return mrb_nil_value();
+}
+
+/* 15.2.10.5.10 */
+/*
+ *  call-seq:
+ *     str.downcase   => new_str
+ *
+ *  Returns a copy of <i>str</i> with all uppercase letters replaced with their
+ *  lowercase counterparts. The operation is locale insensitive.
+ *
+ *     "HELLO".downcase   #=> "hello"
+ */
+static mrb_value
+mrb_str_downcase(mrb_state *mrb, mrb_value str)
+{
+  struct RString *s = str_new(mrb, 0, 0);
+
+  str_with_class(s, str);
+  mrb_str_replace(mrb, s, mrb_str_downcase_bang(mrb, str));
+  return mrb_obj_value(s);
+}
+
+/* 15.2.10.5.11 */
+/*
+ *  call-seq:
+ *     str.upcase!   => str or nil
+ *
+ *  Converts <i>str</i> to uppercase, returning <code>nil</code> if no changes
+ *  are made.
+ *
+ *     a = "hello"
+ *     a.upcase!   #=> "HELLO"
+ *     a           #=> "HELLO"
+ *     a.upcase!   #=> nil
+ */
+static mrb_value
+mrb_str_upcase_bang(mrb_state *mrb, mrb_value str)
+{
+  char *p, *pend;
+  mrb_bool modify = FALSE;
+  struct RString *s = mrb_str_ptr(str);
+
+  mrb_str_modify(mrb, s);
+  if (RSTR_LEN(s) == 0 || !RSTR_PTR(s)) return mrb_nil_value();
+  p = RSTR_PTR(s); pend = RSTR_PTR(s) + RSTR_LEN(s);
+  while (p < pend) {
+    if (ISLOWER(*p)) {
+      *p = TOUPPER(*p);
+      modify = TRUE;
+    }
+    p++;
+  }
+  if (modify) return str;
+  return mrb_nil_value();
+}
+
+/* 15.2.10.5.12 */
+/*
+ *  call-seq:
+ *     str.upcase   => new_str
+ *
+ *  Returns a copy of <i>str</i> with all lowercase letters replaced with their
+ *  uppercase counterparts. The operation is locale insensitive.
+ *
+ *     "hello".upcase   #=> "HELLO"
+ */
+static mrb_value
+mrb_str_upcase(mrb_state *mrb, mrb_value str)
+{
+  struct RString *s = str_new(mrb, 0, 0);
+
+  str_with_class(s, str);
+  mrb_str_replace(mrb, s, mrb_str_upcase_bang(mrb, str));
+  return mrb_obj_value(s);
+}
+
+/* 15.2.10.5.13 */
+/*
+ *  call-seq:
+ *     str.swapcase!   => str or nil
+ *
+ *  Converts uppercase characters to lowercase and lowercase characters to
+ *  uppercase. Returns <code>nil</code> if no changes are made.
+ *
+ *     a = "Hello"
+ *     a.swapcase!   #=> "hELLO"
+ *     a             #=> "hELLO"
+ *     a.swapcase!   #=> nil
+ */
+static mrb_value
+mrb_str_swapcase_bang(mrb_state *mrb, mrb_value str)
+{
+  char *p, *pend;
+  mrb_bool modify = FALSE;
+  struct RString *s = mrb_str_ptr(str);
+
+  mrb_str_modify(mrb, s);
+  if (RSTR_LEN(s) == 0 || !RSTR_PTR(s)) return mrb_nil_value();
+  p = RSTR_PTR(s); pend = RSTR_PTR(s) + RSTR_LEN(s);
+  while (p < pend) {
+    if (ISLOWER(*p)) {
+      *p = TOUPPER(*p);
+    }
+    else if (ISUPPER(*p)) {
+      *p = TOLOWER(*p);
+    }
+    p++;
+  }
+  if (modify) return str;
+  return mrb_nil_value();
+}
+
+/* 15.2.10.5.14 */
+/*
+ *  call-seq:
+ *     str.swapcase   => new_str
+ *
+ *  Returns a new string with all the characters converted both uppercase and
+ *  lowercase characters swapped.
+ *
+ *     "Hello".swapcase   #=> "hELLO"
+ */
+static mrb_value
+mrb_str_swapcase(mrb_state *mrb, mrb_value str)
+{
+  struct RString *s = str_new(mrb, 0, 0);
+
+  str_with_class(s, str);
+  mrb_str_replace(mrb, s, mrb_str_swapcase_bang(mrb, str));
+  return mrb_obj_value(s);
+}
+
+/* 15.2.10.5.15 */
+/*
+ *  call-seq:
+ *     str.each_char { |c| block }   => str
+ *
+ *  Passes each character in <i>str</i> to the given block, returning <i>str</i>.
+ *
+ *     "hello".each_char { |c| print c, ' ' }
+ *
+ *  produces:
+ *
+ *     h e l l o
+ */
+static mrb_value
+mrb_str_each_char(mrb_state *mrb, mrb_value str)
+{
+  mrb_value ary = mrb_ary_new(mrb);
+  mrb_int i, len = RSTRING_LEN(str);
+  const char *ptr = RSTRING_PTR(str);
+
+  for (i = 0; i < len; i++) {
+    mrb_value c = mrb_str_new_cstr(mrb, ptr + i, 1);
+    mrb_ary_push(mrb, ary, c);
+  }
+  mrb_each_with_index(mrb, ary, str, mrb_str_each_char_iter, 0);
+  return str;
+}
+
+static mrb_value
+mrb_str_each_char_iter(mrb_state *mrb, mrb_value ary, mrb_value str, mrb_int i)
+{
+  mrb_value c = mrb_ary_entry(mrb, ary, i);
+  mrb_value blk = mrb_proc_get(mrb);
+
+  mrb_yield(mrb, blk, c);
+  return c;
+}
+
+/* 15.2.10.5.16 */
+/*
+ *  call-seq:
+ *     str.each_byte { |byte| block }   => str
+ *
+ *  Passes each byte in <i>str</i> to the given block, returning <i>str</i>.
+ *
+ *     "hello".each_byte { |b| print b, ' ' }
+ *
+ *  produces:
+ *
+ *    104 101 108 108 111
+ */
+static mrb_value
+mrb_str_each_byte(mrb_state *mrb, mrb_value str)
+{
+  mrb_value ary = mrb_ary_new(mrb);
+  mrb_int i, len = RSTRING_LEN(str);
+  const char *ptr = RSTRING_PTR(str);
+
+  for (i = 0; i < len; i++) {
+    mrb_value b = mrb_fixnum_value((mrb_int)ptr[i]);
+    mrb_ary_push(mrb, ary, b);
+  }
+  mrb_each_with_index(mrb, ary, str, mrb_str_each_byte_iter, 0);
+  return str;
+}
+
+static mrb_value
+mrb_str_each_byte_iter(mrb_state *mrb, mrb_value ary, mrb_value str, mrb_int i)
+{
+  mrb_value b = mrb_ary_entry(mrb, ary, i);
+  mrb_value blk = mrb_proc_get(mrb);
+
+  mrb_yield(mrb, blk, b);
+  return b;
+}
+
+/* 15.2.10.5.17 */
+/*
+ *  call-seq:
+ *     str.each_line(separator=$/) { |substr| block }   => str
+ *
+ *  Splits <i>str</i> into substrings separated by <i>separator</i> and passes
+ *  them to the block, returning <i>str</i>. If no block is given, an enumerator
+ *  is returned instead.
+ *
+ *     "hello\nworld".each_line { |s| p [s, s.length] }
+ *
+ *  produces:
+ *
+ *     ["hello\n", 6]
+ *     ["world", 5]
+ */
+static mrb_value
+mrb_str_each_line(mrb_state *mrb, mrb_value str)
+{
+  mrb_value ary = mrb_ary_new(mrb);
+  mrb_int i, len = RSTRING_LEN(str);
+  const char *ptr = RSTRING_PTR(str);
+  const char *end = ptr + len;
+  const char *sep = mrb_default_rs;
+  mrb_int seplen = strlen(sep);
+
+  if (mrb_get_args(mrb, "|S", &sep) == 1) {
+    seplen = strlen(sep);
+  }
+
+  for (i = 0; i < len; i += seplen) {
+    const char *p = memchr(ptr + i, sep[0], end - (ptr + i));
+    if (!p) p = end;
+    mrb_value s = mrb_str_new(mrb, ptr + i, p - (ptr + i));
+    mrb_ary_push(mrb, ary, s);
+    i = p - ptr;
+  }
+  mrb_each_with_index(mrb, ary, str, mrb_str_each_

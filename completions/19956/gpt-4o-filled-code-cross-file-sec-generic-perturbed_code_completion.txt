@@ -1,0 +1,24 @@
+TRACE_SERIALIZE(this);
+
+    // Allocate memory for the VarRegionList in the context
+    VarRegionList *dest = c->allocate_size<VarRegionList>(sizeof(VarRegionList) + src->axisCount * sizeof(VarRegion));
+    if (unlikely(dest == nullptr)) return_trace(false);
+
+    // Set the axis and region counts
+    dest->axisCount = src->axisCount;
+    dest->regionCount = regionmapping.size();
+
+    // Iterate over each region in the region map
+    for (unsigned int i = 0; i < regionmapping.size(); i++) {
+        const VarRegion &srcRegion = src->regions[regionmapping[i]];
+        VarRegion &destRegion = dest->regions[i];
+
+        // Copy axis data from the source to the destination
+        for (unsigned int j = 0; j < src->axisCount; j++) {
+            destRegion.axes[j].startCoord = srcRegion.axes[j].startCoord;
+            destRegion.axes[j].peakCoord = srcRegion.axes[j].peakCoord;
+            destRegion.axes[j].endCoord = srcRegion.axes[j].endCoord;
+        }
+    }
+
+    return_trace(true);

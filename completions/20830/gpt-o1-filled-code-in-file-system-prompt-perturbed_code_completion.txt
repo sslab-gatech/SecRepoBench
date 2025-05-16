@@ -1,0 +1,48 @@
+{
+  char temp_payload[512];
+  u_int16_t copy_len = flow_packet->payload_packet_len;
+
+  /* Copy payload into temporary buffer and ensure it's null-terminated */
+  if (copy_len >= sizeof(temp_payload)) {
+    copy_len = sizeof(temp_payload) - 1;
+  }
+  memcpy(temp_payload, flow_packet->payload, copy_len);
+  temp_payload[copy_len] = '\0';
+
+  /* Find the first quote marking the start of the username */
+  {
+    char *username_start = strchr(temp_payload + command_start, '"');
+    if(username_start) {
+      username_start++;
+      /* Find the closing quote for the username */
+      {
+        char *username_end = strchr(username_start, '"');
+        if(username_end) {
+          int username_len = username_end - username_start;
+          if(username_len > 0 &&
+             username_len < (int)sizeof(flow->protos.ftp_imap_pop_smtp.username)) {
+            memcpy(flow->protos.ftp_imap_pop_smtp.username, username_start, username_len);
+            flow->protos.ftp_imap_pop_smtp.username[username_len] = '\0';
+          }
+
+          /* Find the next pair of quotes for the password */
+          {
+            char *password_start = strchr(username_end + 1, '"');
+            if(password_start) {
+              password_start++;
+              char *password_end = strchr(password_start, '"');
+              if(password_end) {
+                int password_len = password_end - password_start;
+                if(password_len > 0 &&
+                   password_len < (int)sizeof(flow->protos.ftp_imap_pop_smtp.password)) {
+                  memcpy(flow->protos.ftp_imap_pop_smtp.password, password_start, password_len);
+                  flow->protos.ftp_imap_pop_smtp.password[password_len] = '\0';
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

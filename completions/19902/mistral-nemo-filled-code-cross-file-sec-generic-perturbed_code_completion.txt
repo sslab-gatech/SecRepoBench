@@ -1,0 +1,32 @@
+// 1. Trim leading whitespace from the input string.
+  while (p < pend && ISSPACE(*p)) p++;
+
+  // 2. Check for and handle hexadecimal prefixes "0x" or "0X".
+  if (p < pend && (p[0] == '0' && (p[1] == 'x' || p[1] == 'X'))) {
+    p += 2;
+  }
+
+  // 3. Prepare a buffer to store cleaned input by removing underscores between digits.
+  char *buf = alloca(len + 1);
+  char *pend = buf + len;
+  char *n = buf;
+
+  // 4. Iterate over the string, copying valid characters to the buffer.
+  while (p < pend) {
+    if (*p == '_') {
+      p++;
+      continue;
+    }
+    *n++ = *p++;
+  }
+  *n = '\0';
+
+  // 5. Handle null byte termination, and check for formatting errors when 'badcheck' is true.
+  if (badcheck && *n == '\0') {
+    goto bad;
+  }
+
+  // 6. Convert the cleaned string in the buffer to a double using a library function.
+  double d = strtod(buf, NULL);
+
+  return d;

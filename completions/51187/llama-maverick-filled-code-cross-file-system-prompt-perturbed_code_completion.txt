@@ -1,0 +1,55 @@
+std::string* desc = inputdesc;
+std::string* word = &in_word;
+std::string word_copy;
+std::string desc_copy;
+
+if (complexprefixes) {
+  if (utf8) {
+    std::vector<w_char> w;
+    u8_u16(w, in_word);
+    std::reverse(w.begin(), w.end());
+    u16_u8(word_copy, w);
+  } else {
+    word_copy.assign(in_word.rbegin(), in_word.rend());
+  }
+  word = &word_copy;
+}
+
+if (inputdesc && complexprefixes) {
+  if (aliasm.empty()) {
+    if (utf8) {
+      std::vector<w_char> w;
+      u8_u16(w, *inputdesc);
+      std::reverse(w.begin(), w.end());
+      u16_u8(desc_copy, w);
+    } else {
+      desc_copy.assign(inputdesc->rbegin(), inputdesc->rend());
+    }
+    desc = &desc_copy;
+  }
+}
+
+if (ignorechars.size() && word->find_first_of(ignorechars) != std::string::npos) {
+  if (utf8) {
+    std::vector<w_char> w;
+    u8_u16(w, *word);
+    remove_ignored_chars_utf(w, ignorechars_utf16);
+    u16_u8(word_copy, w);
+  } else {
+    word_copy = *word;
+    remove_ignored_chars(word_copy, ignorechars);
+  }
+  word = &word_copy;
+  if (inputdesc && aliasm.empty()) {
+    if (utf8) {
+      std::vector<w_char> w;
+      u8_u16(w, *desc);
+      remove_ignored_chars_utf(w, ignorechars_utf16);
+      u16_u8(desc_copy, w);
+    } else {
+      desc_copy = *desc;
+      remove_ignored_chars(desc_copy, ignorechars);
+    }
+    desc = &desc_copy;
+  }
+}

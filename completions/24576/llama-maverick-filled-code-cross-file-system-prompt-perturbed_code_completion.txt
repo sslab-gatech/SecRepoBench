@@ -1,0 +1,12 @@
+case DLT_C_HDLC:
+  chdlc = (struct ndpi_chdlc *) &packet[eth_offset];
+  if(chdlc->proto_code != htons(0x0800)) {
+    workflow->stats.total_discarded_bytes +=  header->len;
+    return(nproto);
+  }
+  ip_offset = sizeof(struct ndpi_chdlc); /* CHDLC_OFF = 4 */
+  ethertype = ETH_P_IP;
+  break;
+
+  /* OpenBSD DLT_NULL - 0 */
+  /* PPP_SERIAL - 50 */

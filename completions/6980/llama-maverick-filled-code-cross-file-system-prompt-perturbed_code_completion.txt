@@ -1,0 +1,20 @@
+level++;
+q=subexpression;
+for (p++; *p != '\0'; )
+{
+  if (*p == '[')
+    level++;
+  else
+    if (*p == ']')
+      {
+        level--;
+        if (level == 0)
+          break;
+      }
+  *q++=(*p++);
+}
+*q='\0';
+alpha=FxEvaluateSubexpression(fx_info,channel,x,y,',&depth,&beta,exception);
+imageindex=(ssize_t) floor(alpha+0.5);
+if (*p != '\0')
+  p++;

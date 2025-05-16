@@ -1,0 +1,17 @@
+const unsigned char *s = ys;
+  const unsigned char *end = ys + lengthy - m;
+  bitint x = 0;
+  int i;
+
+  for (i = 0; i < m; i++) {
+    x |= (bitint)*xs++ << (i * 8);
+  }
+  bitint mask = ~(MASK1 << ((m - 1) * 8));
+
+  while (s <= end) {
+    bitint y = *(bitint*)s ^ x;
+    if ((((y - MASK1) & ~y) & MASK3) & mask) {
+      return s - ys;
+    }
+    s++;
+  }

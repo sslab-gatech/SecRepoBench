@@ -1,0 +1,38 @@
+if (SizeOfTag < unicodeLength * sizeof(cmsUInt16Number)) goto Done;
+    UnicodeString = (wchar_t*) _cmsMalloc(self->ContextID, (unicodeLength + 1) * sizeof(wchar_t));
+    if (UnicodeString == NULL) goto Done;
+
+    for (i = 0; i < unicodeLength; i++) {
+        cmsUInt16Number code;
+
+        if (!_cmsReadUInt16Number(io, &code)) goto Done;
+        UnicodeString[i] = (wchar_t)code;
+    }
+
+    UnicodeString[i] = 0;
+
+    if (!cmsMLUsetWide(mlu, cmsNoLanguage, cmsNoCountry, UnicodeString)) goto Done;
+
+    _cmsFree(self->ContextID, (void*)UnicodeString);
+    UnicodeString = NULL;
+    SizeOfTag -= unicodeLength * sizeof(cmsUInt16Number);
+
+    // Macintosh ScriptCode count
+    if (SizeOfTag < sizeof(cmsUInt8Number)) goto Done;
+    if (!_cmsReadUInt8Number(io, &ScriptCodeCount)) goto Done;
+    SizeOfTag -= sizeof(cmsUInt8Number);
+
+    // Skip ScriptCode
+    if (SizeOfTag < ScriptCodeCount * (sizeof(cmsUInt8Number) + sizeof(cmsUInt16Number))) goto Done;
+    for (i = 0; i < ScriptCodeCount; i++) {
+        if (!_cmsReadUInt8Number(io, &Dummy)) goto Done;
+        if (!_cmsReadUInt16Number(io, &ScriptCodeCode)) goto Done;
+    }
+    SizeOfTag -= ScriptCodeCount * (sizeof(cmsUInt8Number) + sizeof(cmsUInt16Number));
+
+Done:
+    if (UnicodeString) _cmsFree(self->ContextID, (void*)UnicodeString);
+    *nItems = 1;
+    return mlu;
+
+Error:

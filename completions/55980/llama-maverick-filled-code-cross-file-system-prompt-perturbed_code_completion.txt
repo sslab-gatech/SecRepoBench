@@ -1,0 +1,5 @@
+encoding_error:
+    xmlFatalErrMsg(ctxt, XML_ERR_INVALID_ENCODING,
+                   "Bytes encoded as UTF-8 can't be valid XML\n");
+    xmlHaltParser(ctxt);
+    return(0);

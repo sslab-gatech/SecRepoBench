@@ -1,0 +1,13 @@
+if (record.isNull())
+	return resRec;
+
+const uint8_t* nextRecordBasePtr = record.getRecordBasePtr() + record.getTotalSize();
+resRec.assign(nextRecordBasePtr);
+
+if (resRec.getRecordBasePtr() + resRec.getTotalSize() > tlvBufferPtr + tlvDataLen)
+	resRec.assign(NULL);
+
+if (!resRec.isNull() && (tlvDataLen == 0 || resRec.getTotalSize() == 0))
+	resRec.assign(NULL);
+
+return resRec;

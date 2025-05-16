@@ -1,0 +1,51 @@
+if(packet->payload_packet_len >= 20) {
+  u_int32_t *val = (u_int32_t*)packet->payload;
+
+  if(ntohl(val[0]) == 0x417271019) { /* uTP v0 */    
+    if((packet->payload[4] == 0) /* No extension */
+       && (packet->payload[5] <= 1) /* Type: 0 (DATA), 1 (FIN) */
+       && ((packet->payload[6] << 8) + packet->payload[7] /* Class: 0-3 (DATA or FIN) */) <= 3) {
+      bt_proto = ndpi_strnstr((const char *)&packet->payload[8], BITTORRENT_PROTO_STRING, packet->payload_packet_len-8);
+
+      if(bt_proto != NULL) {
+        if((u_int8_t *)&bt_proto[27] - packet->payload + sizeof(flow->protos.bittorrent.hash) < packet->payload_packet_len) {
+          memcpy(flow->protos.bittorrent.hash, &bt_proto[27], sizeof(flow->protos.bittorrent.hash));
+          flow->extra_packets_func = NULL; /* Nothing else to do */
+        }
+
+        NDPI_LOG_INFO(detectionmodule, "found BT: uTPv0\n");
+        ndpi_add_connection_as_bittorrent(detectionmodule, flow, -1, 0, NDPI_CONFIDENCE_DPI);
+        return;
+      }
+    }
+  } else {
+    u_int8_t  type = packet->payload[0] >> 4;
+    u_int8_t  ver  = packet->payload[0] & 0x0F;
+
+    if((type == 0 /* Data */ || type == 1 /* Fin */ || type == 2 /* State */ || type == 3 /* Reset */)
+       && (ver == 1) /* Version */) {
+      u_int8_t  ext  = packet->payload[1];
+
+      if((ext == 0 /* No extension */)
+         || (ext == 1 /* Selective ACKs */)) {
+        u_int16_t len = (packet->payload[2] << 8) + packet->payload[3];
+
+        if((len >= 8)
+           && (packet->payload_packet_len >= len)) {
+          bt_proto = ndpi_strnstr((const char *)&packet->payload[len], BITTORRENT_PROTO_STRING_V1, packet->payload_packet_len-len);
+
+          if(bt_proto != NULL) {
+            if((u_int8_t *)&bt_proto[20] - packet->payload + sizeof(flow->protos.bittorrent.hash) < packet->payload_packet_len) {
+              memcpy(flow->protos.bittorrent.hash, &bt_proto[20], sizeof(flow->protos.bittorrent.hash));
+              flow->extra_packets_func = NULL; /* Nothing else to do */
+            }
+
+            NDPI_LOG_INFO(detectionmodule, "found BT: uTPv1\n");
+            ndpi_add_connection_as_bittorrent(detectionmodule, flow, -1, 0, NDPI_CONFIDENCE_DPI);
+            return;
+          }
+        }
+      }
+    }
+  }
+}

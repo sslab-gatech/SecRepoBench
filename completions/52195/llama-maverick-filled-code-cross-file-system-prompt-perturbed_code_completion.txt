@@ -1,0 +1,15 @@
+if (checkcompoundtriple && !checkedstriple && !compound_words && (i > 1) &&
+    (word[i - 1] == word[i]) && ((word[i - 1] == word[i - 2]) ||
+    ((i + 1 < word.size()) && (word[i - 1] == word[i + 1])))) {
+  striple = 1;
+  checkedstriple = 1;
+  i--;
+  if (i >= cmax) {
+    st[i] = ch;
+    continue;
+  }
+  ch = st[i];
+  st[i] = '\0';
+  rv = lookup(st.c_str(), i);
+  st[i] = ch;
+}

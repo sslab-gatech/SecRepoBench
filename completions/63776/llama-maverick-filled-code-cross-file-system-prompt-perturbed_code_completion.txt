@@ -1,0 +1,44 @@
+PRE (R_11)
+{
+  if (obj->size != (dat->byte - previous_byte_position))
+    {
+      LOG_WARN ("Invalid object size %lu != %lu", (unsigned long)obj->size,
+                (unsigned long)(dat->byte - previous_byte_position));
+      if (obj->size > (dat->byte - previous_byte_position))
+        dat->byte = previous_byte_position + obj->size;
+    }
+  if (dat->byte > previous_byte_position + obj->size)
+    {
+      LOG_WARN ("Skip %lu unknown bytes", (unsigned long)(dat->byte - (previous_byte_position + obj->size)));
+      dat->byte = previous_byte_position + obj->size;
+    }
+}
+else
+{
+  BITCODE_RS crc1, crc2 = 0;
+  size_t end_address = previous_byte_position + obj->size;
+  if (dat->byte > end_address)
+    {
+      LOG_WARN ("Skip %lu unknown bytes", (unsigned long)(dat->byte - end_address));
+    }
+  else if (dat->byte < end_address)
+    {
+      LOG_WARN ("@0x%zx: Skip %lu unknown bytes", dat->byte, (unsigned long)(end_address - dat->byte));
+      obj->unknown_rest = (unsigned char *)calloc (end_address - dat->byte, 1);
+      if (!obj->unknown_rest)
+        {
+          LOG_ERROR ("Out of memory");
+          return DWG_ERR_OUTOFMEM;
+        }
+      memcpy (obj->unknown_rest, &dat->chain[dat->byte], end_address - dat->byte);
+      dat->byte = end_address;
+      obj->unknown_rest_size = end_address - previous_byte_position - obj->size;
+    }
+  crc1 = bit_read_RS (dat);
+  crc2 = dwg_crc (0xC0C1, &dat->chain[previous_byte_position],
+                 dat->byte - previous_byte_position);
+  if (crc1 != crc2)
+    {
+      LOG_WARN ("crc: %04X != %04X", crc2, crc1);
+    }
+}

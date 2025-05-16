@@ -1,0 +1,14 @@
+if (done_lookups_glyph_count->in_error () ||
+    done_lookups_glyph_set->in_error ())
+  return true;
+
+hb_set_t* glyph_set = get_glyph_set (indexlookup);
+if (glyph_set == nullptr)
+  return false;
+
+hb_set_t* parent_active_glyphs = parent_active_glyphs ();
+if (hb_set_subset (glyph_set, parent_active_glyphs))
+  return true;
+
+hb_set_union (covered_glyph_set, parent_active_glyphs);
+return false;

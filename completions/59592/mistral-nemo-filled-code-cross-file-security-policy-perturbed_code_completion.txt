@@ -1,0 +1,66 @@
+hb_vector_t<hb_glyph_info_t> glyphs;
+    if (unlikely (!glyphs.alloc (context->plan->glyphs.get_length (), true)))
+      return_trace (false);
+
+    for (auto _ : context->plan->glyphs)
+      glyphs.push ({_.first, _.second});
+
+    hb_glyph_info_t *subset_glyphs = glyphs.arrayZ;
+    unsigned num_glyphs = glyphs.get_length ();
+
+    hb_glyph_info_t *subset_glyphs_end = subset_glyphs + num_glyphs;
+    hb_glyph_info_t *subset_glyphs_iter = subset_glyphs;
+
+    hb_vector_t<hb_glyph_info_t> compiled_subset_glyphs;
+    if (unlikely (!compiled_subset_glyphs.alloc (num_glyphs, true)))
+      return_trace (false);
+
+    hb_glyph_info_t *compiled_subset_glyphs_start = compiled_subset_glyphs.arrayZ;
+    hb_glyph_info_t *compiled_subset_glyphs_end = compiled_subset_glyphs_start + num_glyphs;
+
+    for (; subset_glyphs_iter != subset_glyphs_end; ++subset_glyphs_iter)
+    {
+      hb_glyph_info_t glyph_info = *subset_glyphs_iter;
+      if (unlikely (!glyph_info.glyph))
+      {
+        DEBUG_MSG (SUBSET, nullptr,
+                   "glyph %u not present in source font, dropping from subset.",
+                   glyph_info.codepoint);
+        continue;
+      }
+
+      if (unlikely (!context->serializer->add_glyph (glyph_info.glyph)))
+      {
+        DEBUG_MSG (SUBSET, nullptr,
+                   "failed to add glyph %u to subset, dropping from subset.",
+                   glyph_info.codepoint);
+        continue;
+      }
+
+      *compiled_subset_glyphs_start++ = glyph_info;
+    }
+
+    if (likely (compiled_subset_glyphs_start != compiled_subset_glyphs_end))
+    {
+      hb_glyph_info_t *compiled_subset_glyphs_start = compiled_subset_glyphs.arrayZ;
+      hb_glyph_info_t *compiled_subset_glyphs_end = compiled_subset_glyphs_start + num_glyphs;
+
+      hb_ot_glyf_t *glyf = hb_ot_glyf_create (compiled_subset_glyphs_start, compiled_subset_glyphs_end);
+      if (unlikely (!glyf))
+        return_trace (false);
+
+      if (unlikely (!context->serializer->embed (glyf)))
+      {
+        hb_ot_glyf_destroy (glyf);
+        return_trace (false);
+      }
+
+      if (likely (context->plan->normalized_coords))
+        _free_compiled_subset_glyphs (compiled_subset_glyphs_start, compiled_subset_glyphs_end);
+    }
+
+    if (font)
+      hb_font_destroy (font);
+
+    return_trace (true);
+  }

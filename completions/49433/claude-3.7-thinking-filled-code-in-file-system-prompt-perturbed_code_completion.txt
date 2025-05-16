@@ -1,0 +1,40 @@
+for (tagIndex = 0; tagIndex < TagCount; tagIndex++) {
+    
+    // Read tag entry
+    if (io->Read(io, &Tag, sizeof(cmsTagEntry), 1) != 1) 
+        return FALSE;
+    
+    // Adjust endianness
+    Tag.sig    = (cmsTagSignature) _cmsAdjustEndianess32((cmsUInt32Number) Tag.sig);
+    Tag.offset = _cmsAdjustEndianess32(Tag.offset);
+    Tag.size   = _cmsAdjustEndianess32(Tag.size);
+    
+    // Validate offset and size
+    if (Tag.offset >= HeaderSize || (Tag.offset + Tag.size) > HeaderSize) {
+        cmsSignalError(Icc->ContextID, cmsERROR_CORRUPTION_DETECTED, "Tag offset %d and/or size %d exceeds profile size %d", 
+                      Tag.offset, Tag.size, HeaderSize);
+        return FALSE;
+    }
+    
+    // Store tag information
+    Icc->TagNames[Icc->TagCount]   = Tag.sig;
+    Icc->TagOffsets[Icc->TagCount] = Tag.offset;
+    Icc->TagSizes[Icc->TagCount]   = Tag.size;
+    Icc->TagPtrs[Icc->TagCount]    = NULL;
+    Icc->TagTypeHandlers[Icc->TagCount] = NULL;
+    Icc->TagSaveAsRaw[Icc->TagCount] = FALSE;
+    Icc->TagLinked[Icc->TagCount] = (cmsTagSignature) 0; // Default: not linked
+    
+    // Check for duplicate or linked tags by checking if there are already tags with same offset and size
+    for (j = 0; j < Icc->TagCount; j++) {
+        
+        if (Icc->TagOffsets[j] == Tag.offset && Icc->TagSizes[j] == Tag.size) {
+            
+            // This tag is linked to a previous one - the link is to the first tag with same offset and size
+            Icc->TagLinked[Icc->TagCount] = Icc->TagNames[j];
+            break;
+        }
+    }
+    
+    Icc->TagCount++;
+}

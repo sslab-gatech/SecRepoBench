@@ -1,0 +1,5 @@
+// <MASK>
+short_offset = (head_table.indexToLocFormat == 0) ? 2 : 4;
+num_glyphs = (loca_table.length / short_offset) - 1;
+loca_table.sanitize (this);
+glyf_table.sanitize (this);

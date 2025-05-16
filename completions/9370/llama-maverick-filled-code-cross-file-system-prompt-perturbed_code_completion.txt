@@ -1,0 +1,11 @@
+case TIFF_SHORT:
+{
+  uint16
+    shorts;
+
+  shorts=0;
+  if (TIFFGetField(tiff,exif_info[i].tag,&shorts,sans) == 1)
+    (void) FormatLocaleString(exif_value_str,MagickPathExtent,"%d",(int)
+      ((short) shorts));
+  break;
+}

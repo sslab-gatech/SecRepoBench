@@ -1,0 +1,11 @@
+if (n < 0) {
+    n += len;
+  }
+  if (n < 0 || len <= n) {
+    return mrb_nil_value();
+  }
+  if (ARY_SHARED_P(ary)) {
+    return mrb_ary_ref(mrb, self, n);
+  }
+  return ARY_PTR(ary)[n];
+}

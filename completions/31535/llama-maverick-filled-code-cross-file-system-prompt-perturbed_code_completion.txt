@@ -1,0 +1,8 @@
+uint8_t* startp = frame->cframe + off_pos;
+if (compressed_chunk_size != NULL) {
+  int rc = blosc2_cbuffer_sizes(startp, NULL, compressed_chunk_size, NULL);
+  if (rc < 0) {
+    return NULL;
+  }
+}
+return startp;

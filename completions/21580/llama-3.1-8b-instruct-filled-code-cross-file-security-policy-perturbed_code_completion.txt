@@ -1,0 +1,38 @@
+bool serialize (hb_serialize_context_t *c,
+                  Iterator iterator)
+  {
+    TRACE_SERIALIZE (this);
+    if (unlikely (!c->extend_min (*this))) return_trace (false);
+
+    if (!iterator) {
+      c->set_starting_glyph_index (0);
+      c->set_class_value_length (0);
+      return true;
+    }
+
+    hb_codepoint_t min_glyph_index = iterator->min ();
+    hb_codepoint_t max_glyph_index = iterator->max ();
+    hb_codepoint_t glyph_count = max_glyph_index - min_glyph_index + 1;
+
+    if (unlikely (glyph_count > c->get_max_allocation_size ())) {
+      return_trace (false);
+    }
+
+    c->set_starting_glyph_index (min_glyph_index);
+    c->set_class_value_length (glyph_count);
+
+    // Serialize the class value using the serialization context and the calculated glyph count.
+    if (unlikely (!c->serialize_class_value (glyph_count))) {
+      return_trace (false);
+    }
+
+    // Iterate over the glyph-class pairs in the iterator, and assign the class value to each glyph index relative to the starting glyph index.
+    for (hb_codepoint_t i = min_glyph_index; i <= max_glyph_index; ++i) {
+      hb_codepoint_t glyph_index = i - min_glyph_index;
+      if (unlikely (!c->assign_class_value (glyph_index))) {
+        return_trace (false);
+      }
+    }
+
+    return true;
+  }

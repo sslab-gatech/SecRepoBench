@@ -1,0 +1,21 @@
+for (unsigned int i = 0; i < effectiveaxiscount; i++)
+    {
+      coords[i] = map->map (coords[i]);
+      map = &StructAfter<SegmentMaps> (*map);
+    }
+
+    if (version.major >= 2)
+    {
+      hb_vector_t<int> out;
+      out.resize (coords_length);
+      for (unsigned i = 0; i < coords_length; i++)
+      {
+        unsigned varidx = varidxMap.get (i);
+        float delta = varStore->get_delta (varidx, coords, coords_length);
+        int rounded = roundf (delta);
+        int mapped = hb_clamp (coords[i] + rounded, -0x7FFFFFFF, 0x7FFFFFFF);
+        out[i] = mapped;
+      }
+      hb_memcpy (coords, out.arrayZ, coords_length * sizeof (int));
+      varStore->destroy_cache ();
+    }

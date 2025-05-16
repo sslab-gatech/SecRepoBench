@@ -1,0 +1,26 @@
+uint32_t reclen, recmatch;
+	int tapemarks = 0;
+
+	while (uc < end_pointer) {
+		reclen = getlen(&uc, end_pointer);
+		if (reclen == 0xFFFFFFFF) {
+			DPRINTF("EOM\n", uc, end_pointer);
+			break;
+		}
+		if (uc + reclen > end_pointer) {
+			DPRINTF("Past EOP %u %td\n", reclen, end_pointer - uc);
+			return 0;
+		}
+		uc += reclen;
+		recmatch = getlen(&uc, end_pointer);
+		if (reclen != recmatch) {
+			DPRINTF("Mismatch %u %u\n", reclen, recmatch);
+			return 0;
+		}
+		if (reclen == 0) {
+			tapemarks++;
+			if (tapemarks == SIMH_TAPEMARKS)
+				break;
+		}
+	}
+	return tapemarks != 0;

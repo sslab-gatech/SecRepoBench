@@ -1,0 +1,46 @@
+if (s->num_primitive_matrices > max_primitive_matrices) {
+        av_log(m->avctx, AV_LOG_ERROR,
+               "Number of primitive matrices (%d) exceeds maximum supported\n",
+               s->num_primitive_matrices);
+        return AVERROR_INVALIDDATA;
+    }
+
+    for (mat = 0; mat < s->num_primitive_matrices; mat++) {
+        int out_ch       = get_bits(gbp, 4);
+        int frac_bits    = get_bits(gbp, 4);
+        s->lsb_bypass[mat] = get_bits1(gbp);
+
+        if (out_ch > s->max_matrix_channel) {
+            av_log(m->avctx, AV_LOG_ERROR,
+                   "Invalid matrix output channel %d\n", out_ch);
+            return AVERROR_INVALIDDATA;
+        }
+        s->matrix_out_ch[mat] = out_ch;
+
+        if (frac_bits > 14) {
+            av_log(m->avctx, AV_LOG_ERROR,
+                   "Invalid fractional bits for matrix (%d > 14)\n", frac_bits);
+            return AVERROR_INVALIDDATA;
+        }
+
+        for (channel = 0; channel <= s->max_matrix_channel; channel++) {
+            int coeff = get_sbits(gbp, frac_bits + 2);
+            /* The spec says matrix coefficients are stored in 2.14 fixed point,
+             * so shift the read value to that format as needed. */
+            s->matrix_coeff[mat][channel] = coeff << (14 - frac_bits);
+        }
+
+        if (s->noise_type) {
+            s->matrix_noise_shift[mat] = get_bits(gbp, 4);
+            if (s->matrix_noise_shift[mat] > 8) {
+                av_log(m->avctx, AV_LOG_ERROR,
+                       "Invalid matrix noise shift (%d > 8)\n",
+                       s->matrix_noise_shift[mat]);
+                return AVERROR_INVALIDDATA;
+            }
+        } else {
+            s->matrix_noise_shift[mat] = 0;
+        }
+    }
+
+    return 0;

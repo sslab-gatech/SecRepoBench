@@ -1,0 +1,38 @@
+char buf[1024];
+  char *p, *pend, *n;
+  size_t i;
+
+  // Copy valid characters to the buffer, removing underscores
+  for (i = 0, p = buf, pend = buf + sizeof(buf); i < len && p < pend; i++) {
+    if (char_buffer[i] == '_') continue;
+    *p++ = char_buffer[i];
+  }
+  *p = '\0';
+  n = buf;
+  pend = buf + p - buf;
+
+  // Handle null byte termination and check for formatting errors
+  if (p < pend && *p == '\0') {
+    if (badcheck) {
+      mrb_raisef(mrb, E_ARGUMENT_ERROR, "invalid string for float(%!s)", char_buffer);
+    }
+    return d;
+  }
+
+  // Convert the cleaned string in the buffer to a double
+  d = mrb_float_read(n, &end);
+  if (n == end) {
+    if (badcheck) {
+      goto bad;
+    }
+    return d;
+  }
+
+  // Check for formatting errors
+  if (badcheck) {
+    if (!end || n == end) goto bad;
+    while (end < pend && ISSPACE(*end)) end++;
+    if (end < pend) goto bad;
+  }
+
+  return d;

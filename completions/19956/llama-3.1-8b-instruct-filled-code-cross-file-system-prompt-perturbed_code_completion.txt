@@ -1,0 +1,42 @@
+// Allocate memory for the VarRegionList in the context and check for allocation success.
+// Set the axis and region counts based on the source and region map.
+// Allocate additional memory as required based on the object's size calculations.
+// Iterate over each region in the region map, using its mapping to copy axis data from the source to the destination.
+// Ensure successful completion by returning true if the serialization process finishes without errors.
+VarRegionList *dest = c->extend_min (*this);
+if (unlikely (dest == nullptr)) return_trace (false);
+dest->axis_count = src->axis_count;
+dest->region_count = regionmapping.size();
+dest->axis = new hb_axis_t[dest->axis_count];
+dest->region = new hb_region_t[dest->region_count];
+
+// Iterate over each axis in the source and copy the data to the destination.
+for (unsigned int i = 0; i < src->axis_count; i++)
+{
+  dest->axis[i].min = src->axis[i].min;
+  dest->axis[i].max = src->axis[i].max;
+  dest->axis[i].default = src->axis[i].default;
+  dest->axis[i].flags = src->axis[i].flags;
+}
+
+// Iterate over each region in the region map and copy the data to the destination.
+for (unsigned int i = 0; i < regionmapping.size(); i++)
+{
+  hb_region_t *region = &regionmapping[i];
+  hb_region_t *dest_region = &dest->region[i];
+  dest_region->min = region->min;
+  dest_region->max = region->max;
+  dest_region->default = region->default;
+  dest_region->flags = region->flags;
+  dest_region->axis = new hb_axis_t[region->axis_count];
+  for (unsigned int j = 0; j < region->axis_count; j++)
+  {
+    dest_region->axis[j] = region->axis[j];
+  }
+}
+
+// Allocate additional memory as required based on the object's size calculations.
+if (unlikely (!c->allocate_size<VarRegionList> (VarRegionList::min_size + sizeof (hb_axis_t) * dest->axis_count + sizeof (hb_region_t) * dest->region_count)))
+  return_trace (false);
+
+return_trace (true);

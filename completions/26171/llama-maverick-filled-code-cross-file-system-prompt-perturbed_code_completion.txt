@@ -1,0 +1,102 @@
+int32_t ntbytes = 0;
+  int32_t cbytes = 0;
+  int32_t j;
+  int32_t nstreams;
+  int32_t dosplit = 0;    /* Whether we need to split a block in multiple streams or not */
+  int32_t last_filter_index = -1;
+  uint8_t* _src = src + src_offset;
+
+  nstreams = context->nstreams;
+  dosplit = (bsize > context->blocksize);
+
+  if (dosplit) {
+    nstreams = 1;
+  }
+
+  for (j = 0; j < nstreams; j++) {
+    int32_t csize;                /* size of compressed block */
+    int32_t ctbytes;              /* total bytes in block */
+
+    if (dosplit) {
+      /* Compute the size of this stream */
+      csize = (int32_t)(srcsize - src_offset - BLOSC_EXTENDED_HEADER_LENGTH);
+    }
+    else {
+      /* Read the compressed size */
+      _sw32(&csize, _src);
+      _src += 4;
+    }
+
+    if (csize == 0) {
+      /* The block is made entirely of zeros.  Uncompress to zeros. */
+      if (context->header_flags & BLOSC_DOSHUFFLE) {
+        memset(tmp, 0, (size_t)bsize);
+      }
+      else {
+        memset(dest + destinationoffset, 0, (size_t)bsize);
+      }
+      ctbytes = bsize;
+    }
+    else if (csize == bsize) {
+      /* Uncompressed data. Just copy it! */
+      if (context->header_flags & BLOSC_DOSHUFFLE) {
+        memcpy(tmp, _src, (size_t)bsize);
+      }
+      else {
+        memcpy(dest + destinationoffset, _src, (size_t)bsize);
+      }
+      ctbytes = bsize;
+    }
+    else {
+      /* Regular compressed data. Decompress! */
+      int errcode;
+      if (compformat == BLOSC_BLOSCLZ_FORMAT) {
+        errcode = blosclz_decompress(_src, csize, tmp, (size_t)bsize);
+      }
+      else if (compformat == BLOSC_LZ4_FORMAT) {
+        errcode = lz4_decompress(_src, csize, tmp, (size_t)bsize);
+      }
+      else if (compformat == BLOSC_LZ4HC_FORMAT) {
+        errcode = lz4hc_decompress(_src, csize, tmp, (size_t)bsize);
+      }
+      else if (compformat == BLOSC_SNAPPY_FORMAT) {
+        errcode = snappy_decompress(_src, csize, tmp, (size_t)bsize);
+      }
+      else if (compformat == BLOSC_ZLIB_FORMAT) {
+        errcode = zlib_decompress(_src, csize, tmp, (size_t)bsize);
+      }
+      else if (compformat == BLOSC_ZSTD_FORMAT) {
+        errcode = zstd_decompress(_src, csize, tmp, (size_t)bsize);
+      }
+      else {
+        return -1;              /* codec not supported */
+      }
+      if (errcode < 0) {
+        return errcode;         /* error in decompressor */
+      }
+      ctbytes = bsize;
+    }
+
+    if (context->header_flags & BLOSC_DOSHUFFLE) {
+      /* We need to unshuffle */
+      if (last_filter_index < 0) {
+        last_filter_index = BLOSC2_MAX_FILTERS - 1;
+      }
+      /* Save the unshuffled data for subsequent filters */
+      memcpy(tmp2, tmp, (size_t)bsize);
+    }
+    else {
+      /* No shuffle, just copy */
+      memcpy(dest + destinationoffset, tmp, (size_t)bsize);
+    }
+
+    cbytes += csize + 4;        /* compressed size for this stream */
+    ntbytes += ctbytes;         /* uncompressed size for this stream */
+
+    if (dosplit) {
+      break;
+    }
+    else {
+      _src += csize;
+    }
+  } /* Closes j < nstreams */

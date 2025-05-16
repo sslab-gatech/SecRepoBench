@@ -1,0 +1,27 @@
+if (time_str[0] == '%') {
+    time_now = now;
+    gmtime_r(&time_now, &tmy);
+    p = flb_parser_strptime(time_str + 1, "%Y", &tmy);
+    if (p) {
+        /* Year is present, it's a full time format */
+        fmt = timeparser->time_fmt_full;
+    }
+    else {
+        /* Year is not present, it's a partial format */
+        snprintf(tmp, sizeof(tmp) - 1, "%d %.*s",
+                 tmy.tm_year + 1900, tsize, time_str);
+        time_ptr = tmp;
+        time_len = strlen(tmp);
+        fmt = timeparser->time_fmt;
+    }
+}
+else {
+    if (time_len > sizeof(tmp) - 1) {
+        time_len = sizeof(tmp) - 1;
+    }
+    memcpy(tmp, time_str, time_len);
+    tmp[time_len] = '\0';
+    fmt = timeparser->time_fmt;
+}
+
+p = flb_strptime(time_ptr, fmt, tm);

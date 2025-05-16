@@ -1,0 +1,14 @@
+// Increment the total compressed bytes counter by 1 for the token byte
+ctbytes += 1;
+
+// Check if token indicates a run-length encoding (bit 0 set)
+if (token & 0x01) {
+  // This is a run of repeated non-zero values
+  uint8_t value = (uint8_t)-cbytes;
+  memset(comp_buffer, value, (unsigned int)neblock);
+  nbytes = neblock;
+} else {
+  // If run-length bit is not set, this is an unexpected token
+  BLOSC_TRACE_ERROR("Unexpected token %d for run-length encoding", token);
+  return BLOSC2_ERROR_DATA;
+}

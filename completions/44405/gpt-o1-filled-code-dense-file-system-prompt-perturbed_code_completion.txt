@@ -1,0 +1,154 @@
+{
+  char *line_ptr = (char *)network_packet_struct->line[network_packet_struct->parsed_lines].ptr;
+  u_int16_t line_len = network_packet_struct->line[network_packet_struct->parsed_lines].len;
+
+  /* Parse the "Authorization" header value, trimming any leading space after the colon. */
+  {
+    u_int16_t prefix_len = 14; /* "Authorization:" */
+    if(line_len > prefix_len) {
+      if(line_ptr[prefix_len] == ' ') {
+        network_packet_struct->authorization_line.ptr = &line_ptr[prefix_len + 1];
+        network_packet_struct->authorization_line.len = line_len - (prefix_len + 1);
+      } else {
+        network_packet_struct->authorization_line.ptr = &line_ptr[prefix_len];
+        network_packet_struct->authorization_line.len = line_len - prefix_len;
+      }
+    } else {
+      network_packet_struct->authorization_line.ptr = NULL;
+      network_packet_struct->authorization_line.len = 0;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+
+  /* Recognize and parse other common HTTP header fields. Each header is assumed
+   * to occupy its own line, so this generalized snippet shows a pattern for parsing
+   * when detected. In practice, you'd likely use separate if/else-if blocks like
+   * for "Host:", "Server:", etc. above.
+   */
+
+  /* Accept: */
+  if((line_len >= 6) && (strncasecmp(line_ptr, "Accept:", 6) == 0)) {
+    if((line_len > 6) && (line_ptr[6] == ' ')) {
+      network_packet_struct->accept_line.ptr = &line_ptr[7];
+      network_packet_struct->accept_line.len = line_len - 7;
+    } else {
+      network_packet_struct->accept_line.ptr = &line_ptr[6];
+      network_packet_struct->accept_line.len = line_len - 6;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* Referer: */
+  else if((line_len >= 8) && (strncasecmp(line_ptr, "Referer:", 8) == 0)) {
+    if((line_len > 8) && (line_ptr[8] == ' ')) {
+      network_packet_struct->referer_line.ptr = &line_ptr[9];
+      network_packet_struct->referer_line.len = line_len - 9;
+    } else {
+      network_packet_struct->referer_line.ptr = &line_ptr[8];
+      network_packet_struct->referer_line.len = line_len - 8;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* User-Agent: */
+  else if((line_len >= 10) && (strncasecmp(line_ptr, "User-Agent:", 10) == 0)) {
+    if((line_len > 10) && (line_ptr[10] == ' ')) {
+      network_packet_struct->user_agent_line.ptr = &line_ptr[11];
+      network_packet_struct->user_agent_line.len = line_len - 11;
+    } else {
+      network_packet_struct->user_agent_line.ptr = &line_ptr[10];
+      network_packet_struct->user_agent_line.len = line_len - 10;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* Content-Encoding: */
+  else if((line_len >= 16) && (strncasecmp(line_ptr, "Content-Encoding:", 16) == 0)) {
+    if((line_len > 16) && (line_ptr[16] == ' ')) {
+      network_packet_struct->http_encoding.ptr = &line_ptr[17];
+      network_packet_struct->http_encoding.len = line_len - 17;
+    } else {
+      network_packet_struct->http_encoding.ptr = &line_ptr[16];
+      network_packet_struct->http_encoding.len = line_len - 16;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* Transfer-Encoding: */
+  else if((line_len >= 17) && (strncasecmp(line_ptr, "Transfer-Encoding:", 17) == 0)) {
+    if((line_len > 17) && (line_ptr[17] == ' ')) {
+      network_packet_struct->http_transfer_encoding.ptr = &line_ptr[18];
+      network_packet_struct->http_transfer_encoding.len = line_len - 18;
+    } else {
+      network_packet_struct->http_transfer_encoding.ptr = &line_ptr[17];
+      network_packet_struct->http_transfer_encoding.len = line_len - 17;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* Content-Length: */
+  else if((line_len >= 14) && (strncasecmp(line_ptr, "Content-Length:", 14) == 0)) {
+    if((line_len > 14) && (line_ptr[14] == ' ')) {
+      network_packet_struct->http_contentlen.ptr = &line_ptr[15];
+      network_packet_struct->http_contentlen.len = line_len - 15;
+    } else {
+      network_packet_struct->http_contentlen.ptr = &line_ptr[14];
+      network_packet_struct->http_contentlen.len = line_len - 14;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* Content-Disposition: */
+  else if((line_len >= 19) && (strncasecmp(line_ptr, "Content-Disposition:", 19) == 0)) {
+    if((line_len > 19) && (line_ptr[19] == ' ')) {
+      network_packet_struct->content_disposition_line.ptr = &line_ptr[20];
+      network_packet_struct->content_disposition_line.len = line_len - 20;
+    } else {
+      network_packet_struct->content_disposition_line.ptr = &line_ptr[19];
+      network_packet_struct->content_disposition_line.len = line_len - 19;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* Cookie: */
+  else if((line_len >= 7) && (strncasecmp(line_ptr, "Cookie:", 7) == 0)) {
+    if((line_len > 7) && (line_ptr[7] == ' ')) {
+      network_packet_struct->http_cookie.ptr = &line_ptr[8];
+      network_packet_struct->http_cookie.len = line_len - 8;
+    } else {
+      network_packet_struct->http_cookie.ptr = &line_ptr[7];
+      network_packet_struct->http_cookie.len = line_len - 7;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* Origin: */
+  else if((line_len >= 7) && (strncasecmp(line_ptr, "Origin:", 7) == 0)) {
+    if((line_len > 7) && (line_ptr[7] == ' ')) {
+      network_packet_struct->http_origin.ptr = &line_ptr[8];
+      network_packet_struct->http_origin.len = line_len - 8;
+    } else {
+      network_packet_struct->http_origin.ptr = &line_ptr[7];
+      network_packet_struct->http_origin.len = line_len - 7;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* X-Session-Type: */
+  else if((line_len >= 15) && (strncasecmp(line_ptr, "X-Session-Type:", 15) == 0)) {
+    if((line_len > 15) && (line_ptr[15] == ' ')) {
+      network_packet_struct->http_x_session_type.ptr = &line_ptr[16];
+      network_packet_struct->http_x_session_type.len = line_len - 16;
+    } else {
+      network_packet_struct->http_x_session_type.ptr = &line_ptr[15];
+      network_packet_struct->http_x_session_type.len = line_len - 15;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* Content-Type: (specifically handle lack of space after colon) */
+  else if((line_len >= 12) && (strncasecmp(line_ptr, "Content-Type:", 12) == 0)) {
+    if((line_len > 12) && (line_ptr[12] == ' ')) {
+      network_packet_struct->content_line.ptr = &line_ptr[13];
+      network_packet_struct->content_line.len = line_len - 13;
+    } else {
+      network_packet_struct->content_line.ptr = &line_ptr[12];
+      network_packet_struct->content_line.len = line_len - 12;
+    }
+    network_packet_struct->http_num_headers++;
+  }
+  /* If none of the known headers matched, treat it as unrecognized but count it. */
+  else {
+    network_packet_struct->http_num_headers++;
+  }
+}

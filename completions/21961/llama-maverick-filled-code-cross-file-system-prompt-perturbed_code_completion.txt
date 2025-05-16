@@ -1,0 +1,116 @@
+case ReadStripMethod:
+  {
+    uint32
+      strip;
+
+    /*
+      Convert stripped TIFF image.
+    */
+    strip=0;
+    row_index=0;
+    for (strip=0; strip < TIFFNumberOfStrips(tiff); strip++)
+    {
+      register Quantum
+        *magick_restrict q;
+
+      tiff_status=TIFFReadPixels(tiff,strip,row_index,(char *) pixels);
+      if (tiff_status == -1)
+        break;
+      for (i=0; i < (ssize_t) rows_per_strip; i++)
+      {
+        q=QueueAuthenticPixels(image,0,row_index,image->columns,1,exception);
+        if (q == (Quantum *) NULL)
+          break;
+        (void) ImportQuantumPixels(image,(CacheView *) NULL,quantum_info,
+          quantum_type,pixels,exception);
+        pixels+=TIFFScanlineSize(tiff);
+        row_index++;
+        if (row_index >= (ssize_t) image->rows)
+          break;
+        if (SyncAuthenticPixels(image,exception) == MagickFalse)
+          break;
+        if (image->previous == (Image *) NULL)
+          {
+            status=SetImageProgress(image,LoadImageTag,(MagickOffsetType)
+              row_index,image->rows);
+            if (status == MagickFalse)
+              break;
+          }
+      }
+    }
+    break;
+  }
+  case ReadTileMethod:
+  {
+    register uint32
+      *p;
+
+    uint32
+      columns,
+      image_width,
+      rows,
+      tile_width,
+      tile_height;
+
+    /*
+      Convert tiled TIFF image.
+    */
+    if (TIFFGetField(tiff,TIFFTAG_TILEWIDTH,&tile_width) != 1)
+      ThrowTIFFException(CorruptImageError,"ImageDepthNotSupported");
+    if (TIFFGetField(tiff,TIFFTAG_TILELENGTH,&tile_height) != 1)
+      ThrowTIFFException(CorruptImageError,"ImageDepthNotSupported");
+    if ((TIFFGetField(tiff,TIFFTAG_IMAGEWIDTH,&image_width) != 1) ||
+        (TIFFGetField(tiff,TIFFTAG_IMAGELENGTH,&image->rows) != 1))
+      ThrowTIFFException(CorruptImageError,"ImageDepthNotSupported");
+    for (row_index=0; row_index < (ssize_t) image->rows; row_index+=rows)
+    {
+      register ssize_t
+        x;
+
+      register Quantum
+        *magick_restrict q;
+
+      rows=MagickMin((size_t) tile_height,image->rows-row_index);
+      for (x=0; x < (ssize_t) image->columns; x+=columns)
+      {
+        columns=MagickMin((size_t) tile_width,image->columns-x);
+        tiff_status=TIFFReadPixels(tiff,x,row_index,(char *) pixels);
+        if (tiff_status == -1)
+          break;
+        q=GetAuthenticPixels(image,x,row_index,columns,rows,exception);
+        if (q == (Quantum *) NULL)
+          break;
+        p=pixels;
+        for (i=0; i < (ssize_t) rows; i++)
+        {
+          for (x=0; x < (ssize_t) columns; x++)
+          {
+            SetPixelRed(image,ScaleCharToQuantum((unsigned char)
+              TIFFGetR(*p)),q);
+            SetPixelGreen(image,ScaleCharToQuantum((unsigned char)
+              TIFFGetG(*p)),q);
+            SetPixelBlue(image,ScaleCharToQuantum((unsigned char)
+              TIFFGetB(*p)),q);
+            if (image->alpha_trait != UndefinedPixelTrait)
+              SetPixelAlpha(image,ScaleCharToQuantum((unsigned char)
+                TIFFGetA(*p)),q);
+            p++;
+            q+=GetPixelChannels(image);
+          }
+          p+=pad;
+          q+=(ssize_t) (GetPixelChannels(image)*(image->columns-columns));
+        }
+        if (SyncAuthenticPixels(image,exception) == MagickFalse)
+          break;
+        if (image->previous == (Image *) NULL)
+          {
+            status=SetImageProgress(image,LoadImageTag,(MagickOffsetType)
+              row_index,image->rows);
+            if (status == MagickFalse)
+              break;
+          }
+      row_index+=rows;
+      }
+    }
+    break;
+  }

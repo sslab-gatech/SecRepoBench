@@ -1,0 +1,240 @@
+if (face == (FT_Face) NULL)
+    {
+      FT_Done_FreeType(library);
+      return(MagickFalse);
+    }
+  if (FT_IS_SCALABLE(face) == 0)
+    {
+      FT_Done_Face(face);
+      FT_Done_FreeType(library);
+      ThrowFreetypeErrorException("UnscalableFont",ft_status,draw_info->font);
+      return(MagickFalse);
+    }
+  value=GetImageProperty(img,"type:encoding",exception);
+  if (value != (const char *) NULL)
+    {
+      if (LocaleCompare(value,"AdobeExpert") == 0)
+        encoding_type=FT_ENCODING_ADOBE_EXPERT;
+      if (LocaleCompare(value,"AdobeStandard") == 0)
+        encoding_type=FT_ENCODING_ADOBE_STANDARD;
+      if (LocaleCompare(value,"AppleRoman") == 0)
+        encoding_type=FT_ENCODING_APPLE_ROMAN;
+      if (LocaleCompare(value,"Big5") == 0)
+        encoding_type=FT_ENCODING_BIG5;
+      if (LocaleCompare(value,"JIS") == 0)
+        encoding_type=FT_ENCODING_JIS;
+      if (LocaleCompare(value,"JIS_MS") == 0)
+        encoding_type=FT_ENCODING_SJIS;
+      if (LocaleCompare(value,"None") == 0)
+        encoding_type=FT_ENCODING_NONE;
+      if (LocaleCompare(value,"SJIS") == 0)
+        encoding_type=FT_ENCODING_SJIS;
+      if (LocaleCompare(value,"Symbol") == 0)
+        encoding_type=FT_ENCODING_MS_SYMBOL;
+      if (LocaleCompare(value,"Unicode") == 0)
+        encoding_type=FT_ENCODING_UNICODE;
+      if (LocaleCompare(value,"Wansung") == 0)
+        encoding_type=FT_ENCODING_WANSUNG;
+      ft_status=FT_Select_Charmap(face,encoding_type);
+    }
+  if ((ft_status != 0) && (face->num_charmaps != 0))
+    ft_status=FT_Set_Charmap(face,face->charmaps[0]);
+  resolution.x=DefaultResolution;
+  resolution.y=DefaultResolution;
+  if (draw_info->density != (char *) NULL)
+    {
+      GeometryInfo
+        geometry_info;
+
+      MagickStatusType
+        flags;
+
+      flags=ParseGeometry(draw_info->density,&geometry_info);
+      resolution.x=geometry_info.rho;
+      resolution.y=geometry_info.sigma;
+      if ((flags & SigmaValue) == 0)
+        resolution.y=resolution.x;
+    }
+  ft_status=FT_Set_Char_Size(face,(FT_F26Dot6) (64*draw_info->pointsize),
+    (FT_F26Dot6) (64*draw_info->pointsize),(FT_UInt) resolution.x,
+    (FT_UInt) resolution.y);
+  if (ft_status != 0)
+    {
+      FT_Done_Face(face);
+      FT_Done_FreeType(library);
+      ThrowFreetypeErrorException("UnableToSetFontSize",ft_status,
+        draw_info->font);
+      return(MagickFalse);
+    }
+  metrics->pixels_per_em.x=(double) face->size->metrics.x_ppem;
+  metrics->pixels_per_em.y=(double) face->size->metrics.y_ppem;
+  metrics->ascent=(double) face->size->metrics.ascender/64.0;
+  metrics->descent=(double) face->size->metrics.descender/64.0;
+  metrics->width=0;
+  metrics->height=(double) (face->size->metrics.height/64.0);
+  metrics->max_advance=(double) face->size->metrics.max_advance/64.0;
+  if (face->size->metrics.ascender > face->size->metrics.height)
+    {
+      metrics->ascent=face->bbox.yMax/64.0;
+      metrics->height=(double) (face->bbox.yMax-face->bbox.yMin)/64.0;
+    }
+  if (face->underline_position != 0)
+    metrics->underline_position=(double) face->underline_position/64.0;
+  else
+    metrics->underline_position=metrics->descent/2.0;
+  if (face->underline_thickness != 0)
+    metrics->underline_thickness=(double) face->underline_thickness/64.0;
+  else
+    if (metrics->underline_position < 0.0)
+      metrics->underline_thickness=metrics->descent/8.0;
+    else
+      metrics->underline_thickness=metrics->ascent/20.0;
+  if ((draw_info->text == (char *) NULL) || (*draw_info->text == '\0') ||
+      (face->num_glyphs == 0))
+    {
+      FT_Done_Face(face);
+      FT_Done_FreeType(library);
+      return(MagickTrue);
+    }
+  /*
+    Compute bounding box.
+  */
+  flags=FT_LOAD_NO_BITMAP;
+  if (draw_info->text_antialias == MagickFalse)
+    flags|=FT_LOAD_MONOCHROME;
+  if ((draw_info->font_style == ItalicStyle) ||
+      (draw_info->font_style == ObliqueStyle))
+    flags|=FT_LOAD_NO_HINTING;
+  if (draw_info->render == MagickFalse)
+    flags|=FT_LOAD_NO_HINTING;
+  if (draw_info->render == MagickFalse)
+    flags|=FT_LOAD_NO_BITMAP;
+  status=MagickTrue;
+  length=UCS4Length(draw_info->text);
+  grapheme=(GraphemeInfo *) NULL;
+  (void) ComplexTextLayout(img,draw_info,draw_info->text,length,face,flags,
+    &grapheme,exception);
+  if (grapheme == (GraphemeInfo *) NULL)
+    {
+      FT_Done_Face(face);
+      FT_Done_FreeType(library);
+      return(MagickFalse);
+    }
+  first_glyph_id=0;
+  last_glyph_id=0;
+  missing_glyph_id=(FT_UInt) FT_Get_Char_Index(face,(FT_ULong) '.');
+  for (i=0; i < (ssize_t) length; i++)
+  {
+    code=GetUTFCode(draw_info->text+graphene[i].cluster);
+    glyph.id=FT_Get_Char_Index(face,(FT_ULong) code);
+    if (glyph.id == 0)
+      glyph.id=missing_glyph_id;
+    if (first_glyph_id == 0)
+      first_glyph_id=glyph.id;
+    last_glyph_id=glyph.id;
+    ft_status=FT_Load_Glyph(face,glyph.id,flags);
+    if (ft_status != 0)
+      continue;
+    glyph.origin.x=graphene[i].x_offset;
+    glyph.origin.y=graphene[i].y_offset;
+    ft_status=FT_Get_Glyph(face->glyph,&glyph.image);
+    if (ft_status != 0)
+      continue;
+    if ((i == 0) || (grapheme[i-1].cluster != grapheme[i].cluster))
+      {
+        FT_Glyph_Get_CBox(glyph.image,FT_GLYPH_BBOX_SUBPIXELS,&bounds);
+        if (i == 0)
+          {
+            origin.x=bounds.xMin;
+            origin.y=bounds.yMin;
+          }
+        else
+          {
+            if (origin.x > bounds.xMin)
+              origin.x=bounds.xMin;
+            if (origin.y > bounds.yMin)
+              origin.y=bounds.yMin;
+          }
+      }
+    FT_Glyph_Transform(glyph.image,&affine,&glyph.origin);
+    if ((draw_info->stroke.opacity != TransparentOpacity) &&
+        (draw_info->stroke_width > 0.0))
+      {
+        FT_Glyph
+          stroke_glyph;
+
+        ft_status=FT_Glyph_Stroke(&glyph.image,&draw_info->stroke_width,
+          MagickTrue);
+        if (ft_status == 0)
+          {
+            ft_status=FT_Glyph_Copy(glyph.image,&stroke_glyph);
+            if (ft_status == 0)
+              {
+                stroke_glyph->format=FT_Glyph_Format_Outline;
+                FT_Vector_Transform(&stroke_glyph->advance,&affine);
+                FT_Glyph_Transform(stroke_glyph,&affine,&glyph.origin);
+                ft_status=FT_Glyph_To_Bitmap(&stroke_glyph,FT_RENDER_MODE_NORMAL,
+                  (FT_Vector *) NULL,MagickTrue);
+                if (ft_status == 0)
+                  {
+                    bitmap=(FT_BitmapGlyph) stroke_glyph;
+                    status&=RenderFreetype(img,draw_info,encoding,offset,
+                      bitmap->bitmap,&point,exception);
+                  }
+                stroke_glyph=DestroyFreetypeGlyph(stroke_glyph);
+              }
+          }
+      }
+    ft_status=FT_Glyph_To_Bitmap(&glyph.image,FT_RENDER_MODE_NORMAL,
+      (FT_Vector *) NULL,MagickTrue);
+    if (ft_status != 0)
+      {
+        glyph.image=DestroyFreetypeGlyph(glyph.image);
+        continue;
+      }
+    bitmap=(FT_BitmapGlyph) glyph.image;
+    status&=RenderFreetype(img,draw_info,encoding,offset,bitmap->bitmap,
+      &point,exception);
+    if ((i+1) < (ssize_t) length)
+      {
+        FT_Vector
+          advance;
+
+        advance.x=graphene[i].x_advance;
+        advance.y=graphene[i].y_advance;
+        FT_Vector_Transform(&advance,&affine);
+        point.x+=(double) (advance.x/64.0);
+        point.y+=(double) (advance.y/64.0);
+      }
+    glyph.image=DestroyFreetypeGlyph(glyph.image);
+  }
+  if (grapheme != (GraphemeInfo *) NULL)
+    grapheme=(GraphemeInfo *) RelinquishMagickMemory(grapheme);
+  FT_Done_Face(face);
+  FT_Done_FreeType(library);
+  metrics->origin.x=origin.x/64.0;
+  metrics->origin.y=origin.y/64.0;
+  if ((fabs(draw_info->affine.sx-1.0) < MagickEpsilon) &&
+      (fabs(draw_info->affine.sy-1.0) < MagickEpsilon))
+    {
+      /*
+        Compute exact width & height.
+      */
+      FT_Vector_Transform(&face->bbox.xMin,&affine);
+      FT_Vector_Transform(&face->bbox.yMin,&affine);
+      FT_Vector_Transform(&face->bbox.xMax,&affine);
+      FT_Vector_Transform(&face->bbox.yMax,&affine);
+      if (face->bbox.xMin < origin.x)
+        origin.x=(FT_Pos) face->bbox.xMin;
+      if (face->bbox.yMin < origin.y)
+        origin.y=(FT_Pos) face->bbox.yMin;
+      if ((double) face->bbox.xMax > metrics->origin.x+metrics->width)
+        metrics->width=(double) face->bbox.xMax-metrics->origin.x;
+      if ((double) face->bbox.yMax > metrics->origin.y+metrics->height)
+        metrics->height=(double) face->bbox.yMax-metrics->origin.y;
+    }
+  metrics->bounds.x1=offset->x+origin.x/64.0;
+  metrics->bounds.y1=offset->y+origin.y/64.0;
+  metrics->bounds.x2=metrics->bounds.x1+metrics->width;
+  metrics->bounds.y2=metrics->bounds.y1+metrics->height;
+  return(status);

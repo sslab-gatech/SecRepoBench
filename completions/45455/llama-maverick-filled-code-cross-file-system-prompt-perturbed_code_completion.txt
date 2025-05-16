@@ -1,0 +1,14 @@
+val = xmlStringDecodeEntities(ctxt, ent->name, XML_SUBSTITUTE_REF,
+                                  0, 0, 0);
+    if (val == NULL) {
+        xmlErrMsgStr(ctxt, XML_ERR_INTERNAL_ERROR,
+                     "xmlParseReference: entity %s broken\n", ent->name);
+        return;
+    }
+    /*
+     * At this point val is UTF-8 encoded
+     */
+    if ((ctxt->sax != NULL) && (ctxt->sax->characters != NULL) &&
+        (!ctxt->disableSAX))
+        ctxt->sax->characters(ctxt->userData, val, xmlStrlen(val));
+    xmlFree(val);

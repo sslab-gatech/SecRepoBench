@@ -1,0 +1,35 @@
+// Calculate the tail length and update the length and record length fields
+// with the appropriate values based on the current context length and offsets.
+_reverse_variation_records ();
+hb_vector_t<unsigned> offsets;
+hb_vector_t<unsigned> lengths;
+hb_vector_t<unsigned> records;
+hb_vector_t<unsigned> variation_records;
+hb_vector_t<unsigned> variation_selector_records;
+
+// Get the variation records and their lengths
+for (int i = 0; i < obj_indices.len; i++)
+{
+  const hb_pair_t<unsigned, unsigned> &pair = obj_indices[i];
+  if (pair.first)
+    variation_records.push (pair.first);
+  if (pair.second)
+    variation_selector_records.push (pair.second);
+}
+
+// Calculate the total length of the variation records
+unsigned total_length = 0;
+for (int i = 0; i < variation_records.len; i++)
+  total_length += variation_records[i];
+
+// Calculate the total length of the variation selector records
+unsigned total_selector_length = 0;
+for (int i = 0; i < variation_selector_records.len; i++)
+  total_selector_length += variation_selector_records[i];
+
+// Update the length and record length fields
+c->length += total_length + total_selector_length;
+c->record_length = c->length - initial_table_position;
+
+// Update the tail length
+c->tail = c->tail + total_length + total_selector_length;

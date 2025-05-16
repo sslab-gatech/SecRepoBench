@@ -1,0 +1,12 @@
+uint count = interp_env.pop_uint ();
+uint num = interp_env.pop_uint ();
+float *blend_values = new float[count];
+for (uint i = 0; i < count; i++) {
+  blend_values[i] = interp_env.pop_float ();
+}
+float *default_values = param.get_default_blend_values ();
+for (uint i = 0; i < count; i++) {
+  default_values[i] *= blend_values[i];
+}
+delete[] blend_values;
+interp_env.clear_args ();

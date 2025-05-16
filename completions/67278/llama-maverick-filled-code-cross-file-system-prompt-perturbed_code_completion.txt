@@ -1,0 +1,17 @@
+u32 remain = (u32) gf_bs_available(bs);
+if (gf_latm_demux(bs, &acfg, remain, &nb_skip)) {
+	break;
+}
+if (acfg.sr_idx>=GF_M4A_SAMPLERATE_NB) {
+	nb_skip++;
+	continue;
+}
+numframes++;
+if (!gf_bs_read_u8(bs)) {
+	nb_skip++;
+	continue;
+}
+if (gf_bs_read_u8(bs)) {
+	nb_skip++;
+	continue;
+}

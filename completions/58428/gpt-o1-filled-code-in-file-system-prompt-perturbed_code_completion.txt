@@ -1,0 +1,44 @@
+{
+  unsigned num_contours = header.numberOfContours;
+  // Allocate at least the 4 phantom points
+  if (num_contours == 0)
+  {
+    // No real contours, just phantom points
+    if (!contour_points.alloc (4, false))
+      return false;
+    return true;
+  }
+
+  // Validate that endPtsOfContours array is within bounds
+  unsigned int end_pts_offset = GlyphHeader::static_size;
+  unsigned int end_pts_size = 2u * num_contours;
+  if (end_pts_offset + end_pts_size > bytes.length)
+    return false;
+
+  // Read endPtsOfContours
+  const HBUINT16* end_pts = &StructAtOffset<HBUINT16> (&bytes, end_pts_offset);
+  unsigned int total_points = end_pts[num_contours - 1] + 1; // last end point + 1
+  // Allocate for all points + 4 phantom
+  if (!contour_points.alloc (total_points + 4, false))
+    return false;
+
+  // If phantom_only was requested, skip reading flags/coordinates
+  if (phantom_only)
+    return true;
+
+  // Skip instructions
+  if (!has_instructions_length ())
+    return false;
+  unsigned int instr_len = instructions_length ();
+  unsigned int data_start = instruction_len_offset () + 2 + instr_len;
+  if (data_start > bytes.length)
+    return false;
+
+  const HBUINT8 *p = bytes.arrayZ + data_start;
+  const HBUINT8 *end = bytes.arrayZ + bytes.length;
+
+  // Parse flags, x-coords, y-coords
+  return read_flags (p, contour_points, end) &&
+         read_points (p, contour_points, end, &contour_point_t::x, FLAG_X_SHORT, FLAG_X_SAME) &&
+         read_points (p, contour_points, end, &contour_point_t::y, FLAG_Y_SHORT, FLAG_Y_SAME);
+}

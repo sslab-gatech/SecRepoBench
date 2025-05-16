@@ -1,0 +1,18 @@
+VarRegionList *dest = c->allocate_size<VarRegionList> (src->get_size (regionmapping.get_population ()));
+    if (unlikely (!dest)) return_trace (false);
+
+    dest->axis_count = src->axis_count;
+    unsigned int count = regionmapping.get_population ();
+    dest->region_count = count;
+    for (unsigned int i = 0; i < count; i++)
+    {
+      hb_codepoint_t new_idx = regionmapping.r2l (i);
+      if (new_idx == HB_BIMA_VALUE_INVALID)
+        continue;
+      for (unsigned int axis_index = 0; axis_index < dest->axis_count; axis_index++)
+      {
+        dest->region_axes[i * dest->axis_count + axis_index] = src->region_axes[new_idx * src->axis_count + axis_index];
+      }
+    }
+
+    return_trace (true);

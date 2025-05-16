@@ -1,0 +1,19 @@
+face = faceptr;
+
+      // Retrieve the 'head' table
+      const head_table_t *head = face->get_table<head_table_t> (HB_OT_TAG_head);
+      if (!head || head->magicNumber != 0x5F0F3CF5u)
+        return;
+
+      // Determine short_offset based on indexToLocFormat
+      short_offset = head->indexToLocFormat == 0;
+
+      // Reference 'loca' and 'glyf' tables
+      loca_table = face->reference_table (HB_OT_TAG_loca);
+      glyf_table = face->reference_table (HB_OT_TAG_glyf);
+
+      // Calculate num_glyphs
+      if (loca_table.length)
+      {
+        num_glyphs = short_offset ? loca_table.length / 2 : loca_table.length / 4;
+      }

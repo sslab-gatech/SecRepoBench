@@ -1,0 +1,28 @@
+if (unlikely (!c->extend_min (*src))) return_trace (false);
+
+    unsigned int num_axes = src->axes.length;
+    src->axis_tags.shrink (0);
+    if (unlikely (!c->extend_array (src->axis_tags, num_axes))) return_trace (false);
+    for (unsigned int i = 0; i < num_axes; i++)
+    {
+      hb_tag_t tag = regionmapping.tag2tag (src->axes[i].tag);
+      src->axis_tags[i] = tag;
+      if (unlikely (tag == HB_TAG_NONE && src->axes[i].tag != HB_TAG_NONE))
+        return_trace (false);
+    }
+
+    unsigned int num_regions = src->regions.length;
+    if (unlikely (!c->extend_array (src->regions, num_regions * num_axes))) return_trace (false);
+    for (unsigned int i = 0; i < num_regions; i++)
+    {
+      for (unsigned int j = 0; j < num_axes; j++)
+      {
+	const hb_variation_axis_t *axis = &src->axes[j];
+	if (unlikely (!((axis->start <= axis->peak && axis->peak <= axis->end) ||
+			(axis->end <= axis->peak && axis->peak <= axis->start))))
+	  return_trace (false);
+        src->regions[i * num_axes + j] = axis->serialize_region (regionmapping.tag2tag (axis->tag));
+      }
+    }
+
+    return_trace (true);

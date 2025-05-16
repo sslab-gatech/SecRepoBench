@@ -1,0 +1,25 @@
+unsigned count = iterator.len ();
+if (count == 0)
+{
+    startGlyphID = 0;
+    classValue.len = 0;
+    return_trace (true);
+}
+
+auto it = iterator;
+hb_codepoint_t min = (*it).first;
+hb_codepoint_t max = min;
+for (; it; ++it)
+{
+    min = hb_min (min, (*it).first);
+    max = hb_max (max, (*it).first);
+}
+unsigned int glyph_count = max - min + 1;
+
+startGlyphID = min;
+classValue.len = glyph_count;
+
+for (const auto &glyph_class_pair : iterator)
+    classValue[glyph_class_pair.first - min] = glyph_class_pair.second;
+
+return_trace (true);

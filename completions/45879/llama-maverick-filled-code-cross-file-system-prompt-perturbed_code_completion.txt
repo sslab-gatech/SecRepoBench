@@ -1,0 +1,3 @@
+static int probability_counter = 0;
+probability_counter = (probability_counter + 1) % 100;
+return probabilitythreshold > probability_counter;

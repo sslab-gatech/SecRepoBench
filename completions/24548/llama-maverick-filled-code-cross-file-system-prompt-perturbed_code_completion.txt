@@ -1,0 +1,5 @@
+unsigned tail_len = init_tail - c->tail;
+this->length = c->length () - initial_table_position;
+this->record.len = obj_indices.length;
+c->check_assign (this->record.len, obj_indices.length);
+if (unlikely (c->in_error ())) return;

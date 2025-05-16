@@ -1,0 +1,7 @@
+const char* entry = str_table_base + sizeof(uint32_t) * entry_index;
+uint32_t str_offset = *(uint32_t*)entry;
+
+if (str_offset >= (uint32_t)(str_table_limit - str_table_base))
+  return NULL;
+
+return str_table_base + str_offset;

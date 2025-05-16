@@ -1,0 +1,32 @@
+{
+  bool result = false;
+  hb_vector_t<glyf_impl::SubsetGlyph> glyphs;
+  if (unlikely (!_populate_subset_glyphs (context->plan, font, glyphs)))
+    goto fail;
+
+  bool use_short_loca = true;
+  {
+    unsigned offset = 0;
+    for (auto &subset_g : glyphs)
+    {
+      unsigned size = subset_g.dest_size;
+      if (offset + size >= 0x20000u)
+      {
+        use_short_loca = false;
+        break;
+      }
+      offset += size;
+    }
+  }
+
+  if (unlikely (!serialize (context->serializer, glyphs, use_short_loca, context->plan)))
+    goto fail;
+
+  result = true;
+
+fail:
+  if (font)
+    hb_font_destroy (font);
+  _free_compiled_subset_glyphs (glyphs);
+  return_trace (result);
+}

@@ -1,0 +1,49 @@
+// For pre-R11 versions
+PRE (R_11)
+{
+  obj->size = bit_read_RS (dat);
+  if (obj->size > size || obj->size < 2)
+    {
+      LOG_ERROR ("Invalid object size %d, expected 2-%d", obj->size, size);
+      obj->size = size;
+    }
+  if (obj->size != (dat->byte - previous_byte_position))
+    {
+      BITCODE_RS remaining = obj->size - (dat->byte - previous_byte_position);
+      LOG_TRACE ("remaining: %d [RS]\n", remaining);
+      bit_advance_position (dat, remaining * 8);
+    }
+}
+// For R11 and later versions
+LATER_VERSIONS
+{
+  obj->size = bit_read_RL (dat);
+  if (obj->size > size || obj->size < 4)
+    {
+      LOG_ERROR ("Invalid object size %d, expected 4-%d", obj->size, size);
+      obj->size = size;
+    }
+  if (obj->size != (dat->byte - previous_byte_position))
+    {
+      BITCODE_RL remaining = obj->size - (dat->byte - previous_byte_position);
+      LOG_TRACE ("remaining: %d [RL]\n", remaining);
+      if (remaining > 0)
+        {
+          obj->unknown_bits = bit_read_TF (dat, remaining);
+          LOG_TRACE ("unknown_bits: ");
+          LOG_TRACE_TF (obj->unknown_bits, remaining);
+          LOG_TRACE ("\n");
+        }
+      else if (remaining < 0)
+        {
+          LOG_ERROR ("Object size overflow %d", (int)remaining);
+          dat->byte -= remaining;
+          obj->size = dat->byte - previous_byte_position;
+        }
+    }
+  if (dat->version >= R_13 && !bit_check_CRC (dat, previous_byte_position, 0xC0C1))
+    {
+      LOG_ERROR ("Wrong CRC at object end");
+      error |= DWG_ERR_WRONGCRC;
+    }
+}

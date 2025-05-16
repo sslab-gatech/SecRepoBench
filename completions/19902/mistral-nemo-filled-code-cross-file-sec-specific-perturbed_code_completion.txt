@@ -1,0 +1,11 @@
+char *p, *pend, *buf, *n;
+  size_t buf_size;
+
+  // Allocate buffer on the heap to avoid stack-based buffer overflow
+  buf_size = len + 1; // +1 for null terminator
+  buf = (char *)mrb_malloc(mrb, buf_size);
+  n = buf + buf_size - 1;
+  p = buf;
+  pend = n;
+
+  // Rest of the code...

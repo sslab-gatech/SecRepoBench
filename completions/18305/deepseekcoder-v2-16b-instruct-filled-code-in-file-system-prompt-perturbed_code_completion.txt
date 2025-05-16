@@ -1,0 +1,192 @@
+.blue_primary.x=chromaticity[4];
+            image->chromaticity.blue_primary.y=chromaticity[5];
+          }
+      }
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_YRESOLUTION,&y_resolution) == 1)
+      image->resolution.y=y_resolution;
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_XRESOLUTION,&hor_res) == 1)
+      image->resolution.x=hor_res;
+    // </MASK>
+    if (image->debug != MagickFalse)
+      {
+        (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Resolution: %.20g x "
+          "%.20g",(double) image->resolution.x,(double) image->resolution.y);
+        (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Page: %ux%u+%d+%d",
+          (unsigned int) image->columns,(unsigned int) image->rows,
+          (int) image->page.x,(int) image->page.y);
+      }
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Depth: %.20g",
+        (double) image->depth);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Endian: %s",
+        (image->endian == MSBEndian) ? "msb" : "lsb");
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Photometric: %s",
+        GetImageProperty(image,"tiff:photometric",exception));
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Compression: %u",
+        compress_tag);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Samples per pixel: %u",
+        samples_per_pixel);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Planar configuration: "
+        "%u",interlace);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Bits per sample: %u",
+        bits_per_sample);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Sample format: %u",
+        sample_format);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Min sample value: %u",
+        min_sample_value);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Max sample value: %u",
+        max_sample_value);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Extra samples: %u",
+        extra_samples);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"White point: %.20g, "
+        "%.20g",(double) image->chromaticity.white_point.x,
+        (double) image->chromaticity.white_point.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Primary chromaticities: "
+        "%.20g, %.20g, %.20g, %.20g, %.20g, %.20g",
+        (double) image->chromaticity.red_primary.x,
+        (double) image->chromaticity.red_primary.y,
+        (double) image->chromaticity.green_primary.x,
+        (double) image->chromaticity.green_primary.y,
+        (double) image->chromaticity.blue_primary.x,
+        (double) image->chromaticity.blue_primary.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Y resolution: %.20g",
+        (double) image->resolution.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"X resolution: %.20g",
+        (double) image->resolution.x);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Orientation: %u",
+        (unsigned int) image->orientation);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Resolution unit: %u",
+        units);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Page: %ux%u+%d+%d",
+        (unsigned int) image->columns,(unsigned int) image->rows,
+        (int) image->page.x,(int) image->page.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Depth: %.20g",
+        (double) image->depth);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Endian: %s",
+        (image->endian == MSBEndian) ? "msb" : "lsb");
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Photometric: %s",
+        GetImageProperty(image,"tiff:photometric",exception));
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Compression: %u",
+        compress_tag);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Samples per pixel: %u",
+        samples_per_pixel);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Planar configuration: "
+        "%u",interlace);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Bits per sample: %u",
+        bits_per_sample);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Sample format: %u",
+        sample_format);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Min sample value: %u",
+        min_sample_value);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Max sample value: %u",
+        max_sample_value);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Extra samples: %u",
+        extra_samples);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"White point: %.20g, "
+        "%.20g",(double) image->chromaticity.white_point.x,
+        (double) image->chromaticity.white_point.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Primary chromaticities: "
+        "%.20g, %.20g, %.20g, %.20g, %.20g, %.20g",
+        (double) image->chromaticity.red_primary.x,
+        (double) image->chromaticity.red_primary.y,
+        (double) image->chromaticity.green_primary.x,
+        (double) image->chromaticity.green_primary.y,
+        (double) image->chromaticity.blue_primary.x,
+        (double) image->chromaticity.blue_primary.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Y resolution: %.20g",
+        (double) image->resolution.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"X resolution: %.20g",
+        (double) image->resolution.x);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Orientation: %u",
+        (unsigned int) image->orientation);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Resolution unit: %u",
+        units);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Page: %ux%u+%d+%d",
+        (unsigned int) image->columns,(unsigned int) image->rows,
+        (int) image->page.x,(int) image->page.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Depth: %.20g",
+        (double) image->depth);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Endian: %s",
+        (image->endian == MSBEndian) ? "msb" : "lsb");
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Photometric: %s",
+        GetImageProperty(image,"tiff:photometric",exception));
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Compression: %u",
+        compress_tag);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Samples per pixel: %u",
+        samples_per_pixel);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Planar configuration: "
+        "%u",interlace);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Bits per sample: %u",
+        bits_per_sample);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Sample format: %u",
+        sample_format);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Min sample value: %u",
+        min_sample_value);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Max sample value: %u",
+        max_sample_value);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Extra samples: %u",
+        extra_samples);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"White point: %.20g, "
+        "%.20g",(double) image->chromaticity.white_point.x,
+        (double) image->chromaticity.white_point.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Primary chromaticities: "
+        "%.20g, %.20g, %.20g, %.20g, %.20g, %.20g",
+        (double) image->chromaticity.red_primary.x,
+        (double) image->chromaticity.red_primary.y,
+        (double) image->chromaticity.green_primary.x,
+        (double) image->chromaticity.green_primary.y,
+        (double) image->chromaticity.blue_primary.x,
+        (double) image->chromaticity.blue_primary.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"Y resolution: %.20g",
+        (double) image->resolution.y);
+    if (image->debug != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),"X resolution: %.20g

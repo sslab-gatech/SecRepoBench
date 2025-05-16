@@ -1,0 +1,14 @@
+{
+  mrb_int val = 0;
+  do {
+    val = val * 10 + (ch - '0');
+    if (val > INT_MAX) {
+      mrb_raisef(mrb, E_RUNTIME_ERROR, "template length too large");
+    }
+    tmpl->idx++;
+    if (tmpl->idx >= tlen) break;
+    ch = tptr[tmpl->idx];
+  } while (ISDIGIT(ch));
+  repeatcount = (int)val;
+  tmpl->idx--; /* adjust index since the loop will increment it again */
+}

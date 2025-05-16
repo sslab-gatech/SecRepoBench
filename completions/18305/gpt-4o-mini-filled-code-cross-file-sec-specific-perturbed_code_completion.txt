@@ -1,0 +1,17 @@
+if (TIFFGetFieldDefaulted(tiff,TIFFTAG_EXIFIFD,&value) == 1)
+      {
+        if (value != (unsigned char *) NULL)
+          {
+            (void) TIFFSetField(tiff,TIFFTAG_EXIFIFD,value);
+          }
+      }
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_XRESOLUTION,&image->resolution.x) == 1)
+      {
+        if (image->resolution.x <= 0.0)
+          image->resolution.x = 72.0; // Default to 72 DPI if invalid
+      }
+    if (TIFFGetFieldDefaulted(tiff,TIFFTAG_YRESOLUTION,&image->resolution.y) == 1)
+      {
+        if (image->resolution.y <= 0.0)
+          image->resolution.y = 72.0; // Default to 72 DPI if invalid
+      }

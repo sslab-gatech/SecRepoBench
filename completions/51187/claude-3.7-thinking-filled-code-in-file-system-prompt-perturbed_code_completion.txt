@@ -1,0 +1,65 @@
+std::string* word_copy = NULL;
+std::string* desc_copy = NULL;
+const std::string* word = &in_word;
+const std::string* desc = NULL;
+
+// Remove ignored characters (for example, Arabic optional diacritics) from the word
+if (!ignorechars.empty() || complexprefixes) {
+  word_copy = new std::string(in_word);
+  
+  if (!ignorechars.empty()) {
+    if (utf8) {
+      // UTF-8 encoded characters
+      for (unsigned short ignorechr_utf16 : ignorechars_utf16) {
+        std::string ignorechr;
+        std::vector<w_char> w;
+        w.push_back(w_char(ignorechr_utf16, 0));
+        u16_u8(ignorechr, w);
+        size_t pos;
+        while ((pos = word_copy->find(ignorechr)) != std::string::npos) {
+          word_copy->erase(pos, ignorechr.size());
+        }
+      }
+    } else {
+      // Single byte characters
+      for (char i : ignorechars) {
+        size_t pos;
+        while ((pos = word_copy->find(i)) != std::string::npos) {
+          word_copy->erase(pos, 1);
+        }
+      }
+    }
+  }
+  
+  // Reverse the word if complex prefixes are enabled
+  if (complexprefixes) {
+    if (utf8)
+      reverseword_utf(*word_copy);
+    else
+      reverseword(*word_copy);
+  }
+  
+  word = word_copy;
+}
+
+// Handle the description - copy and reverse if necessary
+if (inputdesc) {
+  // If complex prefixes are enabled or description has non-aliased content,
+  // create a copy and reverse it if needed
+  if (complexprefixes || aliasm.empty()) {
+    desc_copy = new std::string(*inputdesc);
+    
+    if (complexprefixes) {
+      if (utf8)
+        reverseword_utf(*desc_copy);
+      else
+        reverseword(*desc_copy);
+    }
+    
+    desc = desc_copy;
+  } else {
+    desc = inputdesc;
+  }
+} else {
+  desc = NULL;
+}

@@ -1,0 +1,129 @@
+for (c=xml; *c != '\0'; )
+  {
+    if (isspace((int) ((unsigned char) *c)) != 0)
+      {
+        c++;
+        continue;
+      }
+    if ((*c == '<') && (*(c+1) == '?' || *(c+1) == '!'))
+      {
+        /*
+          Processing instructions or doctype.
+        */
+        for (n=c+2; ; n++)
+        {
+          if ((n >= (c+length)) || (*n == '\0'))
+            {
+              c=n;
+              break;
+            }
+          if ((*n == '>') && (*(n-1) == '?'))
+            {
+              c=n+1;
+              break;
+            }
+          if ((*n == '>') && (*(n-1) != '-') && (*(c+1) == '!') &&
+              ((*(n-2) != '-') || (*(c+2) != '-')))
+            {
+              c=n+1;
+              break;
+            }
+        }
+        continue;
+      }
+    if (*c == '<')
+      {
+        /*
+          Element.
+        */
+        for (n=++c; ; n++)
+        {
+          if ((n >= (c+length)) || (*n == '\0'))
+            {
+              c=n;
+              break;
+            }
+          if (isspace((int) ((unsigned char) *n)) != 0)
+            break;
+          if (*n == '>')
+            {
+              c=n+1;
+              break;
+            }
+          if (*n == '/')
+            {
+              if ((*(n+1) == '>') || ((*(n+1) == '\0') && (n >= (c+length))))
+                {
+                  c=n+1;
+                  break;
+                }
+            }
+        }
+        if (n > c)
+          {
+            *n='\0';
+            ParseOpenTag(root,c,ParseAttributes(c+1,&v));
+            *n='\0';
+          }
+        c=n;
+        continue;
+      }
+    if (*c == '&')
+      {
+        /*
+          Entity reference.
+        */
+        for (n=++c; ; n++)
+        {
+          if ((n >= (c+length)) || (*n == '\0'))
+            {
+              c=n;
+              break;
+            }
+          if (*n == ';')
+            {
+              c=n+1;
+              break;
+            }
+        }
+        if (n > c)
+          {
+            q=(*c);
+            *n='\0';
+            t=ParseEntity(c,root->entities,&index);
+            if (t == (char *) NULL)
+              {
+                (void) ThrowMagickException(exception,GetMagickModule(),
+                  OptionError,"UnknownEntityReference","`%s'",c);
+                return(MagickFalse);
+              }
+            if (root->node != (XMLTreeInfo *) NULL)
+              ParseCharacterContent(root,t,strlen(t),q);
+            t=DestroyString(t);
+            *n=';';
+          }
+        c=n;
+        continue;
+      }
+    /*
+      Character data.
+    */
+    for (n=c; ; n++)
+    {
+      if ((n >= (c+length)) || (*n == '\0'))
+        {
+          c=n;
+          break;
+        }
+      if (*n == '<')
+        break;
+      if (*n == '&')
+        break;
+    }
+    if (n > c)
+      {
+        if (root->node != (XMLTreeInfo *) NULL)
+          ParseCharacterContent(root,c,(size_t) (n-c),'&');
+      }
+    c=n;
+  }

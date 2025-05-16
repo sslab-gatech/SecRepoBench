@@ -1,0 +1,50 @@
+mp_limb_t d = (mp_limb1 << DIG_SIZE) / (z + 1);
+if (d != 1) {
+  ulmul(mrb, &x, d);
+  ulmul(mrb, &y, d);
+}
+mp_limb_t *p = x.p + xd - yd;
+mp_limb_t *q_p = q.p + xd - yd;
+for (index = xd; index >= yd; index--) {
+  mp_limb2 qhat;
+  if (index > xd || p[0] != y.p[yd-1]) {
+    mp_limb2 u1 = ((mp_limb2)p[0] << DIG_SIZE) + p[-1];
+    qhat = u1 / z;
+    if (qhat >= (mp_limb1 << DIG_SIZE)) {
+      qhat = (mp_limb1 << DIG_SIZE) - 1;
+    }
+  }
+  else {
+    qhat = (mp_limb1 << DIG_SIZE) - 1;
+  }
+  if (qhat != 0) {
+    mp_limb_t *y_p = y.p;
+    mp_limb_t *px = p - yd + 1;
+    mp_limb_t c = 0, b = 0;
+    for (size_t j = 0; j < yd; j++, px++, y_p++) {
+      mp_limb2 prod = (mp_limb2)*y_p * qhat;
+      mp_limb2 t = *px - (prod & MP_LIMB_MAX) - b;
+      *px = t;
+      b = (t >> DIG_SIZE) + (prod >> DIG_SIZE);
+      if (c != 0) {
+        if (*px >= MP_LIMB_MAX - c) b++;
+        (*px)++;
+      }
+      c = b >> DIG_SIZE;
+    }
+    if (px[0] < c) {
+      mp_limb_t c2 = 0;
+      y_p = y.p;
+      px = p - yd + 1;
+      for (size_t j = 0; j < yd; j++, px++, y_p++) {
+        mp_limb2 t = *px + *y_p + c2;
+        *px = t;
+        c2 = t >> DIG_SIZE;
+      }
+      p[0] += c2;
+      qhat--;
+    }
+  }
+  *q_p-- = qhat;
+  p--;
+}

@@ -1,0 +1,41 @@
+// Read and handle the Unicode string if present
+    if (unicodeLength > 0 && SizeOfTag >= 2 * unicodeLength) {
+
+        UnicodeString = (wchar_t*) _cmsCalloc(self->ContextID, unicodeLength, sizeof(wchar_t));
+        if (UnicodeString == NULL) goto Error;
+
+        if (!_cmsReadWCharArray(io, unicodeLength, UnicodeString))
+            goto Error;
+
+        SizeOfTag -= 2 * unicodeLength;
+
+        // Store the Unicode string in the MLU
+        if (!cmsMLUsetWide(mlu, cmsNoLanguage, cmsNoCountry, UnicodeString))
+            goto Error;
+
+        _cmsFree(self->ContextID, UnicodeString);
+        UnicodeString = NULL;
+    }
+
+    // Check if optional ScriptCode section is present
+    if (SizeOfTag >= (sizeof(ScriptCodeCode) + sizeof(ScriptCodeCount) + 67)) {
+
+        if (!_cmsReadUInt16Number(io, &ScriptCodeCode))
+            goto Error;
+
+        if (!_cmsReadUInt8Number(io, &ScriptCodeCount))
+            goto Error;
+
+        // Skip the 67-byte ScriptCode description
+        {
+            cmsUInt8Number dummySC[67];
+            if (io->Read(io, dummySC, 1, 67) != 67)
+                goto Error;
+        }
+
+        SizeOfTag -= (sizeof(ScriptCodeCode) + sizeof(ScriptCodeCount) + 67);
+    }
+
+    // Successfully read the description
+    *nItems = 1;
+    return (void*) mlu;

@@ -1,0 +1,42 @@
+if (endp == str_val) {
+    PLIST_JSON_ERR("%s: invalid numeric value '%.*s' encountered\n", __func__, (int)str_len, str_val);
+    return NULL;
+}
+if (*endp == '.') {
+    endp++;
+    double fracpart = parse_fractional(str_val, str_end, &endp);
+    if (fracpart == HUGE_VAL) {
+        PLIST_JSON_ERR("%s: unrepresentable real value '%.*s' encountered\n", __func__, (int)str_len, str_val);
+        return NULL;
+    }
+    int64_t exppart = 0;
+    if (*endp == 'e' || *endp == 'E') {
+        endp++;
+        exppart = parse_exponent(str_val, str_end, &endp);
+        if (exppart == INT64_MIN || exppart == INT64_MAX) {
+            PLIST_JSON_ERR("%s: unrepresentable real value '%.*s' encountered\n", __func__, (int)str_len, str_val);
+            return NULL;
+        }
+    }
+    double realval = (double)intpart + fracpart;
+    if (exppart) {
+        realval = ldexp(realval, (int)exppart);
+    }
+    primitivevalue = plist_new_real(realval);
+} else {
+    if (intpart >= INT64_MIN && intpart <= INT64_MAX) {
+        if (intpart >= 0) {
+            primitivevalue = plist_new_uint((uint64_t)intpart);
+        } else {
+            primitivevalue = plist_new_int((int64_t)intpart);
+        }
+    } else {
+        PLIST_JSON_ERR("%s: unrepresentable integer value '%.*s' encountered\n", __func__, (int)str_len, str_val);
+        return NULL;
+    }
+}
+if (endp != str_end) {
+    PLIST_JSON_ERR("%s: invalid numeric value '%.*s' encountered\n", __func__, (int)str_len, str_val);
+    plist_free(primitivevalue);
+    return NULL;
+}

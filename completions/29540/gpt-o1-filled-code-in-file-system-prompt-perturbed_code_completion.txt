@@ -1,0 +1,17 @@
+if (0 == nfields || 0 == nelems) {
+        /* No fields or elements, so nothing more to do. */
+        return;
+    }
+
+    {
+        size_t nmemb = (size_t)(nfields * nelems);
+        matvar->data_size = sizeof(matvar_t *);
+        matvar->nbytes = nmemb * matvar->data_size;
+        matvar->data = malloc(matvar->nbytes);
+        if (NULL == matvar->data) {
+            Mat_Critical("Error allocating memory for fields array");
+            return;
+        }
+        fields = (matvar_t **)matvar->data;
+        memset(fields, 0, matvar->nbytes);
+    }

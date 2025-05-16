@@ -1,0 +1,46 @@
+if (codeview_header->Signature == CV_SIGNATURE_RSDS)
+{
+  PRSDS_HEADER rsds_header = (PRSDS_HEADER) codeview_header;
+
+  if (struct_fits_in_pe(pe, rsds_header, RSDS_HEADER) &&
+      fits_in_pe(pe, rsds_header->PdbName, sizeof(uint16_t)))
+  {
+    pdb_path_len = strnlen_w(rsds_header->PdbName, MAX_PDB_PATH_LEN);
+
+    if (pdb_path_len <= MAX_PDB_PATH_LEN)
+    {
+      pdb_path = (char*) yr_malloc(pdb_path_len + 1);
+
+      if (pdb_path != NULL)
+      {
+        strlcpy_w(pdb_path, rsds_header->PdbName, pdb_path_len + 1);
+        set_string(pdb_path, pe->object, "pdb_path");
+        yr_free(pdb_path);
+        break;
+      }
+    }
+  }
+}
+else if (codeview_header->Signature == CV_SIGNATURE_MSDOS)
+{
+  PMSDOS_HEADER msdos_header = (PMSDOS_HEADER) codeview_header;
+
+  if (struct_fits_in_pe(pe, msdos_header, MSDOS_HEADER) &&
+      fits_in_pe(pe, msdos_header->PdbName, sizeof(uint16_t)))
+  {
+    pdb_path_len = strnlen_w(msdos_header->PdbName, MAX_PDB_PATH_LEN);
+
+    if (pdb_path_len <= MAX_PDB_PATH_LEN)
+    {
+      pdb_path = (char*) yr_malloc(pdb_path_len + 1);
+
+      if (pdb_path != NULL)
+      {
+        strlcpy_w(pdb_path, msdos_header->PdbName, pdb_path_len + 1);
+        set_string(pdb_path, pe->object, "pdb_path");
+        yr_free(pdb_path);
+        break;
+      }
+    }
+  }
+}

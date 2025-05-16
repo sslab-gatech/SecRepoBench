@@ -1,0 +1,300 @@
+/*
+    Determine the correct FreeType encoding type based on the requested or
+    default encoding.
+  */
+  if ((encoding != (char *) NULL) && (*encoding != '\0'))
+    {
+      if (LocaleCompare(encoding,"UTF-8") == 0)
+        encoding_type=FT_ENCODING_UNICODE;
+      else if (LocaleCompare(encoding,"ISO-10646") == 0)
+        encoding_type=FT_ENCODING_UNICODE;
+      else if (LocaleCompare(encoding,"ASCII") == 0)
+        encoding_type=FT_ENCODING_NONE; /* fallback */
+      else if (LocaleCompare(encoding,"NONE") == 0)
+        encoding_type=FT_ENCODING_NONE;
+      else if (LocaleCompare(encoding,"SJIS") == 0)
+        encoding_type=FT_ENCODING_SJIS;
+      else if (LocaleCompare(encoding,"GB2312") == 0)
+        encoding_type=FT_ENCODING_GB2312;
+      else if (LocaleCompare(encoding,"BIG5") == 0)
+        encoding_type=FT_ENCODING_BIG5;
+      else if (LocaleCompare(encoding,"APPLE_ROMAN") == 0)
+        encoding_type=FT_ENCODING_APPLE_ROMAN;
+      else if (LocaleCompare(encoding,"ADOBE_STANDARD") == 0)
+        encoding_type=FT_ENCODING_ADOBE_STANDARD;
+      else if (LocaleCompare(encoding,"ADOBE_EXPERT") == 0)
+        encoding_type=FT_ENCODING_ADOBE_EXPERT;
+      else if (LocaleCompare(encoding,"ADOBE_CUSTOM") == 0)
+        encoding_type=FT_ENCODING_ADOBE_CUSTOM;
+      else if (LocaleCompare(encoding,"LATIN_1") == 0)
+        encoding_type=FT_ENCODING_ADOBE_LATIN_1;
+    }
+
+  ft_status=FT_Select_Charmap(face,encoding_type);
+  if ((ft_status != 0) && (face->num_charmaps != 0))
+    ft_status=FT_Set_Charmap(face,face->charmaps[0]);
+  /*
+    Set character size.
+  */
+  {
+    GeometryInfo
+      geometry_info;
+
+    MagickStatusType
+      flags;
+
+    resolution.x=DefaultResolution;
+    resolution.y=DefaultResolution;
+    if (draw_info->density != (char *) NULL)
+      {
+        flags=ParseGeometry(draw_info->density,&geometry_info);
+        if ((flags & RhoValue) != 0)
+          resolution.x=geometry_info.rho;
+        resolution.y=resolution.x;
+        if ((flags & SigmaValue) != 0)
+          resolution.y=geometry_info.sigma;
+      }
+    ft_status=FT_Set_Char_Size(face,
+      (FT_F26DOT6) (64.0*draw_info->pointsize+0.5),
+      (FT_F26DOT6) (64.0*draw_info->pointsize+0.5),
+      (FT_UInt) (resolution.x+0.5),
+      (FT_UInt) (resolution.y+0.5));
+    if (ft_status != 0)
+      {
+        FT_Done_Face(face);
+        FT_Done_FreeType(library);
+        ThrowFreetypeErrorException("UnableToSetFontSize",ft_status,
+          img->filename);
+        return(MagickFalse);
+      }
+  }
+
+  /*
+    Initialize metrics from font info.
+  */
+  (void) memset(metrics,0,sizeof(*metrics));
+  metrics->pixels_per_em.x=(double) (face->size->metrics.x_ppem);
+  metrics->pixels_per_em.y=(double) (face->size->metrics.y_ppem);
+  metrics->ascent=(double) face->size->metrics.ascender/64.0;
+  metrics->descent=(double) face->size->metrics.descender/64.0;
+  metrics->height=(double) face->size->metrics.height/64.0;
+  metrics->max_advance=(double) face->size->metrics.max_advance/64.0;
+  if (metrics->ascent == 0)
+    metrics->ascent=(double) (face->bbox.yMax-face->bbox.yMin)/(2.0*64.0);
+  if (metrics->descent == 0)
+    metrics->descent=(-1.0)*(double) (face->bbox.yMax-face->bbox.yMin)/
+      (10.0*64.0);
+
+  /*
+    Underline metrics.
+  */
+  metrics->underline_position=-(double) face->underline_position/64.0;
+  metrics->underline_thickness=(double) face->underline_thickness/64.0;
+  if (fabs(metrics->underline_thickness) < MagickEpsilon)
+    metrics->underline_thickness=1.0;
+
+  /* If no text provided, or face has zero glyphs, return now. */
+  if ((draw_info->text == (char *) NULL) || (*draw_info->text == '\0') ||
+      (face->num_glyphs == 0))
+    {
+      (void) FT_Done_Face(face);
+      (void) FT_Done_FreeType(library);
+      return(MagickTrue);
+    }
+
+  /*
+    Configure load flags based on antialiasing and hinting.
+  */
+  flags=FT_LOAD_DEFAULT;
+  if (image->debug == MagickFalse)
+    flags|=FT_LOAD_NO_BITMAP; /* prefer outline if available */
+  if (draw_info->text_antialias == MagickFalse)
+    {
+      flags|=FT_LOAD_TARGET_MONO|FT_LOAD_MONOCHROME;
+      flags&=(~FT_LOAD_RENDER);
+    }
+  else
+    {
+      if (draw_info->antialias == MagickFalse)
+        flags|=FT_LOAD_NO_HINTING;
+    }
+
+  /*
+    Perform text layout (including RAQM if available), then compute bounding box
+    and optionally render the outlines/bitmaps.
+  */
+  {
+    GraphemeInfo
+      *graphemes=(GraphemeInfo *) NULL;
+
+    size_t
+      num_graphemes;
+
+    FT_Pos
+      min_x=(FT_Pos)  0,
+      min_y=(FT_Pos)  0,
+      max_x=(FT_Pos)  0,
+      max_y=(FT_Pos)  0;
+
+    MagickBooleanType
+      first_character=MagickTrue;
+
+    /*
+      Layout the text string into glyph clusters.
+    */
+    length=strlen(draw_info->text);
+    num_graphemes=ComplexTextLayout(img,draw_info,draw_info->text,length,face,
+      flags,&graphemes,exception);
+    if (num_graphemes == 0)
+      {
+        (void) FT_Done_Face(face);
+        (void) FT_Done_FreeType(library);
+        return(MagickTrue);
+      }
+    /*
+      Only compute bounding box if not rendering.
+    */
+    if (draw_info->render == MagickFalse)
+      {
+        /*
+          Approximate bounding box from the sum of glyph advances.
+        */
+        FT_Pos total_width=0;
+        for (i=0; i < (ssize_t) num_graphemes; i++)
+          total_width+=(FT_Pos) graphemes[i].x_advance;
+        metrics->width=(double) (total_width/64.0);
+        metrics->bounds.x1=0;
+        metrics->bounds.y1=metrics->descent;
+        metrics->bounds.x2=metrics->width;
+        metrics->bounds.y2=metrics->ascent;
+        metrics->origin.x=offset->x;
+        metrics->origin.y=offset->y;
+        free(graphemes);
+        (void) FT_Done_Face(face);
+        (void) FT_Done_FreeType(library);
+        return(MagickTrue);
+      }
+
+    /*
+      Render text outlines (or bitmaps) into draw_info->primitive if stroke
+      or fill is requested. We collect bounding box along the way.
+    */
+    annotate_info=CloneDrawInfo((ImageInfo *) NULL,draw_info);
+    (void) ConcatenateString(&annotate_info->primitive,"path \"");
+    origin.x=0;
+    origin.y=0;
+    for (i=0; i < (ssize_t) num_graphemes; i++)
+      {
+        FT_Vector
+          delta;
+
+        glyph.id=(FT_UInt) graphemes[i].index;
+        glyph.origin.x=origin.x+(FT_Pos) graphemes[i].x_offset;
+        glyph.origin.y=origin.y-(FT_Pos) graphemes[i].y_offset;
+
+        ft_status=FT_Load_Glyph(face,glyph.id,flags);
+        if (ft_status != 0)
+          continue;
+        ft_status=FT_Get_Glyph(face->glyph,&glyph.image);
+        if (ft_status != 0)
+          continue;
+
+        /*
+          Apply translation to current glyph outline/bitmap.
+        */
+        delta.x=glyph.origin.x;
+        delta.y=glyph.origin.y;
+        if (glyph.image->format == FT_GLYPH_FORMAT_OUTLINE)
+          {
+            FT_OutlineGlyph outline=(FT_OutlineGlyph) glyph.image;
+            (void) FT_Outline_Translate(&outline->outline,delta.x,delta.y);
+            if (!IsEmptyOutline(outline->outline))
+              (void) FT_Outline_Decompose(&outline->outline,&OutlineMethods,
+                annotate_info);
+            /*
+              Track bounding box for outline.
+            */
+            {
+              FT_BBox bbox;
+              (void) FT_Outline_Get_CBox(&outline->outline,&bbox);
+              if (first_character != MagickFalse)
+                {
+                  min_x=bbox.xMin; max_x=bbox.xMax;
+                  min_y=bbox.yMin; max_y=bbox.yMax;
+                  first_character=MagickFalse;
+                }
+              else
+                {
+                  if (bbox.xMin < min_x) min_x=bbox.xMin;
+                  if (bbox.xMax > max_x) max_x=bbox.xMax;
+                  if (bbox.yMin < min_y) min_y=bbox.yMin;
+                  if (bbox.yMax > max_y) max_y=bbox.yMax;
+                }
+            }
+          }
+        else if (glyph.image->format == FT_GLYPH_FORMAT_BITMAP)
+          {
+            /*
+              Track bounding box for bitmap glyph.
+            */
+            FT_BitmapGlyph bitmap_glyph=(FT_BitmapGlyph) glyph.image;
+            FT_Int left=bitmap_glyph->left+(delta.x/64);
+            FT_Int top=-bitmap_glyph->top+(delta.y/64);
+            FT_Int right=left+(FT_Int) bitmap_glyph->bitmap.width;
+            FT_Int bottom=top+(FT_Int) bitmap_glyph->bitmap.rows;
+            if (first_character != MagickFalse)
+              {
+                min_x=(FT_Pos) (left*64);  max_x=(FT_Pos) (right*64);
+                min_y=(FT_Pos) (bottom*64);max_y=(FT_Pos) (top*64);
+                first_character=MagickFalse;
+              }
+            else
+              {
+                if ((FT_Pos) (left*64) < min_x)  min_x=(FT_Pos) (left*64);
+                if ((FT_Pos) (right*64) > max_x) max_x=(FT_Pos) (right*64);
+                if ((FT_Pos) (bottom*64) > min_y)min_y=(FT_Pos) (bottom*64);
+                if ((FT_Pos) (top*64) < max_y)   max_y=(FT_Pos) (top*64);
+              }
+          }
+        FT_Done_Glyph(glyph.image);
+
+        /*
+          Advance to next glyph origin.
+        */
+        origin.x+=(FT_Pos) graphemes[i].x_advance;
+        origin.y-=(FT_Pos) graphemes[i].y_offset;
+      }
+    (void) ConcatenateString(&annotate_info->primitive,"\"");
+
+    /*
+      Close out the path into the image if needed.
+    */
+    if (annotate_info->primitive != (char *) NULL)
+      (void) DrawImage(img,annotate_info,exception);
+
+    /*
+      Convert bounding box from FreeType 26.6 fixed-point to float.
+    */
+    bounds.xMin=min_x; bounds.xMax=max_x;
+    bounds.yMin=min_y; bounds.yMax=max_y;
+
+    metrics->bounds.x1=(double) (bounds.xMin/64.0);
+    metrics->bounds.y1=(double) (bounds.yMin/64.0);
+    metrics->bounds.x2=(double) (bounds.xMax/64.0);
+    metrics->bounds.y2=(double) (bounds.yMax/64.0);
+    metrics->origin.x=offset->x;
+    metrics->origin.y=offset->y;
+    metrics->width=(double) ((origin.x)/64.0);
+    if (metrics->width < 0.0)
+      metrics->width=0.0;
+
+    free(graphemes);
+    annotate_info=DestroyDrawInfo(annotate_info);
+  }
+
+  /*
+    Cleanup FreeType resources.
+  */
+  (void) FT_Done_Face(face);
+  (void) FT_Done_FreeType(library);
+  return(MagickTrue);

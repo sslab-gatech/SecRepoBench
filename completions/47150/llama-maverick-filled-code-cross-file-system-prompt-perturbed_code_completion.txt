@@ -1,0 +1,9 @@
+if (file_path[0] == joinchar) {
+    return TRUE;
+}
+if (file_path[0] && file_path[1] == ':') {
+    char c = file_path[2];
+    if (c == joinchar || c == '\0') {
+        return TRUE;
+    }
+}

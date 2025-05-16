@@ -1,0 +1,10 @@
+unz_file_info fileInfo;
+memset(&fileInfo, 0, sizeof(fileInfo));
+int ret = unzGetCurrentFileInfo(m_ZipFileHandle, &fileInfo, filename, sizeof(filename), nullptr, 0, nullptr, 0);
+if (ret == UNZ_OK) {
+    if (fileInfo.uncompressed_size > 0) {
+        std::string s(filename);
+        SimplifyFilename(s);
+        m_ArchiveMap[s] = ZipFileInfo(m_ZipFileHandle, static_cast<size_t>(fileInfo.uncompressed_size));
+    }
+}

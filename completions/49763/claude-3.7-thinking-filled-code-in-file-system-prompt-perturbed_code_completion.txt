@@ -1,0 +1,44 @@
+for (i = xd - ydigits; (int)i >= 0; i--) {
+    /* Compute quotient digit estimate */
+    mp_dbl_limb n_high = (i + ydigits < xd) ? x.p[i + ydigits] : 0;
+    mp_dbl_limb n_low = (i + ydigits - 1 < xd) ? x.p[i + ydigits - 1] : 0;
+    mp_dbl_limb n = (n_high << DIG_SIZE) | n_low;
+    
+    mp_dbl_limb q_est = n / z;
+    if (q_est > DIG_MASK) q_est = DIG_MASK;
+    
+    /* Subtract q_est * y from the relevant part of x */
+    mp_dbl_limb_signed borrow = 0;
+    for (size_t j = 0; j < ydigits; j++) {
+        mp_dbl_limb prod = q_est * y.p[j];
+        mp_dbl_limb_signed diff = (mp_dbl_limb_signed)x.p[i + j] - LOW(prod) - borrow;
+        if (diff < 0) {
+            x.p[i + j] = (mp_limb)(diff + DIG_BASE);
+            borrow = 1;
+        } else {
+            x.p[i + j] = (mp_limb)diff;
+            borrow = 0;
+        }
+        diff = (mp_dbl_limb_signed)(i + j + 1 < xd ? x.p[i + j + 1] : 0) - HIGH(prod) - borrow;
+        if (diff < 0) {
+            if (i + j + 1 < xd) x.p[i + j + 1] = (mp_limb)(diff + DIG_BASE);
+            borrow = 1;
+        } else {
+            if (i + j + 1 < xd) x.p[i + j + 1] = (mp_limb)diff;
+            borrow = 0;
+        }
+    }
+    
+    /* If there's still a borrow, the quotient digit was too large */
+    if (borrow) {
+        /* Decrement quotient digit */
+        q_est--;
+        
+        /* Add y back to the relevant part of x */
+        mp_dbl_limb carry = 0;
+        for (size_t j = 0; j < ydigits; j++) {
+            mp_dbl_limb sum = (mp_dbl_limb)x.p[i + j] + y.p[j] + carry;
+            x.p[i + j] = LOW(sum);
+            carry = HIGH(sum);
+        }
+        if (i + ydigits

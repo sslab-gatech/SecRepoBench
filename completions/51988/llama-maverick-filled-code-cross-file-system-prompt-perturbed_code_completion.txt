@@ -1,0 +1,24 @@
+if (index < 1 || index >= (int)strlen(word))
+  return 0;
+
+int c1 = word[index - 1];
+int c2 = word[index];
+
+if (utf8) {
+  // convert UTF-8 characters to Unicode code points
+  c1 = u8_u16(&word[index - 1]);
+  c2 = u8_u16(&word[index]);
+}
+
+if ((c1 == '-') || (c2 == '-'))
+  return 0;
+
+if (unicase) {
+  // In the case of unicase dictionaries, we check if either character is equal to its uppercase version.
+  if (c1 == unicodetouc(c1) || c2 == unicodetouc(c2))
+    return 1;
+} else {
+  // For non-unicase dictionaries, we check if either character is already uppercase.
+  if (c1 == toupper(c1) || c2 == toupper(c2))
+    return 1;
+}

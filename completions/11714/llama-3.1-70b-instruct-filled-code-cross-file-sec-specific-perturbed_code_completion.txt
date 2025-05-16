@@ -1,0 +1,11 @@
+uint count = interp_env.pop_uint();
+uint num = interp_env.pop_uint();
+uint blend_size = count * num;
+if (blend_size > param.blend_array_size) {
+  // Handle error: blend size exceeds array capacity
+  return;
+}
+for (uint i = 0; i < blend_size; i++) {
+  param.blend_array[i] = interp_env.pop_float();
+}
+interp_env.clear_args();

@@ -1,0 +1,42 @@
+// Check if there's enough data for the Unicode string
+if (SizeOfTag < unicodeLength * sizeof(cmsUInt16Number)) goto Done;
+
+// Allocate memory for Unicode string (add 1 for null terminator)
+UnicodeString = (wchar_t*) _cmsMalloc(self->ContextID, (unicodeLength + 1) * sizeof(wchar_t));
+if (UnicodeString == NULL) goto Error;
+
+// Read Unicode characters
+if (!_cmsReadWCharArray(io, unicodeLength, UnicodeString)) goto Error;
+SizeOfTag -= unicodeLength * sizeof(cmsUInt16Number);
+
+// Add null terminator
+UnicodeString[unicodeLength] = 0;
+
+// Add to MLU
+if (!cmsMLUsetWide(mlu, cmsV2Unicode, cmsV2Unicode, UnicodeString)) goto Error;
+
+// Free Unicode string memory
+_cmsFree(self->ContextID, UnicodeString);
+UnicodeString = NULL;
+
+// Handle ScriptCode if present
+if (SizeOfTag < sizeof(cmsUInt16Number) + sizeof(cmsUInt8Number)) goto Done;
+
+// Read ScriptCode code and count
+if (!_cmsReadUInt16Number(io, &ScriptCodeCode)) goto Done;
+if (!_cmsReadUInt8Number(io, &ScriptCodeCount)) goto Done;
+SizeOfTag -= sizeof(cmsUInt16Number) + sizeof(cmsUInt8Number);
+
+// Skip ScriptCode description (67 bytes according to Type_Text_Description_Write)
+if (SizeOfTag < 67) goto Done;
+
+// Skip 67 bytes of ScriptCode description
+cmsUInt8Number ScriptCodeDescription[67];
+if (io->Read(io, ScriptCodeDescription, 1, 67) != 67) goto Done;
+SizeOfTag -= 67;
+
+Done:
+*nItems = 1;
+return (void*) mlu;
+
+Error:

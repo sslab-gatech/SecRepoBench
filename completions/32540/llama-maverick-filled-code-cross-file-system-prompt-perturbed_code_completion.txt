@@ -1,0 +1,23 @@
+if (indexlookup >= done_lookups_glyph_count->get_population () ||
+    (*done_lookups_glyph_count)[indexlookup] != parent_active_glyphs ()->get_population () ||
+    !done_lookups_glyph_set->resize (indexlookup + 1))
+  {
+    if (!done_lookups_glyph_set->resize (indexlookup + 1))
+      return true;
+
+    (*done_lookups_glyph_count)[indexlookup] = parent_active_glyphs ()->get_population ();
+    hb_set_t *glyph_set = &(*done_lookups_glyph_set)[indexlookup];
+    glyph_set->clear ();
+    glyph_set->add_set (parent_active_glyphs ());
+  }
+
+  hb_set_t *glyph_set = &(*done_lookups_glyph_set)[indexlookup];
+  if (!glyph_set->is_subset (parent_active_glyphs ()))
+    return false;
+
+  hb_set_t *covered_glyph_set = hb_set_create ();
+  if (unlikely (covered_glyph_set->in_error ()))
+  {
+    hb_set_destroy (covered_glyph_set);
+    return true;
+  }

@@ -1,0 +1,85 @@
+const struct ndpi_udphdr *udph = (const struct ndpi_udphdr *)&packet[ip_offset + ip_len];
+u_int16_t sport = ntohs(udph->source), dport = ntohs(udph->dest);
+
+if((sport == GTP_U_V1_PORT) || (dport == GTP_U_V1_PORT)) {
+  /* Check if it's GTPv1 */
+  u_int8_t gtp_version = packet[ip_offset+ip_len+sizeof(struct ndpi_udphdr)] >> 5;
+
+  if(gtp_version == 1) {
+    u_int8_t message_type = packet[ip_offset+ip_len+sizeof(struct ndpi_udphdr)+1];
+
+    if((message_type == 0xFF /* T-PDU */)
+       && (((workflow->last_pkt.ip_version == 4) && (iph != NULL))
+	   || ((workflow->last_pkt.ip_version == 6) && (iph6 != NULL)))) {
+      ip_offset += ip_len + sizeof(struct ndpi_udphdr) + 8 /* GTPv1 header */;
+      tunnel_type = ndpi_gtp_tunnel;
+      workflow->stats.gtp_count++;
+      goto iph_check;
+    }
+  }
+} else if(sport == TZSP_PORT) {
+  u_int8_t version = packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr)];
+  u_int8_t protocol_type = packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 4];
+
+  if((version == 1) && (protocol_type == 0x03 /* ETHERNET */)) {
+    u_int16_t offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 5;
+
+    while(offset < header->caplen) {
+      u_int8_t tag_type = packet[offset];
+      u_int16_t tag_len;
+
+      if(tag_type == 0 /* Padding */)
+	break;
+      else {
+	offset++;
+
+	if(offset >= header->caplen)
+	  break;
+
+	tag_len = packet[offset] << 8;
+	offset++;
+
+	if(offset >= header->caplen)
+	  break;
+
+	tag_len += packet[offset];
+	offset++;
+
+	if(offset >= header->caplen)
+	  break;
+
+	if(tag_type == 0x01 /* Encapsulated Protocol */) {
+	  eth_offset = offset;
+	  datalink_type = ntohs(*((u_int16_t*)&packet[offset]));
+	  tunnel_type = ndpi_tzsp_tunnel;
+	  workflow->stats.tzsp_count++;
+	  goto datalink_check;
+	} else
+	  offset += tag_len;
+      }
+    }
+  }
+} else if(sport == CAPWAP_CONTROL_PORT) {
+  u_int32_t radio_mac[2];
+  u_int32_t wtp_mac[2];
+
+  /* Check if this is a CAPWAP packet */
+  if((packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 0] == 0x00) /* preamble */
+     && (packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 1] == 0x01) /* CAPWAP version */
+     && (packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 2] == 0x00) /* CAPWAP message type: Data */
+     ) {
+    radio_mac[0] = ntohl(*((u_int32_t*)&packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 4]));
+    radio_mac[1] = ntohl(*((u_int32_t*)&packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 8]));
+    wtp_mac[0] = ntohl(*((u_int32_t*)&packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 12]));
+    wtp_mac[1] = ntohl(*((u_int32_t*)&packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 16]));
+
+    if((radio_mac[0] != 0) || (radio_mac[1] != 0)) {
+      u_int16_t capwap_len = ntohs(*((u_int16_t*)&packet[ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 14]));
+
+      ip_offset += ip_len + sizeof(struct ndpi_udphdr) + 4 + capwap_len;
+      tunnel_type = ndpi_capwap_tunnel;
+      workflow->stats.capwap_count++;
+      goto iph_check;
+    }
+  }
+}

@@ -1,0 +1,61 @@
+if(packet->payload_packet_len >= 2) {
+  if(packet->udp != NULL) {
+    if((flow->l4.udp.openvpn_stage == 0) && (packet->payload_packet_len == 50 || packet->payload_packet_len == 42)) {
+      operationcode = ovpn_payload[0];
+      if((operationcode == 0x7) || (operationcode == 0x8) || (operationcode == 0x9) || (operationcode == 0xa)) {
+        NDPI_LOG_INFO(ndpi_struct, "found openvpn\n");
+        ndpi_set_detected_protocol(ndpi_struct, flow, NDPI_PROTOCOL_OPENVPN, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_DPI);
+      } else {
+        flow->l4.udp.openvpn_stage = 1;
+      }
+    } else if((flow->l4.udp.openvpn_stage == 1) && (packet->payload_packet_len >= 28)) {
+      operationcode = ovpn_payload[0];
+      if((operationcode == 0x4) || (operationcode == 0x5)) {
+        alen = ovpn_payload[1];
+        if((alen == 0x8) && (packet->payload_packet_len >= (8 + 20))) {
+          session_remote = &ovpn_payload[8];
+          memcpy(&flow->l4.udp.openvpn_session_id, session_remote, 8);
+          flow->l4.udp.openvpn_stage = 2;
+        } else {
+          failed = 1;
+        }
+      } else {
+        failed = 1;
+      }
+    } else if((flow->l4.udp.openvpn_stage == 2) && (packet->payload_packet_len >= 40)) {
+      operationcode = ovpn_payload[0];
+      if((operationcode == 0x2) || (operationcode == 0x3) || (operationcode == 0x4) || (operationcode == 0x5)) {
+        alen = ovpn_payload[1];
+        if(alen == 0x8) {
+          session_remote = &ovpn_payload[packet->payload_packet_len - 8];
+          if(memcmp(&flow->l4.udp.openvpn_session_id, session_remote, 8) == 0) {
+            NDPI_LOG_INFO(ndpi_struct, "found openvpn\n");
+            ndpi_set_detected_protocol(ndpi_struct, flow, NDPI_PROTOCOL_OPENVPN, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_DPI);
+          } else {
+            failed = 1;
+          }
+        } else {
+          failed = 1;
+        }
+      } else {
+        failed = 1;
+      }
+    } else {
+      failed = 1;
+    }
+    flow->l4.udp.openvpn_counter++;
+  } else { /* TCP */
+    if(packet->payload_packet_len > 40) {
+      ovpn_payload += 2; /* skip the first 2 byte (that are 0x00 0x00 in the observed traffic) */
+      hmac_size = ovpn_payload[0];
+      if((hmac_size >= 0x14) && (hmac_size <= 0x17) && (packet->payload_packet_len == (22 + hmac_size))) {
+        NDPI_LOG_INFO(ndpi_struct, "found openvpn\n");
+        ndpi_set_detected_protocol(ndpi_struct, flow, NDPI_PROTOCOL_OPENVPN, NDPI_PROTOCOL_UNKNOWN, NDPI_CONFIDENCE_DPI);
+      }
+    }
+  }
+
+  if(failed) {
+    NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+  }
+}

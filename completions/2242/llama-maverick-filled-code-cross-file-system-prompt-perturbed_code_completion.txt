@@ -1,0 +1,7 @@
+size_t linecnt = m->str_range;
+size_t bytecnt = m->str_range;
+const char *buf;
+const char *end;
+const char *last = NULL; 
+const char *b;
+char c;

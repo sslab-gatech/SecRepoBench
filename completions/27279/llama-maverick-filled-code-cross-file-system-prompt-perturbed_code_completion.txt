@@ -1,0 +1,1 @@
+c->resp.data = flb_malloc(c->resp.data_size_max);

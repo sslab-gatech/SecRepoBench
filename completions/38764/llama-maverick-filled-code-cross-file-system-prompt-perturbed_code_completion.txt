@@ -1,0 +1,48 @@
+for (p = b; step;) {
+	const unsigned char *p_end;
+	size_t remaining, dr_len;
+
+	p_end = p + step;
+	if (p + 32 > p_end) {
+		remaining = p_end - p;
+		dr_len = 0;
+	} else {
+		/* Get a length of directory record. */
+		dr_len = toi(p + 0, 1);
+		/* Sanity check: if 'dr_len' is too short, bail here. */
+		if (dr_len < 33 - 32 || dr_len > remaining) {
+			archive_set_error(&archivereader->archive,
+			    ARCHIVE_ERRNO_MISC,
+			    "Invalid length of directory record");
+			return (ARCHIVE_FATAL);
+		}
+		remaining = dr_len;
+	}
+
+	if (remaining > step) {
+		archive_set_error(&archivereader->archive,
+		    ARCHIVE_ERRNO_MISC,
+		    "Invalid length of directory record");
+		return (ARCHIVE_FATAL);
+	}
+
+	/* Create a new file information. */
+	if (parse_file_info(archivereader, p, &multi, &file) != ARCHIVE_OK)
+		return (ARCHIVE_FATAL);
+
+	/* Skip '.' and '..' entries. */
+	if (file->name.length == 1 && file->name.s[0] == '\0') {
+		free(file);
+	} else if (file->name.length == 1 && file->name.s[0] == '\001') {
+		free(file);
+	} else {
+		/* Record a file information into a pending list. */
+		if (add_entry(iso9660, file) != ARCHIVE_OK) {
+			free(file);
+			return (ARCHIVE_FATAL);
+		}
+	}
+
+	step -= remaining;
+	p += remaining;
+}

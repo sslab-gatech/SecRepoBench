@@ -1,0 +1,36 @@
+uint16_t filename_len = tftp_packet->payload_packet_len - (2 /* opcode */ + mode_len + 1 /* mode is a nul terminated string */ + 1 /* filename is a nul terminated string */);
+if (filename_len == 0 || filename_len > 512 /* max filename length */)
+{
+  NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+  return;
+}
+
+{
+  uint16_t i;
+  for (i = 2; i < 2 + filename_len; ++i)
+  {
+    if (!isprint(tftp_packet->payload[i]))
+    {
+      NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+      return;
+    }
+  }
+}
+
+if (flow->protos.tftp.filename.len == 0)
+{
+  if (filename_len < sizeof(flow->protos.tftp.filename.vptr))
+  {
+    memcpy(flow->protos.tftp.filename.vptr, &tftp_packet->payload[2], filename_len);
+    flow->protos.tftp.filename.vptr[filename_len] = '\0';
+    flow->protos.tftp.filename.len = filename_len + 1;
+  }
+  else
+  {
+    NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+    return;
+  }
+}
+
+NDPI_LOG_INFO(ndpi_struct, "found TFTP RRQ/WWQ packet [filename: %s]\n", flow->protos.tftp.filename.vptr);
+ndpi_int_tftp_add_connection(ndpi_struct, flow);

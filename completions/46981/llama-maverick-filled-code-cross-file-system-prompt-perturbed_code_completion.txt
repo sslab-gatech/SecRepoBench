@@ -1,0 +1,16 @@
+if (image == (Image *) NULL)
+  {
+    if (logging != MagickFalse)
+      (void) LogMagickEvent(CoderEvent,GetMagickModule(),
+        "  image is NULL");
+
+    return(DestroyImageList(image));
+  }
+
+if ((image->columns == 0) || (image->rows == 0))
+  {
+    CloseBlob(image);
+    return(DestroyImageList(image));
+  }
+
+mng_data->image=image;

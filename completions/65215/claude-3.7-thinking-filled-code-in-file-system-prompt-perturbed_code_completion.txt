@@ -1,0 +1,30 @@
+{
+    char *src, *dst;
+    if (!urlString) return;
+
+    // Handle file:// URL
+    if (!strnicmp(urlString, "file://", 7)) {
+        src = urlString + 7; // Skip "file://"
+        
+        // For Windows file URLs like "file:///C:/path"
+        // We need to preserve the drive letter but skip the first '/'
+        if (*src == '/' && ((src[1] >= 'A' && src[1] <= 'Z') || (src[1] >= 'a' && src[1] <= 'z')) && src[2] == ':') {
+            src++;
+        }
+        
+        // Move the string to the beginning
+        memmove(urlString, src, strlen(src) + 1);
+    }
+
+    // Replace %20 with spaces
+    src = dst = urlString;
+    while (*src) {
+        if (src[0] == '%' && src[1] == '2' && src[2] == '0') {
+            *dst++ = ' ';
+            src += 3;
+        } else {
+            *dst++ = *src++;
+        }
+    }
+    *dst = '\0';
+}

@@ -1,0 +1,20 @@
+face = faceptr;
+
+const hb_face_t::table_info_t *head_info = face->table.head;
+if (unlikely (!head_info || !head_info->data))
+  return;
+
+const OT::head &head = *reinterpret_cast<const OT::head *> (head_info->data);
+if (head.indexToLocFormat > 1 || head.glyphDataFormat != 0)
+  return;
+
+short_offset = 0 == head.indexToLocFormat;
+
+hb_sanitize_context_t sanitize_context;
+sanitize_context.set_num_glyphs (face->get_num_glyphs ());
+sanitize_context.set_max_ops (0);
+
+loca_table = sanitize_context.reference_table<OT::loca> (face);
+glyf_table = sanitize_context.reference_table<OT::glyf> (face);
+
+num_glyphs = loca_table.get_length () / (short_offset ? 2 : 4) - 1;

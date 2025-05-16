@@ -1,0 +1,28 @@
+if (memcmp(packet->payload, "USER ", 5) == 0) {
+  u_int16_t username_len = 0;
+  u_int16_t username_start = 5; // Start after "USER "
+  
+  // Find the username length (until space or end of payload)
+  while ((username_start + username_len) < packet->payload_packet_len &&
+         packet->payload[username_start + username_len] != ' ' &&
+         packet->payload[username_start + username_len] != '\r' &&
+         packet->payload[username_start + username_len] != '\n') {
+    username_len++;
+  }
+  
+  if (username_len > 0) {
+    char username[32]; // Temporary buffer for username
+    u_int16_t max_copy = username_len < sizeof(username) - 1 ?
+                       username_len : sizeof(username) - 1;
+    
+    memcpy(username, &packet->payload[username_start], max_copy);
+    username[max_copy] = '\0'; // Null terminate
+    
+    NDPI_LOG_INFO(detection_module, "found IRC username: %s", username);
+    
+    // Set risk flag for clear text credentials
+    ndpi_set_risk(flow, NDPI_CLEAR_TEXT_CREDENTIALS);
+  }
+}
+
+NDPI_LOG_DBG2(detection_module, "found irc: USER, NICK, PASS, NOTICE or PRIVMSG");

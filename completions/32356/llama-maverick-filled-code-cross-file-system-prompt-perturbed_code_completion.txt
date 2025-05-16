@@ -1,0 +1,17 @@
+if (!a) return GF_OK;
+if (container->size < a->size) {
+    if (!skip_logs) {
+        GF_LOG(GF_LOG_WARNING, GF_LOG_CONTAINER, ("[iso file] Box size "LLD" is larger than parent box size "LLD"\n", a->size, container->size));
+    }
+    container->size = 0;
+} else {
+    container->size -= a->size;
+}
+
+if (container->registry->is_valid_child) {
+    if (!container->registry->is_valid_child(container, a)) {
+        if (!skip_logs) {
+            GF_LOG(GF_LOG_WARNING, GF_LOG_CONTAINER, ("[iso file] Box %s is not allowed in %s\n", gf_4cc_to_str(a->type), gf_4cc_to_str(container->type)));
+        }
+    }
+}

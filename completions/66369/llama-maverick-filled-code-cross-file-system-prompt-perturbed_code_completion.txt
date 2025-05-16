@@ -1,0 +1,125 @@
+cram_map *m = map_find(c->comp_hdr->tag_encoding_map, (unsigned char *)aux, 0);
+        cram_codec *c;
+        int out_sz;
+
+        if (m && m->codec && m->codec->codec != E_NULL) {
+            c = m->codec;
+        } else {
+            c = cram_codec_from_bam_aux((unsigned char *)aux);
+            if (!c)
+                goto err;
+            if (m) {
+                m->codec = c;
+            } else {
+                if (!c->free) {
+                    // We didn't specify a free routine, so we need to
+                    // do it by hand.
+                    c->free = cram_codec_free;
+                    c->huffman_codec = NULL; // Not used by cram_codec_free
+                }
+                if (!(kh_resize(m_s2i, c->tag_encoding_map, kh_size(c->tag_encoding_map)+1))) {
+                    c->free(c);
+                    goto err;
+                }
+                k = kh_put(m_s2i, c->tag_encoding_map, aux[0]<<16 | aux[1]<<8 | aux[2], &new);
+                if (-1 == new) {
+                    c->free(c);
+                    goto err;
+                }
+                kh_val(c->tag_encoding_map, k) = c;
+            }
+        }
+
+        // Number of bytes to next tag
+        aux += bam_aux_type2size(aux[3]) + 4;
+        if (aux > aux_end)
+            goto err;
+
+        out_sz = c->encode(s, c, cr, aux - orig, (char *)BLOCK_DATA(s->aux_blk), BLOCK_SIZE(s->aux_blk));
+        if (out_sz == -1)
+            goto err;
+
+        BLOCK_SIZE(s->aux_blk) += out_sz;
+
+        cram_stats_add(c->stats[DS_aux], out_sz);
+
+        // Keep track of the block size used for external blocks.
+        // We also maintain a per-type and per-codec count too.
+        if (cram_stats_add(c->stats[DS_aux_size], out_sz) < 0)
+            goto err;
+        if (c->codec == E_EXTERNAL) {
+            cram_block *b = &s->aux_blk_external[s->nauxblk];
+            if (cram_stats_add(c->stats[DS_aux_ext_size], BLOCK_SIZE(b)) < 0)
+                goto err;
+        }
+
+        // And the per-type count/byte-size
+        {
+            int tag_id = (aux[-4]<<16) | (aux[-3]<<8) | aux[-2];
+            khint_t k_tag;
+            cram_stats_t *st;
+            k_tag = kh_get(m_i2i, c->comp_hdr->tag_id_map, tag_id);
+            if (k_tag == kh_end(c->comp_hdr->tag_id_map)) {
+                int new;
+                k_tag = kh_put(m_i2i, c->comp_hdr->tag_id_map, tag_id, &new);
+                if (new < 0)
+                    goto err;
+                if (NULL == (st = malloc(sizeof(*st)))) {
+                    kh_del(m_i2i, c->comp_hdr->tag_id_map, k_tag);
+                    goto err;
+                }
+                memset(st, 0, sizeof(*st));
+                kh_val(c->comp_hdr->tag_id_map, k_tag) = st;
+            } else {
+                st = kh_val(c->comp_hdr->tag_id_map, k_tag);
+            }
+            if (cram_stats_add(st, out_sz) < 0)
+                goto err;
+        }
+
+        // Tidy up if we're not using a cached map
+        if (!m)
+            c->free(c);
+
+        cr->aux_size += aux - orig;
+        if (aux[0] == 'R' && aux[1] == 'G') {
+            if (sam_hdr_find_key(fd->header, "RG", "ID",
+                                 (char *)aux+4,
+                                 &brg) < 0)
+                hts_log_warning("Failed to find RG '%.3s:%.*s'",
+                                aux, (int)(aux_end-aux)-4, aux+4);
+        }
+        if (verb_check(aux)) {
+            if (aux[0] == 'M' && aux[1] == 'D') {
+                if (verb_MD < 0)
+                    hts_log_warning("Read \"%s\" has MD:Z tag when it shouldn't",
+                                    bam_get_qname(b));
+                if (verb_MD > 0 && verb_MD != aux[3])
+                    hts_log_warning("Read \"%s\" has MD:Z tag with wrong type (%c != %c)",
+                                    bam_get_qname(b), verb_MD, aux[3]);
+            }
+            if (aux[0] == 'N' && aux[1] == 'M') {
+                if (verb_NM < 0)
+                    hts_log_warning("Read \"%s\" has NM:i tag when it shouldn't",
+                                    bam_get_qname(b));
+                if (verb_NM > 0 && verb_NM != aux[3])
+                    hts_log_warning("Read \"%s\" has NM:i tag with wrong type (%c != %c)",
+                                    bam_get_qname(b), verb_NM, aux[3]);
+            }
+        }
+
+        // Container level data-series
+        if (cf_tag) {
+            int32_t i32 = cf_tag;
+            cram_map *tm = &c->comp_hdr->TM[0];
+            if (!tm->blk) {
+                if (!(tm->blk = cram_new_block(0, 0)))
+                    goto err;
+            }
+            if (-1 == cram_stats_add(c->stats[DS_CF], 1))
+                goto err;
+            if (cram_stats_add(c->stats[DS_aux_CF], 1) < 0)
+                goto err;
+            if (-1 == tm->codec->encode(s, tm->codec, cr, 0, (char *)&i32, 4))
+                goto err;
+            tm->blk->m = tm->m;

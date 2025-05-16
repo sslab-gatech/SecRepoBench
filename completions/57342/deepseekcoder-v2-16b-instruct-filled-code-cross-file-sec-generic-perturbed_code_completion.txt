@@ -1,0 +1,16 @@
+hb_ot_var_normalize_coords(fontface, axes.length, plan->user_axes_location.as_array(), plan->normalized_coords.as_array());
+  if (has_avar) {
+    seg_maps = &fontface->table.avar->get_segment_maps();
+    for (unsigned int i = 0; i < axes.length; i++) {
+      float normalized_value = plan->normalized_coords[i];
+      if (seg_maps->get_mapped_value(i, normalized_value, normalized_value)) {
+        plan->normalized_coords[i] = normalized_value;
+      }
+    }
+  }
+  for (unsigned int i = 0; i < axes.length; i++) {
+    float normalized_value = plan->normalized_coords[i];
+    if (normalized_value != 0) {
+      plan->all_axes_pinned = false;
+    }
+  }

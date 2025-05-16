@@ -1,0 +1,76 @@
+if (!(codeccontext->flags & AV_CODEC_FLAG_UNALIGNED)) {
+    if (codeccontext->codec_id == AV_CODEC_ID_H264 || codeccontext->codec_id == AV_CODEC_ID_VP9) {
+        if (*height & 1)
+            *height += 1;
+        if (*width & 1)
+            *width += 1;
+    } else if (codeccontext->codec_id == AV_CODEC_ID_VP8) {
+        *width  = FFALIGN(*width,  16);
+    }
+    if (   codeccontext->codec_id == AV_CODEC_ID_MPEG1VIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_MPEG2VIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_MPEG4
+        || codeccontext->codec_id == AV_CODEC_ID_MSMPEG4DEC
+        || codeccontext->codec_id == AV_CODEC_ID_MPEG1VIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_THEORA
+        || codeccontext->codec_id == AV_CODEC_ID_MJPEG
+        || codeccontext->codec_id == AV_CODEC_ID_MJPEGB
+        || codeccontext->codec_id == AV_CODEC_ID_LJPEG
+        || codeccontext->codec_id == AV_CODEC_ID_SMVJPEG
+        || codeccontext->codec_id == AV_CODEC_ID_AMV
+        || codeccontext->codec_id == AV_CODEC_ID_SP5X
+        || codeccontext->codec_id == AV_CODEC_ID_JPEGLS
+        || codeccontext->codec_id == AV_CODEC_ID_HUFFYUV
+        || codeccontext->codec_id == AV_CODEC_ID_FFVHUFF
+        || codeccontext->codec_id == AV_CODEC_ID_DVVIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_DNXHD
+        || codeccontext->codec_id == AV_CODEC_ID_RAWVIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_PNG
+        || codeccontext->codec_id == AV_CODEC_ID_TIFF
+        || codeccontext->codec_id == AV_CODEC_ID_MSRLE
+        || codeccontext->codec_id == AV_CODEC_ID_MSA1
+        || codeccontext->codec_id == AV_CODEC_ID_TSCC
+        || codeccontext->codec_id == AV_CODEC_ID_CSCD
+        || codeccontext->codec_id == AV_CODEC_ID_ZLIB
+        || codeccontext->codec_id == AV_CODEC_ID_SNOW
+        || codeccontext->codec_id == AV_CODEC_ID_MTS2
+        || codeccontext->codec_id == AV_CODEC_ID_DIRAC
+        || codeccontext->codec_id == AV_CODEC_ID_J2K
+        || codeccontext->codec_id == AV_CODEC_ID_V210
+        || codeccontext->codec_id == AV_CODEC_ID_V308
+        || codeccontext->codec_id == AV_CODEC_ID_V408
+        || codeccontext->codec_id == AV_CODEC_ID_V410
+        || codeccontext->codec_id == AV_CODEC_ID_UTVIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_R210
+        || codeccontext->codec_id == AV_CODEC_ID_VP7
+        || codeccontext->codec_id == AV_CODEC_ID_BMV_VIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_PRORES
+        || codeccontext->codec_id == AV_CODEC_ID_CFHD
+        || codeccontext->codec_id == AV_CODEC_ID_NOTCHLC
+        || codeccontext->codec_id == AV_CODEC_ID_QTRLE
+        || codeccontext->codec_id == AV_CODEC_ID_RPZA
+        || codeccontext->codec_id == AV_CODEC_ID_MSVIDEO1
+        || codeccontext->codec_id == AV_CODEC_ID_CINEPAK
+        || codeccontext->codec_id == AV_CODEC_ID_VB
+        || codeccontext->codec_id == AV_CODEC_ID_MSZH
+        || codeccontext->codec_id == AV_CODEC_ID_ZMBV
+        || codeccontext->codec_id == AV_CODEC_ID_SMC
+        || codeccontext->codec_id == AV_CODEC_ID_TRUEMOTION1
+        || codeccontext->codec_id == AV_CODEC_ID_TRUEMOTION2
+        || codeccontext->codec_id == AV_CODEC_ID_VMDVIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_FLIC
+        || codeccontext->codec_id == AV_CODEC_ID_FLASHSV
+        || codeccontext->codec_id == AV_CODEC_ID_FLASHSV2
+        || codeccontext->codec_id == AV_CODEC_ID_CDGRAPHICS
+        || codeccontext->codec_id == AV_CODEC_ID_INTERPLAY_VIDEO
+        || codeccontext->codec_id == AV_CODEC_ID_XAN_WC3
+        || codeccontext->codec_id == AV_CODEC_ID_XAN_WC4
+        || codeccontext->codec_id == AV_CODEC_ID_RSCC
+        ) {
+        *width = FFALIGN(*width, 2);
+    }
+    if (*width < 32)
+        *width = 32;
+    if (av_image_check_size2(*width, *height, codeccontext->max_pixels, AV_PIX_FMT_NONE, 0, codeccontext) < 0)
+        return;
+}

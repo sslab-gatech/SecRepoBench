@@ -1,0 +1,67 @@
+#if FF_API_AVCODEC_SUBTITLE_ENCODING
+    if (av_codec_is_encoder(codeccontext->codec)) {
+        if (avctx_is_subtitle_encoder(codeccontext->codec)) {
+            if (codeccontext->sub_charenc_mode == FF_SUB_CHARENC_MODE_PRE_DECODER && !(codeccontext->codec->capabilities & AV_CODEC_CAP_SUBTITLE_ENCODING_CHARSET)) {
+                av_log(codeccontext, AV_LOG_ERROR, "Pre-decoder character encoding is not supported by this subtitle encoder\n");
+                ret = AVERROR(EINVAL);
+                goto free_and_end;
+            }
+            if (codeccontext->sub_charenc_mode == FF_SUB_CHARENC_MODE_PRE_DECODER) {
+                int64_t best_score = INT64_MIN;
+                const AVCodec *sub_codec = NULL;
+                const AVCodecDescriptor *sub_codec_desc = avcodec_descriptor_get(codeccontext->codec_id);
+                if (!codeccontext->sub_charenc)
+                    av_log(codeccontext, AV_LOG_WARNING, "Character encoding is not specified, "
+                           "assuming UTF-8 for subtitle encoder '%s'\n", codeccontext->codec->name);
+                /* If the character encoding is not specified, we try to guess it.
+                 * We prefer the "best" supported character encoding, as reported by iconv,
+                 * but if we can't find that, we try to find a still-working alternative.
+                 */
+                for (const AVCodec *c = av_codec_iterate(NULL); c; c = av_codec_iterate(&c)) {
+                    if (c->id == codeccontext->codec_id && av_codec_is_decoder(c) && c->supported_char_encodings) {
+                        for (const char *const *p = c->supported_char_encodings; *p; p++) {
+                            int score = 0;
+                            if (codeccontext->sub_charenc) {
+                                if (!strcmp(*p, codeccontext->sub_charenc))
+                                    score = INT64_MAX;
+                                else if (av_isalnum(**p))
+                                    score = -1;
+                                else
+                                    score = 0;
+                            } else {
+                                score = ff_iconv_charenc_alias(*p);
+                            }
+                            if (score > best_score) {
+                                best_score = score;
+                                sub_codec = c;
+                            }
+                        }
+                    }
+                }
+                if (!sub_codec) {
+                    av_log(codeccontext, AV_LOG_ERROR, "Failed to guess character encoding for subtitle encoder '%s', "
+                           "you should specify it manually with 'sub_charenc' codec option\n", codeccontext->codec->name);
+                    ret = AVERROR(EINVAL);
+                    goto free_and_end;
+                }
+                if (sub_codec_desc && sub_codec_desc->props & AV_CODEC_PROP_BITMAP_SUB) {
+                    if (strcmp(sub_codec->name, "text"))
+                        av_log(codeccontext, AV_LOG_WARNING, "Provided subtitle encoder '%s' is bitmap-based, "
+                               "ignoring 'sub_charenc' option for it\n", sub_codec->name);
+                } else {
+                    codeccontext->sub_charenc_mode = FF_SUB_CHARENC_MODE_PRE_DECODER;
+                }
+            }
+        } else {
+            if (codeccontext->sub_charenc_mode != FF_SUB_CHARENC_MODE_DO_NOTHING &&
+                codeccontext->sub_charenc_mode != FF_SUB_CHARENC_MODE_PRE_DECODER) {
+                av_log(codeccontext, AV_LOG_WARNING, "The %s codec doesn't support subtitle encoding with character encoding "
+                       "conversion, ignoring 'sub_charenc_mode' option\n", codeccontext->codec->name);
+            }
+            if (codeccontext->sub_charenc) {
+                av_log(codeccontext, AV_LOG_WARNING, "The %s codec doesn't support subtitle encoding with character encoding "
+                       "conversion, ignoring 'sub_charenc' option\n", codeccontext->codec->name);
+            }
+        }
+    }
+#endif

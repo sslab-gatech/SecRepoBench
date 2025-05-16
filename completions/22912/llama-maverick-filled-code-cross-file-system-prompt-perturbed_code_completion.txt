@@ -1,0 +1,25 @@
+if(packet->udp != NULL && (ntohs(packet->udp->source) == 4070 || ntohs(packet->udp->dest) == 4070)) {
+  if(payload_len >= 8 && memcmp(packet->payload, "\xF0\xF0\xF0\xF0\xF0\xF0\xF0\xF0", 8) == 0) {
+    NDPI_LOG_INFO(ndpi_struct, "found spotify udp\n");
+    ndpi_set_detected_protocol(ndpi_struct, stream, NDPI_PROTOCOL_SPOTIFY, NDPI_PROTOCOL_UNKNOWN);
+    return;
+  }
+} else if(packet->tcp != NULL) {
+  if(payload_len > 6 && memcmp(packet->payload, "Spotify", 7) == 0) {
+    NDPI_LOG_INFO(ndpi_struct, "found spotify tcp\n");
+    ndpi_set_detected_protocol(ndpi_struct, stream, NDPI_PROTOCOL_SPOTIFY, NDPI_PROTOCOL_UNKNOWN);
+    return;
+  }
+}
+
+if(packet->iphv4 != NULL) {
+  u_int32_t src = ntohl(packet->iphv4->saddr);
+  u_int32_t dst = ntohl(packet->iphv4->daddr);
+
+  if((src >= 0xC0A80000 && src <= 0xC0A8FFFF) || (dst >= 0xC0A80000 && dst <= 0xC0A8FFFF)) {
+    /* Check if the source or destination IP is within a known Spotify IP range */
+    NDPI_LOG_INFO(ndpi_struct, "found spotify ipv4\n");
+    ndpi_set_detected_protocol(ndpi_struct, stream, NDPI_PROTOCOL_SPOTIFY, NDPI_PROTOCOL_UNKNOWN);
+    return;
+  }
+}

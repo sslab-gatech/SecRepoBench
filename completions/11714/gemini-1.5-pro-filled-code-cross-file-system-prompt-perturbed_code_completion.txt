@@ -1,0 +1,10 @@
+unsigned int num_regions = interp_env.argStack.pop_uint ();
+    float blend_value = interp_env.argStack.pop_fixed ();
+
+    for (unsigned int i = 0; i < num_regions; ++i)
+    {
+      interp_env.blend_values[i] = interp_env.argStack.pop_fixed ();
+    }
+
+    interp_env.clear_args (); // Clear blend values.
+    interp_env.blend (num_regions, blend_value);

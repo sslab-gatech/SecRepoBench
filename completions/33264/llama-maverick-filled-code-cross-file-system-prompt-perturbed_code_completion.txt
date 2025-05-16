@@ -1,0 +1,35 @@
+int32_t ebsize, bsize, bsize2, ntbytes = 0;
+int32_t startb, stopb;
+int j;
+bool memcpyed = hdr->flags & (uint8_t)BLOSC_MEMCPYED;
+if (!context->do_compress && context->special_type) {
+  // Fake a runlen as if its a memcpyed chunk
+  memcpyed = true;
+}
+int stop = start + nitems;
+if (nitems == 0 || stop <= start) {
+  /* Nothing to do */
+  return 0;
+}
+
+/* Check whether we need to restart nitems */
+if (stop > hdr->nitems) {
+  stop = hdr->nitems;
+  nitems = stop - start;
+}
+
+/* Check that dest buffer is large enough to host nitems */
+if (nitems * hdr->typesize > destsize) {
+  return BLOSC2_ERROR_WRITE_BUFFER;
+}
+
+/* Set up block start positions */
+uint8_t* _src = (uint8_t*)(src) + context->header_overhead;
+
+/* Check that start and stop positions are inside the bounds */
+if ((start >= hdr->nitems) || (start < 0)) {
+  return BLOSC2_ERROR_READ_BUFFER;
+}
+if ((stop > hdr->nitems) || (stop < 0)) {
+  return BLOSC2_ERROR_READ_BUFFER;
+}

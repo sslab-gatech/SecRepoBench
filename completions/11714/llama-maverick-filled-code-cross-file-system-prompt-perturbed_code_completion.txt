@@ -1,0 +1,21 @@
+unsigned int num_regions = env.get_num_regions ();
+unsigned int arg_start = env.argStack.get_count () - num_regions - 1;
+if (likely (arg_start > 0))
+{
+  blend_array_t blends;
+  num_blend_values = env.argStack.pop_uint ();
+  blends.init (num_blend_values);
+  for (unsigned int i = 0; i < num_blend_values; i++)
+    blends[i] = env.argStack.pop_num ();
+  for (unsigned int i = 0; i < num_blend_values; i++)
+  {
+    num_real = env.argStack[i + arg_start];
+    env.argStack[i + arg_start] = blends[i];
+    for (unsigned int j = 0; j < num_regions; j++)
+      env.argStack[i + arg_start] += env.argStack[i + arg_start + 1 + j] * env.get_region_value (j);
+  }
+  env.argStack.pop_num (); /* remove delta count */
+  for (unsigned int i = 0; i < num_regions; i++)
+    env.argStack.pop_num (); /* remove all region values */
+}
+env.clear_args ();

@@ -1,0 +1,24 @@
+while (initial_gids_to_retain->next (&gid))
+{
+  if (glyf.glyph_has_components (gid))
+  {
+    glyf.add_glyphs_for_composite_glyph (gid, initial_gids_to_retain, full_glyphs_to_retain);
+  }
+  else
+  {
+    full_glyphs_to_retain->add (gid);
+  }
+}
+
+hb_set_destroy (initial_gids_to_retain);
+
+for (hb_codepoint_t gid = HB_SET_VALUE_INVALID;
+     full_glyphs_to_retain->next (&gid);)
+{
+  glyphs->push (gid);
+}
+
+cmap.fini ();
+glyf.fini ();
+
+return full_glyphs_to_retain;

@@ -1,0 +1,20 @@
+ctbytes += 1;
+if (token >= 0 && token <= BLOSC2_MAX_RUN_STEP) {
+  if (token == 0) {
+    BLOSC_TRACE_ERROR("Token cannot be 0");
+    return BLOSC2_ERROR_DATA;
+  }
+  if (neblock > (int32_t)token) {
+    BLOSC_TRACE_ERROR("The run length exceeds the maximum allowed");
+    return BLOSC2_ERROR_DATA;
+  }
+  memset(comp_buffer, src[0], (unsigned int)neblock);
+  nbytes = neblock;
+  cbytes = 0;
+  src += 1;
+  ctbytes += 1;
+}
+else {
+  BLOSC_TRACE_ERROR("Token out of bounds");
+  return BLOSC2_ERROR_DATA;
+}

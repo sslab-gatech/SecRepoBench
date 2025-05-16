@@ -1,0 +1,15 @@
+while (ctx->pos < ctx->end && *ctx->pos != quote_char) {
+    if (*ctx->pos == '\\') {
+        num_escapes++;
+    }
+    ctx->pos++;
+}
+if (ctx->pos >= ctx->end) {
+    PLIST_OSTEP_ERR("Missing terminating quote at offset %ld\n", ctx->pos - ctx->start);
+    ctx->err++;
+    plist_free_data(data);
+    goto err_out;
+}
+size_t slen = ctx->pos - p;
+char *strbuf = (char*)malloc(slen + 1);
+ctx->pos++;

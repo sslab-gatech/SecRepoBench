@@ -1,0 +1,22 @@
+if(ndpi_struct->enable_tls_sni_discovery) {
+  u_int16_t server_name_len = ntohs(*((u_int16_t*)&packet->payload[i+3]));
+  u_int16_t len = (u_int)ndpi_min(server_name_len, buffer_len-1);
+
+  if((i+5+len) <= packet->payload_packet_len) {
+    char *sni = (char*)&packet->payload[i+5];
+
+    strncpy(buffer, sni, len);
+    buffer[len] = '\0';
+
+    if(is_valid_hostname(buffer, len)) {
+      if(!ndpi_struct->disable_metadata_export) {
+	snprintf(flow->protos.stun_ssl.ssl.server_certificate,
+		 sizeof(flow->protos.stun_ssl.ssl.server_certificate), "%s", buffer);
+      }
+
+      ndpi_match_hostname_protocol(ndpi_struct, flow, NDPI_PROTOCOL_TLS, buffer, len);
+
+      return(1);
+    }
+  }
+}

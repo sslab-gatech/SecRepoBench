@@ -1,0 +1,6 @@
+if((payload_len != 0) || (tuple_count != 0)) {
+  return 1; /* Malformed packet or invalid tuple count */
+}
+
+NDPI_LOG_DBG(ndpiflow->detector, "SoftEther host FQDN dissector: Success\n");
+ndpiflow->protos.softether.dissector_done |= 0x02; /* FQDN dissector done */

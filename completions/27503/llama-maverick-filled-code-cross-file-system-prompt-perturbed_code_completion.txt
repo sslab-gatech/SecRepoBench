@@ -1,0 +1,344 @@
+switch (tag)
+	{
+		case ID_SCE:
+			// mono, read and process header parameters
+			elementInstanceTag = BitBufferReadSmall (bits, 4) ;
+			headerByte = BitBufferReadSmall (bits, 8) ;
+			partialFrame = ((headerByte >> 7) & 1) ? true : false ;
+			unusedHeader = ((headerByte >> 4) & 0x7) ;
+			bytesShifted = ((headerByte >> 1) & 0x7) ;
+			escapeFlag = (headerByte & 1) ;
+
+			chanBits = p->mConfig.bitDepth - (bytesShifted * 8) + 1 ;
+
+			// if this is a partial frame, read the number of samples
+			if (partialFrame)
+			{
+				numSamples = BitBufferRead (bits, 32) ;
+				*outNumSamples = numSamples ;
+			}
+
+			// unshift, if shift active
+			if (bytesShifted != 0)
+			{
+				shift = bytesShifted * 8 ;
+
+				for (i = 0 ; i < numSamples ; i++)
+				{
+					val = BitBufferRead (bits, shift) ;
+					sampleBuffer [channelIndex + (i * numChannels)] = (int32_t) ((uint32_t) val << (32 - shift)) ;
+				}
+			}
+
+			// decode the audio data
+			if (escapeFlag == 0)
+			{
+				// compressed frame, read rest of parameters and decode
+				//Assert ((chanBits >= 1) && (chanBits <= 32)) ;
+
+				// read LPC coefs
+				numU = BitBufferReadSmall (bits, 4) ;
+				//Assert ((numU == 0) || ((numU >= 4) && (numU <= 31))) ;
+
+				denShiftU = BitBufferReadSmall (bits, 4) ;
+				pbFactorU = BitBufferReadSmall (bits, 3) ;
+				modeU = BitBufferReadSmall (bits, 1) ;
+
+				for (i = 0 ; i < numU ; i++)
+					coefsU [i] = (int16_t) BitBufferRead (bits, 16) ;
+
+				// set up the dynamic predictor
+				set_ag_params (&agParams, p->mConfig.mb, (pbFactorU * p->mConfig.pb) / 4, p->mConfig.kb, numSamples, numSamples, MAX_RUN_DEFAULT) ;
+				agParams.bitDepth = chanBits ;
+				agParams.maxSize = (1ul << chanBits) - 1 ;
+
+				// decode
+				shiftBits = *bits ;
+				status = dyn_decomp (&agParams, &shiftBits, p->mPredictor, numSamples, (int32_t) ((1ul << chanBits) - 1), &extraBits) ;
+				RequireNoErr (status, goto Exit ;) ;
+				BitBufferAdvance (bits, extraBits) ;
+
+				// do the prediction
+				if (modeU == 0)
+					unpc_block (&p->mPredictor [0], &sampleBuffer [channelIndex], numSamples, numChannels, coefsU, numU, chanBits, denShiftU) ;
+				else
+					status = kALAC_ParamError ;		// unsupported mode
+			}
+			else
+			{
+				// uncompressed frame, just copy data
+				extraBits = numSamples * chanBits ;
+				RequireAction (BitBufferRemaining (bits) >= extraBits, status = kALAC_ParamError ; goto Exit ;) ;
+
+				for (i = 0 ; i < numSamples ; i++)
+				{
+					val = BitBufferRead (bits, chanBits) ;
+					sampleBuffer [channelIndex + (i * numChannels)] = (int32_t) (val << (32 - chanBits)) ;
+				}
+			}
+
+			// check for non-zero fill
+			if (BitBufferRemaining (bits) >= 3)
+			{
+				RequireAction (BitBufferPeek (bits, 3) != ID_FILL, goto NoMoreChannels ;) ;
+			}
+
+			channelIndex++ ;
+			break ;
+
+		case ID_CPE:
+			// stereo channel pair
+			RequireAction (channelIndex < (numChannels - 1), status = kALAC_ParamError ; goto Exit ;) ;
+
+			elementInstanceTag = BitBufferReadSmall (bits, 4) ;
+
+			// read and process header parameters for "left" channel
+			headerByte = BitBufferReadSmall (bits, 8) ;
+			partialFrame = ((headerByte >> 7) & 1) ? true : false ;
+			unusedHeader = ((headerByte >> 4) & 0x7) ;
+			bytesShifted = ((headerByte >> 1) & 0x7) ;
+			escapeFlag = (headerByte & 1) ;
+
+			chanBits = p->mConfig.bitDepth - (bytesShifted * 8) + 1 ;
+
+			// if this is a partial frame, read the number of samples
+			if (partialFrame)
+			{
+				numSamples = BitBufferRead (bits, 32) ;
+				*outNumSamples = numSamples ;
+			}
+
+			// unshift, if shift active
+			if (bytesShifted != 0)
+			{
+				shift = bytesShifted * 8 ;
+
+				for (i = 0 ; i < numSamples ; i++)
+				{
+					val = BitBufferRead (bits, shift * 2) ;
+					sampleBuffer [channelIndex + (i * numChannels)] = (int32_t) ((uint32_t) (val >> shift) << (32 - shift)) ;
+					sampleBuffer [channelIndex + 1 + (i * numChannels)] = (int32_t) ((uint32_t) (val & ((1ul << shift) - 1)) << (32 - shift)) ;
+				}
+			}
+
+			// decode "left" channel
+			if (escapeFlag == 0)
+			{
+				// compressed frame, read rest of parameters and decode
+				//Assert ((chanBits >= 1) && (chanBits <= 32)) ;
+
+				// read LPC coefs
+				numU = BitBufferReadSmall (bits, 4) ;
+				//Assert ((numU == 0) || ((numU >= 4) && (numU <= 31))) ;
+
+				denShiftU = BitBufferReadSmall (bits, 4) ;
+				pbFactorU = BitBufferReadSmall (bits, 3) ;
+				modeU = BitBufferReadSmall (bits, 1) ;
+
+				for (i = 0 ; i < numU ; i++)
+					coefsU [i] = (int16_t) BitBufferRead (bits, 16) ;
+
+				// set up the dynamic predictor
+				set_ag_params (&agParams, p->mConfig.mb, (pbFactorU * p->mConfig.pb) / 4, p->mConfig.kb, numSamples, numSamples, MAX_RUN_DEFAULT) ;
+				agParams.bitDepth = chanBits ;
+				agParams.maxSize = (1ul << chanBits) - 1 ;
+
+				// decode
+				shiftBits = *bits ;
+				status = dyn_decomp (&agParams, &shiftBits, p->mPredictorU, numSamples, (int32_t) ((1ul << chanBits) - 1), &bits1) ;
+				RequireNoErr (status, goto Exit ;) ;
+				BitBufferAdvance (bits, bits1) ;
+
+				// do the prediction
+				if (modeU == 0)
+					unpc_block (&p->mPredictorU [0], &sampleBuffer [channelIndex], numSamples, numChannels, coefsU, numU, chanBits, denShiftU) ;
+				else
+					status = kALAC_ParamError ;		// unsupported mode
+			}
+			else
+			{
+				// uncompressed frame, just copy data
+				bits1 = numSamples * chanBits * 2 ;
+				RequireAction (BitBufferRemaining (bits) >= bits1, status = kALAC_ParamError ; goto Exit ;) ;
+
+				for (i = 0 ; i < numSamples ; i++)
+				{
+					val = BitBufferRead (bits, chanBits) ;
+					sampleBuffer [channelIndex + (i * numChannels)] = (int32_t) (val << (32 - chanBits)) ;
+
+					val = BitBufferRead (bits, chanBits) ;
+					sampleBuffer [channelIndex + 1 + (i * numChannels)] = (int32_t) (val << (32 - chanBits)) ;
+				}
+			}
+
+			// read and process header parameters for "right" channel
+			headerByte = BitBufferReadSmall (bits, 8) ;
+			partialFrame = ((headerByte >> 7) & 1) ? true : false ;
+			unusedHeader = ((headerByte >> 4) & 0x7) ;
+			bytesShifted = ((headerByte >> 1) & 0x7) ;
+			escapeFlag = (headerByte & 1) ;
+
+			// decode "right" channel
+			if (escapeFlag == 0)
+			{
+				// compressed frame, read rest of parameters and decode
+				//Assert ((chanBits >= 1) && (chanBits <= 32)) ;
+
+				// read LPC coefs
+				numV = BitBufferReadSmall (bits, 4) ;
+				//Assert ((numV == 0) || ((numV >= 4) && (numV <= 31))) ;
+
+				denShiftV = BitBufferReadSmall (bits, 4) ;
+				pbFactorV = BitBufferReadSmall (bits, 3) ;
+				modeV = BitBufferReadSmall (bits, 1) ;
+
+				for (i = 0 ; i < numV ; i++)
+					coefsV [i] = (int16_t) BitBufferRead (bits, 16) ;
+
+				// set up the dynamic predictor
+				set_ag_params (&agParams, p->mConfig.mb, (pbFactorV * p->m * p->mConfig.pb) / 4, p->mConfig.kb, numSamples, numSamples, MAX_RUN_DEFAULT) ;
+				agParams.bitDepth = chanBits ;
+				agParams.maxSize = (1ul << chanBits) - 1 ;
+
+				// decode
+				shiftBits = *bits ;
+				status = dyn_decomp (&agParams, &shiftBits, p->mPredictorV, numSamples, (int32_t) ((1ul << chanBits) - 1), &bits2) ;
+				RequireNoErr (status, goto Exit ;) ;
+				BitBufferAdvance (bits, bits2) ;
+
+				// do the prediction
+				if (modeV == 0)
+					unpc_block (&p->mPredictorV [0], &sampleBuffer [channelIndex + 1], numSamples, numChannels, coefsV, numV, chanBits, denShiftV) ;
+				else
+					status = kALAC_ParamError ;		// unsupported mode
+			}
+			else
+			{
+				// uncompressed frame, just copy data
+				bits2 = numSamples * chanBits * 2 ;
+				RequireAction (BitBufferRemaining (bits) >= bits2, status = kALAC_ParamError ; goto Exit ;) ;
+
+				for (i = 0 ; i < numSamples ; i++)
+				{
+					val = BitBufferRead (bits, chanBits) ;
+					sampleBuffer [channelIndex + (i * numChannels)] |= (int32_t) (val << (32 - chanBits)) ;
+
+					val = BitBufferRead (bits, chanBits) ;
+					sampleBuffer [channelIndex + 1 + (i * numChannels)] |= (int32_t) (val << (32 - chanBits)) ;
+				}
+			}
+
+			// check for non-zero fill
+			if (BitBufferRemaining (bits) >= 3)
+			{
+				RequireAction (BitBufferPeek (bits, 3) != ID_FILL, goto NoMoreChannels ;) ;
+			}
+
+			channelIndex += 2 ;
+			break ;
+
+		case ID_LFE:
+			// LFE channel (low-frequency)
+			elementInstanceTag = BitBufferReadSmall (bits, 4) ;
+			headerByte = BitBufferReadSmall (bits, 8) ;
+			partialFrame = ((headerByte >> 7) & 1) ? true : false ;
+			unusedHeader = ((headerByte >> 4) & 0x7) ;
+			bytesShifted = ((headerByte >> 1) & 0x7) ;
+			escapeFlag = (headerByte & 1) ;
+
+			chanBits = p->mConfig.bitDepth - (bytesShifted * 8) + 1 ;
+
+			// if this is a partial frame, read the number of samples
+			if (partialFrame)
+			{
+				numSamples = BitBufferRead (bits, 32) ;
+				*outNumSamples = numSamples ;
+			}
+
+			// unshift, if shift active
+			if (bytesShifted != 0)
+			{
+				shift = bytesShifted * 8 ;
+
+				for (i = 0 ; i < numSamples ; i++)
+				{
+					val = BitBufferRead (bits, shift) ;
+					sampleBuffer [channelIndex + (i * numChannels)] = (int32_t) ((uint32_t) val << (32 - shift)) ;
+				}
+			}
+
+			// decode the audio data
+			if (escapeFlag == 0)
+			{
+				// compressed frame, read rest of parameters and decode
+				//Assert ((chanBits >= 1) && (chanBits <= 32)) ;
+
+				// read LPC coefs
+				numU = BitBufferReadSmall (bits, 4) ;
+				//Assert ((numU == 0) || ((numU >= 4) && (numU <= 31))) ;
+
+				denShiftU = BitBufferReadSmall (bits, 4) ;
+				pbFactorU = BitBufferReadSmall (bits, 3) ;
+				modeU = BitBufferReadSmall (bits, 1) ;
+
+				for (i = 0 ; i < numU ; i++)
+					coefsU [i] = (int16_t) BitBufferRead (bits, 16) ;
+
+				// set up the dynamic predictor
+				set_ag_params (&agParams, p->mConfig.mb, (pbFactorU * p->mConfig.pb) / 4, p->mConfig.kb, numSamples, numSamples, MAX_RUN_DEFAULT) ;
+				agParams.bitDepth = chanBits ;
+				agParams.maxSize = (1ul << chanBits) - 1 ;
+
+				// decode
+				shiftBits = *bits ;
+				status = dyn_decomp (&agParams, &shiftBits, p->mPredictor, numSamples, (int32_t) ((1ul << chanBits) - 1), &extraBits) ;
+				RequireNoErr (status, goto Exit ;) ;
+				BitBufferAdvance (bits, extraBits) ;
+
+				// do the prediction
+				if (modeU == 0)
+					unpc_block (&p->mPredictor [0], &sampleBuffer [channelIndex], numSamples, numChannels, coefsU, numU, chanBits, denShiftU) ;
+				else
+					status = kALAC_ParamError ;		// unsupported mode
+			}
+			else
+			{
+				// uncompressed frame, just copy data
+				extraBits = numSamples * chanBits ;
+				RequireAction (BitBufferRemaining (bits) >= extraBits, status = kALAC_ParamError ; goto Exit ;) ;
+
+				for (i = 0 ; i < numSamples ; i++)
+				{
+					val = BitBufferRead (bits, chanBits) ;
+					sampleBuffer [channelIndex + (i * numChannels)] = (int32_t) (val << (32 - chanBits)) ;
+				}
+			}
+
+			// check for non-zero fill
+			if (BitBufferRemaining (bits) >= 3)
+			{
+				RequireAction (BitBufferPeek (bits, 3) != ID_FILL, goto NoMoreChannels ;) ;
+			}
+
+			channelIndex++ ;
+			break ;
+
+		case ID_END:
+			goto NoMoreChannels ;
+			break ;
+
+		case ID_FILL:
+			// fill: skip over these bytes and try again
+			bits1 = BitBufferRead (bits, 4) ;
+			RequireAction (bits1 != 0, status = kALAC_ParamError ; goto Exit ;) ;
+			bits1 *= 8 ;
+			RequireAction (BitBufferRemaining (bits) >= bits1, status = kALAC_ParamError ; goto Exit ;) ;
+			BitBufferAdvance (bits, bits1) ;
+			break ;
+
+		default:
+			// unhandled element type: set error and bail
+			status = kALAC_ParamError ;
+			goto Exit ;
+			break ;
+	}

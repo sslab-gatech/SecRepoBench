@@ -1,0 +1,37 @@
+{
+  size_t offset = 2; /* Skip the first two bytes (opcode) */
+  size_t filename_end = offset;
+
+  /* Find the null terminator of the filename */
+  while (filename_end < tftp_packet->payload_packet_len &&
+         tftp_packet->payload[filename_end] != '\0')
+  {
+    /* Check if all characters are printable */
+    if ((tftp_packet->payload[filename_end] < 32) || (tftp_packet->payload[filename_end] > 126))
+    {
+      NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+      return;
+    }
+    filename_end++;
+  }
+
+  /* Ensure null terminator was found and filename is not empty */
+  if (filename_end >= tftp_packet->payload_packet_len || filename_end == offset)
+  {
+    NDPI_EXCLUDE_PROTO(ndpi_struct, flow);
+    return;
+  }
+
+  /* Copy filename into flow structure, ensuring null-termination */
+  {
+    size_t filename_len = filename_end - offset;
+    if (filename_len >= sizeof(flow->l4.udp.tftp_filename))
+      filename_len = sizeof(flow->l4.udp.tftp_filename) - 1;
+
+    memcpy(flow->l4.udp.tftp_filename, &tftp_packet->payload[offset], filename_len);
+    flow->l4.udp.tftp_filename[filename_len] = '\0';
+  }
+
+  NDPI_LOG_INFO(ndpi_struct, "found TFTP RRQ/WWQ: filename %s\n", flow->l4.udp.tftp_filename);
+  ndpi_int_tftp_add_connection(ndpi_struct, flow);
+}

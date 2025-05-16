@@ -1,0 +1,13 @@
+if (unlikely (!contour_points.resize (endPtsOfContours[num_contours] + 1 + (phantom_only ? 0 : 1))))
+      return false;
+
+    for (unsigned i = 0; i <= num_contours; i++)
+    {
+      unsigned end = endPtsOfContours[i];
+      if (unlikely (end >= contour_points.length))
+        return false;
+      contour_points.arrayZ[end].is_end_point = true;
+    }
+
+    if (phantom_only)
+      return true;

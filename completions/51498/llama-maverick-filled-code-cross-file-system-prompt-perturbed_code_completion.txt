@@ -1,0 +1,32 @@
+if (!defcpdtable.empty() || !checkcpdtable.empty()) {
+  oldcmin = cmin;
+  oldcmax = cmax;
+  oldlen = len;
+  // check word for compound pattern
+  scpd = cpdpat_check(st.c_str(), i, NULL, NULL, affixed);
+  if (scpd != 0) {
+    // the word can be a compound with CHECKCOMPOUNDPATTERN
+    // modify the string, the result will be checked recursively
+    if (!checkcpdtable.empty()) {
+      soldi = i;
+      st = st.substr(0, i) + checkcpdtable[scpd - 1].out + st.substr(i + checkcpdtable[scpd - 1].inlen);
+      len = st.size();
+      setcminmax(&cmin, &cmax, st.c_str(), len);
+      i--;
+      continue;
+    }
+  } else if (!defcpdtable.empty()) {
+    // check word for compound word
+    // does it fit to the place of a compound word?
+    // (using defcpdtable entries, only)
+    if (defcpd_check(&words, wnum, NULL, rwords, 1)) {
+      // modify the string and check it recursively
+      soldi = i;
+      st = st.substr(0, i) + defcpdtable[0].out1 + st.substr(i + defcpdtable[0].inlen1);
+      len = st.size();
+      setcminmax(&cmin, &cmax, st.c_str(), len);
+      i--;
+      continue;
+    }
+  }
+}

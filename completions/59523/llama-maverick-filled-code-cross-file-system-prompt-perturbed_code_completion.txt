@@ -1,0 +1,132 @@
+if (f->is_string && !is_utf8)
+  {
+    if (f->type[0] == 'T' && f->size > sizeof (char*)) // fixed length
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        *(char**)old = strdup ((char*)value);
+      }
+    else if (strEQc (f->type, "TF"))
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        *(char**)old = malloc (f->size + 1);
+        memcpy (*(char**)old, value, f->size);
+        ((char*)*(char**)old)[f->size] = '\0';
+      }
+    else if (strEQc (f->type, "TFv"))
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        if (versiontype < R_13b1) // preR13: fixed length
+          {
+            *(char**)old = malloc (f->size + 1);
+            memcpy (*(char**)old, value, f->size);
+            ((char*)*(char**)old)[f->size] = '\0';
+          }
+        else
+          *(char**)old = strdup ((char*)value);
+      }
+    else if (strEQc (f->type, "T"))
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        if (versiontype >= R_2007)
+          {
+            BITCODE_TU wstr = utf8_to_wchar ((char*)value);
+            *(BITCODE_TU*)old = wstr;
+          }
+        else
+          *(char**)old = strdup ((char*)value);
+      }
+    else if (strEQc (f->type, "TU"))
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        if (versiontype >= R_2007)
+          {
+            *(BITCODE_TU*)old = malloc ((wcslen ((BITCODE_TU)value) + 1) * 2);
+            wcscpy (*(BITCODE_TU*)old, (BITCODE_TU)value);
+          }
+        else
+          {
+            char *str = wchar_to_utf8 ((BITCODE_TU)value);
+            *(char**)old = str;
+          }
+      }
+  }
+else if (f->is_string && is_utf8)
+  {
+    if (f->type[0] == 'T' && f->size > sizeof (char*)) // fixed length
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        if (versiontype >= R_2007)
+          {
+            BITCODE_TU wstr = utf8_to_wchar ((char*)value);
+            *(BITCODE_TU*)old = wstr;
+          }
+        else
+          *(char**)old = strdup ((char*)value);
+      }
+    else if (strEQc (f->type, "TF"))
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        *(char**)old = malloc (f->size + 1);
+        memcpy (*(char**)old, value, f->size);
+        ((char*)*(char**)old)[f->size] = '\0';
+      }
+    else if (strEQc (f->type, "TFv"))
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        if (versiontype < R_13b1) // preR13: fixed length
+          {
+            *(char**)old = malloc (f->size + 1);
+            memcpy (*(char**)old, value, f->size);
+            ((char*)*(char**)old)[f->size] = '\0';
+          }
+        else if (versiontype >= R_2007)
+          {
+            BITCODE_TU wstr = utf8_to_wchar ((char*)value);
+            *(BITCODE_TU*)old = wstr;
+          }
+        else
+          *(char**)old = strdup ((char*)value);
+      }
+    else if (strEQc (f->type, "T"))
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        if (versiontype >= R_2007)
+          {
+            BITCODE_TU wstr = utf8_to_wchar ((char*)value);
+            *(BITCODE_TU*)old = wstr;
+          }
+        else
+          *(char**)old = strdup ((char*)value);
+      }
+    else if (strEQc (f->type, "TU"))
+      {
+        if (*(char**)old)
+          free (*(char**)old);
+        if (versiontype >= R_2007)
+          {
+            *(BITCODE_TU*)old = malloc ((wcslen ((BITCODE_TU)value) + 1) * 2);
+            wcscpy (*(BITCODE_TU*)old, (BITCODE_TU)value);
+          }
+        else
+          {
+            char *str = wchar_to_utf8 ((BITCODE_TU)value);
+            *(char**)old = str;
+          }
+      }
+  }
+else
+  {
+    if (*(char**)old)
+      free (*(char**)old);
+    *(char**)old = malloc (f->size);
+    memcpy (*(char**)old, value, f->size);
+  }

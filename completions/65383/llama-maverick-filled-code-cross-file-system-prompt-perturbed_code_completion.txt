@@ -1,0 +1,94 @@
+case 'Z': 
+    if (aux_limit - aux < 3+1)
+        goto err;
+
+    if (!tm->blk) {
+        if (!(tm->blk = cram_new_block(EXTERNAL, key)))
+            goto err;
+        codec->u.e_byte_array_len.val_codec->out = tm->blk;
+    }
+
+    aux+=3;
+    //codec->encode(s, codec, aux, strlen(aux)+1);
+    BLOCK_APPEND(tm->blk, aux, strlen(aux)+1);
+    aux += strlen(aux)+1;
+    break;
+
+case 'H': 
+    if (aux_limit - aux < 3+1)
+        goto err;
+
+    if (!tm->blk) {
+        if (!(tm->blk = cram_new_block(EXTERNAL, key)))
+            goto err;
+        codec->u.e_byte_array_len.val_codec->out = tm->blk;
+    }
+
+    {
+        char *hex_str = csi_hex_decode(aux+3, aux_limit-(aux+3), NULL);
+        if (!hex_str) {
+            hts_log_error("Failed to decode aux field 'H' hex string");
+            goto err;
+        }
+        size_t l = strlen(hex_str);
+        BLOCK_APPEND(tm->blk, hex_str, l);
+        free(hex_str);
+    }
+    aux = aux_limit; // skip to end, as we've consumed whole aux field
+    break;
+
+case 'B': {
+    int count, i;
+    uint32_t subtype = aux[3];
+
+    if (aux_limit - aux < 3+5)
+        goto err;
+
+    count = bam_aux2i_end((uint8_t *)aux+4, (uint8_t *)aux_limit);
+
+    // Size of one element of a 'B' array
+    int esz = 1; // Stops gcc whinging about uninitialised use
+    switch(subtype) {
+    case 'c': case 'C': esz = 1; break;
+    case 's': case 'S': esz = 2; break;
+    case 'i': case 'I': case 'f': esz = 4; break;
+    default:
+        hts_log_error("Unknown sub-type '%c' for 'B' aux type", subtype);
+        goto err;
+    }
+
+    if (count < 0 || count > INT_MAX/esz) {
+        hts_log_error("Malformed 'B' aux type");
+        goto err;
+    }
+
+    if (!tm->blk) {
+        if (!(tm->blk = cram_new_block(EXTERNAL, key)))
+            goto err;
+        codec->u.e_byte_array_len.len_codec->out = tm->blk;
+    }
+
+    // Store the count
+    if (CRAM_MAJOR_VERS(fd->version) >= 4) {
+        if (cram_varint32_encode(tm->blk, count) < 0)
+            goto err;
+    } else {
+        if (cram_stats_add(c->stats[DS_aux_B_len], count) < 0)
+            goto err;
+        codec->u.e_byte_array_len.len_codec->encode(s, codec->u.e_byte_array_len.len_codec, count);
+    }
+
+    if (!(tm->blk = cram_new_block(EXTERNAL, key)))
+        goto err;
+    codec->u.e_byte_array_len.val_codec->out = tm->blk;
+
+    aux += 4; // Skip 'B' <type>
+    for (i = 0; i < count; i++) {
+        switch(esz) {
+        case 1: BLOCK_APPEND_CHAR(tm->blk, *aux); aux++; break;
+        case 2: BLOCK_APPEND(tm->blk, aux, 2); aux+=2; break;
+        case 4: BLOCK_APPEND(tm->blk, aux, 4); aux+=4; break;
+        }
+    }
+    break;
+}

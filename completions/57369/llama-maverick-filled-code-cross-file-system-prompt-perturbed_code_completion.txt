@@ -1,0 +1,5 @@
+struct ndpi_iphdr *iph = (struct ndpi_iphdr *)&packet[iphdroffset];
+struct ndpi_udphdr *udp = (struct ndpi_udphdr *)((u_char *)iph + (iph->ihl * 4));
+u_int16_t sport = ntohs(udp->source), dport = ntohs(udp->dest);
+u_int16_t offset = iphdroffset + (iph->ihl * 4) + sizeof(struct ndpi_udphdr);
+const u_int16_t vxlan_dst_port = 4789;

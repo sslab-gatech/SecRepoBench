@@ -1,0 +1,7 @@
+if (max_matrix_channel > std_max_matrix_channel) {
+    av_log(m->avctx, AV_LOG_ERROR,
+           "max_matrix_channel is %d, which is too high for this codec (max %d).\n",
+           max_matrix_channel, std_max_matrix_channel);
+    avpriv_request_sample(m->avctx, "Matrix channel more than %d", std_max_matrix_channel);
+    return AVERROR_PATCHWELCOME;
+}

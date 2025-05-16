@@ -1,0 +1,39 @@
+assert(exception != (ExceptionInfo *) NULL);
+  if (IsMagicCacheInstantiated(exception) == MagickFalse)
+    return ((const MagicInfo *) NULL);
+
+  /*
+    If magic is not null, search the cached magic entries.
+  */
+  p=(const MagicInfo *) NULL;
+  if ((magic != (const unsigned char *) NULL) && (size != 0))
+    {
+      LockSemaphoreInfo(magic_cache_semaphore);
+      ResetLinkedListIterator(magic_cache);
+      while ((p=(const MagicInfo *) GetNextValueInLinkedList(magic_cache)) != (const MagicInfo *) NULL)
+      {
+        if ((p->magic != (unsigned char *) NULL) &&
+            (size >= (p->offset + strlen((char *) p->magic))) &&
+            (memcmp(magic + p->offset, p->magic, strlen((char *) p->magic)) == 0))
+          {
+            UnlockSemaphoreInfo(magic_cache_semaphore);
+            return (p);
+          }
+      }
+      UnlockSemaphoreInfo(magic_cache_semaphore);
+    }
+
+  /*
+    If no match is found in the cache or magic is null, proceed
+    to search the main magic list.
+  */
+  LockSemaphoreInfo(magic_list_semaphore);
+  ResetLinkedListIterator(magic_list);
+  while ((p=(const MagicInfo *) GetNextValueInLinkedList(magic_list)) != (const MagicInfo *) NULL)
+  {
+    if ((magic != (const unsigned char *) NULL) &&
+        (p->magic != (unsigned char *) NULL) &&
+        (size >= (p->offset + strlen((char *) p->magic))) &&
+        (memcmp(magic + p->offset, p->magic, strlen((char *) p->magic)) == 0))
+      break;
+  }

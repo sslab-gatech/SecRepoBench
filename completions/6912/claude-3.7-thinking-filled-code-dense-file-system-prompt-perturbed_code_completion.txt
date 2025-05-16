@@ -1,0 +1,25 @@
+for (s=t; *s != '\0'; )
+{
+  // Skip over non-numeric characters
+  while (*s != '\0' && !((isdigit((int) ((unsigned char) *s)) != 0) ||
+      (*s == '-') || (*s == '.') || (*s == '+')))
+    s++;
+  
+  if (*s == '\0')
+    break;
+  
+  // Convert the number to a double
+  char *next;
+  (void) StringToDouble(s, &next);
+  
+  // If conversion was successful, increment points_extent
+  if (next != s)
+  {
+    points_extent++;
+    s = next;
+  }
+  else
+    s++;
+}
+// Scale the points_extent by BezierQuantum
+points_extent=(double) (BezierQuantum*points_extent);

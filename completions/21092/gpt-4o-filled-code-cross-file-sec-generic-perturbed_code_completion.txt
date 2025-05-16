@@ -1,0 +1,17 @@
+unsigned int i;
+    for (i = 1; i < len; i++)
+    {
+      if (inputvalue < arrayZ[i].fromCoord)
+	break;
+    }
+
+    if (i == len || arrayZ[i-1].fromCoord == arrayZ[i].fromCoord)
+    {
+      return arrayZ[i-1].toCoord;
+    }
+
+    int denom = arrayZ[i].fromCoord - arrayZ[i-1].fromCoord;
+    if (denom == 0)
+    {
+      return arrayZ[i-1].toCoord;
+    }

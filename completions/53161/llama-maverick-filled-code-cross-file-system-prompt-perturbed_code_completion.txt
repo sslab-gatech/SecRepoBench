@@ -1,0 +1,11 @@
+int n = 0;
+while (ISDIGIT(ch)) {
+  if (INT_MAX/10 < n || (INT_MAX/10 == n && INT_MAX%10 < (ch - '0'))) {
+    mrb_raise(mrb, E_RUNTIME_ERROR, "too big template length");
+  }
+  n = n*10 + (ch - '0');
+  tmpl->idx++;
+  if (tmpl->idx >= tlen) break;
+  ch = tptr[tmpl->idx];
+}
+repeatcount = n;

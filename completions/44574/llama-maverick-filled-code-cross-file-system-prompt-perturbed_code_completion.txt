@@ -1,0 +1,30 @@
+else if (!strncmp("null", str_val, str_len)) {
+        primitive_value = plist_new_null();
+    } else {
+        int is_negative = 0;
+        if (*str_val == '-') {
+            is_negative = 1;
+            str_val++;
+            str_len--;
+        }
+        char* endptr = NULL;
+        errno = 0;
+        long long_val = strtoll(str_val, &endptr, 10);
+        if (errno == 0 && endptr == str_val + str_len) {
+            if (is_negative) {
+                long_val = -long_val;
+            }
+            primitive_value = plist_new_uint(long_val);
+        } else {
+            errno = 0;
+            double double_val = strtod(str_val, &endptr);
+            if (errno == 0 && endptr == str_val + str_len) {
+                if (is_negative) {
+                    double_val = -double_val;
+                }
+                primitive_value = plist_new_real(double_val);
+            } else {
+                PLIST_JSON_ERR("%s: failed to parse numeric value\n", __func__);
+            }
+        }
+    }

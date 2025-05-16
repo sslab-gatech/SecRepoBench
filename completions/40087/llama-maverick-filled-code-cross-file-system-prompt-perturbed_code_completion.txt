@@ -1,0 +1,15 @@
+if(quic_ciphers_init(ndpi_struct, &ciphers, client_secret, version) != 0) {
+  return NULL;
+}
+
+token_length = quic_get_token_length(&packet->payload[0], packet->payload_packet_len, src_conn_id_len);
+offset = src_conn_id_len + token_length;
+pn_offset = offset + quic_get_pn_offset(&packet->payload[offset], packet->payload_packet_len - offset, version);
+
+if(pn_offset + 4 /* pn len(4) + payload len(2) */ > packet->payload_packet_len) {
+  quic_ciphers_reset(&ciphers);
+  return NULL;
+}
+
+payload_length = quic_get_payload_length(&packet->payload[pn_offset], pn_offset, packet->payload_packet_len, version);
+NDPI_LOG_DBG2(ndpi_struct, "token len %lu pn offset %d payload len %lu\n", token_length, pn_offset, payload_length);

@@ -1,0 +1,45 @@
+// Allocate an output vector for the transformed coordinates.
+int *output_coords = (int *) hb_calloc (coords_length, sizeof (int));
+if (unlikely (!output_coords))
+  return;
+
+// Iterate through the coordinates up to the smaller of coords_length and axisCount.
+for (unsigned int i = 0; i < effectiveaxiscount; i++)
+{
+  // Apply a mapping transformation using the current SegmentMaps object.
+  coords[i] = map->map (coords[i]);
+  map = &StructAfter<SegmentMaps> (*map);
+}
+
+// If the version is 2 or higher, further process the coordinates using variation data.
+if (version >= 2)
+{
+  // Allocate a variation store cache.
+  VariationStoreCache *cache = new VariationStoreCache (this);
+
+  // For each coordinate, apply an additional transformation involving a variation index map and a variation store to compute a delta value.
+  for (unsigned int i = 0; i < effectiveaxiscount; i++)
+  {
+    int delta = cache->get_delta (coords[i]);
+    // Adjust each coordinate by the rounded delta.
+    output_coords[i] = coords[i] + (delta + 0x8000) >> 16;
+    // Clamp the result to a specified range.
+    output_coords[i] = hb_clamp (output_coords[i], min_value, max_value);
+  }
+
+  // Deallocate the variation store cache.
+  delete cache;
+}
+else
+{
+  // If the version is less than 2, simply copy the transformed coordinates to the output vector.
+  for (unsigned int i = 0; i < effectiveaxiscount; i++)
+    output_coords[i] = coords[i];
+}
+
+// Update the original coordinates array with the transformed values from the output vector.
+for (unsigned int i = 0; i < effectiveaxiscount; i++)
+  coords[i] = output_coords[i];
+
+// Deallocate the output vector.
+hb_free (output_coords);

@@ -1,0 +1,287 @@
+while (aux < aux_end && aux[0] != 0) {
+    char t1 = aux[0];
+    char t2 = aux[1];
+    char type = aux[2];
+    int32_t i32;
+    uint32_t u32;
+    float f;
+    int64_t i64;
+    double d;
+    int aux_len;
+    int consumed;
+    int overflow = 0;
+
+    aux += 3; // move past tag+type
+
+    // Special cases for RG, NM, MD
+    if (t1 == 'R' && t2 == 'G' && type == 'Z') {
+        // RG:Z
+        // The read group is stored in cr->rg, which is encoded separately.
+        // We'll parse the RG tag here, but return it so it can be used to
+        // set cr->rg later in this function.
+        brg = sam_hrecs_find_rg(filedescriptor->header->hrecs, aux);
+        // Skip to end of string
+        while (aux < aux_end && *aux)
+            aux++;
+        aux++;
+        continue; // skip adding standard encoding for RG:Z
+    } else if (t1 == 'N' && t2 == 'M' && !verbatim_NM) {
+        // We have a known NM value. If it matches the doping we computed, we can skip it.
+        // If it doesn't, revert to storing verbatim. See process_one_read() for NM logic.
+        if (NM == bam_aux2i_end((uint8_t *)(aux - 3), (uint8_t *)aux_end)) {
+            // Matches, so skip
+            // Skip integer type
+            switch (type) {
+            case 'c': case 'C': aux += 1; break;
+            case 's': case 'S': aux += 2; break;
+            case 'i': case 'I': aux += 4; break;
+            default:
+                // If it was an invalid type, just bail out
+                goto store_tag;
+            }
+            continue;
+        } else {
+            // Mismatch, store verbatim
+            verbatim_NM = 1;
+        }
+    } else if (t1 == 'M' && t2 == 'D' && !verbatim_MD) {
+        // If we built an MD that matches, skip it
+        // Otherwise, store verbatim
+        if (MD && MD->l) {
+            // Compare with existing MD:Z
+            size_t l = strlen(aux);
+            if ((size_t)MD->l == l && memcmp(MD->s, aux, l) == 0) {
+                // skip
+                aux += l + 1;
+                continue;
+            } else {
+                // mismatch
+                verbatim_MD = 1;
+            }
+        } else {
+            // no built MD or zero-length
+            verbatim_MD = 1;
+        }
+    }
+
+store_tag: {
+    // Synthesize a 32-bit key (tag plus type) so we can store it in a hash
+    uint32_t key4 = (uint32_t)((unsigned char)t1) |
+                    ((uint32_t)(unsigned char)t2 << 8) |
+                    ((uint32_t)(unsigned char)type << 16);
+    khint_t k2;
+    int ret;
+    cram_tag_map *tm;
+
+    k2 = kh_put(m_s2i, c->tags_used, key4, &ret);
+    if (ret < 0) {
+        // Memory error
+        if (err) *err = 1;
+        return NULL;
+    } else if (ret > 0) {
+        // new item
+        tm = calloc(1, sizeof(*tm));
+        if (!tm) {
+            if (err) *err = 1;
+            return NULL;
+        }
+        tm->tag = key4;
+        tm->codec = NULL;
+        tm->blk = cram_new_block(EXTERNAL, filedescriptor->tags_used_id++);
+        tm->blk2 = NULL;
+        tm->m = 0;
+        tm->m2 = 0;
+        kh_val(c->tags_used, k2) = tm;
+    } else {
+        // existing item
+        tm = kh_val(c->tags_used, k2);
+    }
+
+    // Create codec if none
+    if (!tm->codec) {
+        // It's set to E_EXTERNAL for all tags, or potentially a more complex
+        // method if we detect certain patterns.  For now we store raw bytes.
+        tm->codec = cram_encoder_init(E_EXTERNAL, NULL, E_BYTE,
+                                      (void *)(intptr_t)tm->blk->content_id,
+                                      filedescriptor->version, &filedescriptor->vv);
+        if (!tm->codec) {
+            if (err) *err = 1;
+            return NULL;
+        }
+    }
+
+    // Append the tag data itself to the container's TD block if not
+    // already done, but we do that after the entire loop. For the
+    // data, we store it (key+type) in the slice's external block.
+    // First store the 3 bytes for key+type
+    BLOCK_GROW(tm->blk, 3);
+    ((unsigned char *)BLOCK_END(tm->blk))[0] = t1;
+    ((unsigned char *)BLOCK_END(tm->blk))[1] = t2;
+    ((unsigned char *)BLOCK_END(tm->blk))[2] = type;
+    BLOCK_SIZE(tm->blk) += 3;
+    tm->m += 3;
+
+    // Now store the data
+    switch (type) {
+    case 'A': // printable char
+    {
+        BLOCK_APPEND_CHAR(tm->blk, *aux);
+        tm->m++;
+        aux++;
+        break;
+    }
+    case 'C': // unsigned char
+    case 'c': // signed char
+    {
+        // 1 byte
+        BLOCK_APPEND_CHAR(tm->blk, *aux);
+        tm->m++;
+        aux++;
+        break;
+    }
+    case 'S': // unsigned short
+    case 's': // signed short
+    {
+        if (aux_end - aux < 2) {
+            if (err) *err = 1;
+            return NULL;
+        }
+        BLOCK_APPEND(tm->blk, aux, 2);
+        tm->m += 2;
+        aux += 2;
+        break;
+    }
+    case 'I': // unsigned int
+    case 'i': // signed int
+    {
+        if (aux_end - aux < 4) {
+            if (err) *err = 1;
+            return NULL;
+        }
+        BLOCK_APPEND(tm->blk, aux, 4);
+        tm->m += 4;
+        aux += 4;
+        break;
+    }
+    case 'f': // float
+    {
+        if (aux_end - aux < 4) {
+            if (err) *err = 1;
+            return NULL;
+        }
+        BLOCK_APPEND(tm->blk, aux, 4);
+        tm->m += 4;
+        aux += 4;
+        break;
+    }
+    case 'd': // double
+    {
+        if (aux_end - aux < 8) {
+            if (err) *err = 1;
+            return NULL;
+        }
+        BLOCK_APPEND(tm->blk, aux, 8);
+        tm->m += 8;
+        aux += 8;
+        break;
+    }
+    case 'Z': // printable string
+    case 'H': // hex string
+    {
+        // copy until NUL
+        unsigned char *u = (unsigned char *)aux;
+        while (u < (unsigned char *)aux_end && *u) {
+            BLOCK_APPEND_CHAR(tm->blk, *u);
+            tm->m++;
+            u++;
+        }
+        if (u < (unsigned char *)aux_end) {
+            // copy the terminating zero
+            BLOCK_APPEND_CHAR(tm->blk, 0);
+            tm->m++;
+            u++;
+        }
+        aux = (char *)u;
+        break;
+    }
+    case 'B': // numeric array
+    {
+        // first sub-type
+        if (aux_end - aux < 1) {
+            if (err) *err = 1;
+            return NULL;
+        }
+        BLOCK_APPEND_CHAR(tm->blk, *aux);
+        tm->m++;
+        // Then length
+        if (aux_end - aux < 5) {
+            if (err) *err = 1;
+            return NULL;
+        }
+        // sub-type + count
+        BLOCK_APPEND(tm->blk, aux+1, 4);
+        tm->m += 4;
+        // step sub-type + length
+        const char st = *aux;
+        int count = le_to_i32((const unsigned char *)(aux+1));
+        aux += 5;
+        // Now parse count items
+        if (count < 0 || count > 0x3fffffff) {
+            if (err) *err = 1;
+            return NULL;
+        }
+
+        switch (st) {
+        case 'c': case 'C': {
+            if (aux_end - aux < count)
+                goto b_err;
+            BLOCK_APPEND(tm->blk, aux, count);
+            tm->m += count;
+            aux += count;
+            break;
+        }
+        case 's': case 'S': {
+            if (aux_end - aux < count*2)
+                goto b_err;
+            BLOCK_APPEND(tm->blk, aux, count*2);
+            tm->m += count*2;
+            aux += count*2;
+            break;
+        }
+        case 'i': case 'I': {
+            if (aux_end - aux < count*4)
+                goto b_err;
+            BLOCK_APPEND(tm->blk, aux, count*4);
+            tm->m += count*4;
+            aux += count*4;
+            break;
+        }
+        case 'f': {
+            if (aux_end - aux < count*4)
+                goto b_err;
+            BLOCK_APPEND(tm->blk, aux, count*4);
+            tm->m += count*4;
+            aux += count*4;
+            break;
+        }
+        default:
+            // unknown sub-type
+            goto b_err;
+        }
+        break;
+    b_err:
+        if (err) *err = 1;
+        return NULL;
+    }
+    default:
+        // unknown type; just abort
+        if (err) *err = 1;
+        return NULL;
+    }
+
+    // Done storing
+}
+} // end of while over aux tags
+
+// Final block pointer fix-up
+tm->blk->m = tm->m;

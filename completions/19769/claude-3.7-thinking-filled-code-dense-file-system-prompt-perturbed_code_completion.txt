@@ -1,0 +1,7 @@
+if (expressionstr == (char *) NULL)
+  return(MagickFalse);
+if (LocaleNCompare(expressionstr,name,length) != 0)
+  return(MagickFalse);
+if (expressionstr[length] == '\0')
+  return(MagickFalse);
+return ((expressionstr[length] == '(') || (expressionstr[length] == ' ')) ? MagickTrue : MagickFalse;

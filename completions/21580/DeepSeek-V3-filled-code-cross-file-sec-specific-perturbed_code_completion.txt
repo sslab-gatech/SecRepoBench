@@ -1,0 +1,25 @@
+if (!iterator) {
+      startGlyph = 0;
+      classValueLen = 0;
+      return_trace (true);
+    }
+
+    hb_codepoint_t min_glyph = HB_SET_VALUE_INVALID;
+    hb_codepoint_t max_glyph = HB_SET_VALUE_INVALID;
+    for (auto g : +iterator) {
+      if (g < min_glyph) min_glyph = g;
+      if (g > max_glyph) max_glyph = g;
+    }
+    if (min_glyph == HB_SET_VALUE_INVALID || max_glyph == HB_SET_VALUE_INVALID)
+      return_trace (false);
+
+    unsigned glyph_count = max_glyph - min_glyph + 1;
+    startGlyph = min_glyph;
+
+    if (!classValue.serialize (c, glyph_count))
+      return_trace (false);
+
+    for (auto g : +iterator)
+      classValue[g - startGlyph] = g;
+
+    return_trace (true);

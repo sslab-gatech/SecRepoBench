@@ -1,0 +1,58 @@
+compressedUnknownBuf = dataPtr;
+dataPtr += unknownCompressedSize;
+compressedAcBuf = dataPtr;
+dataPtr += acCompressedSize;
+compressedDcBuf = dataPtr;
+dataPtr += dcCompressedBytes;
+compressedRleBuf = dataPtr;
+dataPtr += rleCompressedSize;
+
+outBufferSize = (size_t) uncompressed_size;
+outBufferEnd  = (uint8_t*) uncompressed_data + outBufferSize;
+
+packedAcBufferEnd = me->_packedAcBuffer + totalAcUncompressedCount * sizeof (uint16_t);
+packedDcBufferEnd = me->_packedDcBuffer + totalDcUncompressedCount * sizeof (uint16_t);
+
+if (version >= 2)
+{
+    uint16_t rulesSize;
+    uint64_t rulesRead = 0;
+    uint8_t* rulesPtr  = (uint8_t*) compressedUnknownBuf;
+
+    rulesSize = two_to_native16 (*(uint16_t*) rulesPtr);
+    rulesPtr += sizeof (uint16_t);
+    rulesRead += sizeof (uint16_t);
+
+    for (int c = 0; c < me->_numChannels; ++c)
+    {
+        const exr_coding_channel_info_t* curc = me->_channelData[c].chan;
+        const char*                      suffix =
+            Classifier_find_suffix (curc->channel_name);
+
+        for (size_t i = 0; i < me->_channelRuleCount; ++i)
+        {
+            if (Classifier_match (
+                    &(me->_channelRules[i]),
+                    suffix,
+                    (exr_pixel_type_t) curc->data_type))
+            {
+                if (EXR_ERR_SUCCESS !=
+                    Classifier_read (
+                        &(me->_channelData[c].rule),
+                        (const uint8_t**) &rulesPtr,
+                        rulesSize - rulesRead,
+                        &rulesRead))
+                {
+                    return EXR_ERR_CORRUPT_CHUNK;
+                }
+
+                break;
+            }
+        }
+
+        if (rulesRead > rulesSize) return EXR_ERR_CORRUPT_CHUNK;
+    }
+
+    compressedUnknownBuf += rulesRead;
+    unknownCompressedSize -= rulesRead;
+}

@@ -1,0 +1,112 @@
+int dont_split = (context->header_flags & 0x10) >> 4;
+  bool dict_training = context->use_dict && (context->dict_cdict == NULL);
+  bool memcpyed = (bool)(context->header_flags & (uint8_t)BLOSC_MEMCPYED);
+  int32_t typesize = context->typesize;
+
+  /* Determine how many streams to split into */
+  int32_t nstreams = (!dont_split && !leftoverblock && !dict_training) ? typesize : 1;
+  int32_t neblock = bsize / nstreams;
+  ntbytes = 0;
+
+  const uint8_t* _src = src + src_offset;
+  uint8_t* _dest = dest + destinationoffset;
+
+  /* Process each stream */
+  for (int32_t j = 0; j < nstreams; j++) {
+    int32_t csize = 0;
+    if (!dict_training) {
+      if ((_src + sizeof(int32_t)) > (src + srcsize)) {
+        return -1;  /* Not enough space to read csize */
+      }
+      csize = sw32_(_src);
+      _src += sizeof(int32_t);
+    }
+    else {
+      /* Dictionary training not supported for decompression */
+      return -2;
+    }
+
+    /* Check for a run */
+    if (csize < 0) {
+      int run_value = -csize;
+      if ((run_value < 0) || (run_value > 255)) {
+        return -3;  /* Invalid run value */
+      }
+      memset(_dest, (unsigned char)run_value, (size_t)neblock);
+      _dest += neblock;
+      ntbytes += neblock;
+      continue;
+    }
+
+    /* Check for uncompressed data */
+    if ((csize == 0) || (csize == neblock)) {
+      if ((_src + neblock) > (src + srcsize)) {
+        return -4;  /* Not enough space for uncompressed data */
+      }
+      memcpy(_dest, _src, (size_t)neblock);
+      _src += neblock;
+      _dest += neblock;
+      ntbytes += neblock;
+      continue;
+    }
+
+    /* Decompressed data */
+    if ((_src + csize) > (src + srcsize)) {
+      return -5;  /* Not enough space for compressed data */
+    }
+
+    int decompressed = 0;
+    switch (context->compcode) {
+      case BLOSC_BLOSCLZ:
+        decompressed = blosclz_decompress(_src, csize, _dest, neblock);
+        break;
+  #if defined(HAVE_LZ4)
+      case BLOSC_LZ4:
+      case BLOSC_LZ4HC:
+        decompressed = lz4_wrap_decompress((const char*)_src, (size_t)csize,
+                                           (char*)_dest, (size_t)neblock);
+        break;
+  #endif
+  #if defined(HAVE_LIZARD)
+      case BLOSC_LIZARD:
+        decompressed = lizard_wrap_decompress((const char*)_src, (size_t)csize,
+                                              (char*)_dest, (size_t)neblock);
+        break;
+  #endif
+  #if defined(HAVE_SNAPPY)
+      case BLOSC_SNAPPY:
+        decompressed = snappy_wrap_decompress((const char*)_src, (size_t)csize,
+                                              (char*)_dest, (size_t)neblock);
+        break;
+  #endif
+  #if defined(HAVE_ZLIB)
+      case BLOSC_ZLIB:
+        decompressed = zlib_wrap_decompress((const char*)_src, (size_t)csize,
+                                            (char*)_dest, (size_t)neblock);
+        break;
+  #endif
+  #if defined(HAVE_ZSTD)
+      case BLOSC_ZSTD:
+        decompressed = zstd_wrap_decompress(thread_context, (const char*)_src, (size_t)csize,
+                                            (char*)_dest, (size_t)neblock);
+        break;
+  #endif
+      default: {
+        const char* compname;
+        blosc_compcode_to_compname(context->compcode, &compname);
+        fprintf(stderr, "Blosc has not been compiled with '%s' decompression support.\n", compname);
+        return -6;
+      }
+    }
+
+    if (decompressed < 0) {
+      return -7;  /* Decompression error */
+    }
+    if (decompressed != neblock) {
+      return -8;  /* Decompressed size mismatch */
+    }
+
+    _src += csize;
+    _dest += neblock;
+    ntbytes += neblock;
+  }

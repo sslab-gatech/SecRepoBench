@@ -1,0 +1,30 @@
+next_token[i]='\0';
+if (LocaleNCompare(next_token,"url(",4) == 0)
+  {
+    register char
+      *q;
+
+    /*
+      Skip over "url(" and any following '#' character.
+    */
+    q=next_token+4;
+    while (isspace((int) ((unsigned char) *q)) != 0)
+      q++;
+    if (*q == '#')
+      q++;
+    while (isspace((int) ((unsigned char) *q)) != 0)
+      q++;
+    /*
+      Copy the URL into the token buffer, overwriting the original "url()".
+    */
+    (void) CopyMagickString(next_token,q,extent);
+    i=strlen(next_token);
+    if (i > 1)
+      {
+        /*
+          Remove any trailing ')' character.
+        */
+        if (next_token[i-1] == ')')
+          next_token[i-1]='\0';
+      }
+  }

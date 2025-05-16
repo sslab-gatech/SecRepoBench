@@ -1,0 +1,23 @@
+hb_vector_t<SubsetGlyph> subset_glyphs;
+    if (!_populate_subset_glyphs (context->plan, font, subset_glyphs))
+    {
+      if (font) hb_font_destroy (font);
+      return_trace (false);
+    }
+
+    if (font) hb_font_destroy (font);
+
+    subset_glyphs.calculate_padded_offsets ();
+    bool use_short_loca = subset_glyphs.determine_short_loca ();
+
+    glyf *new_glyf = context->serializer->start_embed<glyf> ();
+    if (!new_glyf)
+    {
+      subset_glyphs.free_compiled_bytes ();
+      return_trace (false);
+    }
+
+    bool result = new_glyf->serialize (context->serializer, subset_glyphs, use_short_loca);
+    subset_glyphs.free_compiled_bytes ();
+
+    return_trace (result);

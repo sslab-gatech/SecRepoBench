@@ -1,0 +1,30 @@
+if (bQuota && '\"' == *szCurrent) {
+    boneNameLength = (unsigned int)(szCurrent - szCurrentOut);
+    ++szCurrent;
+    while (bQuota && '\"'!= *szCurrent) {
+        if (!(*szCurrent)) {
+            LogErrorNoThrow("Unexpected EOF/EOL while parsing bone name");
+            SMDI_PARSE_RETURN;
+        }
+        ++szCurrent;
+    }
+    if (!bQuota) {
+        LogWarning("Bone name is expected to be enclosed in double quotation marks. ");
+        bQuota = false;
+    } else {
+        ++szCurrent;
+    }
+} else if (!bQuota && IsSpaceOrNewLine(*szCurrent)) {
+    boneNameLength = (unsigned int)(szCurrent - szCurrentOut);
+    break;
+} else {
+    // If the current character is not a space or a line ending, and it's not a double quote,
+    // then we're not in a quoted string, so we can just skip over any spaces or line endings.
+    while (!bQuota && IsSpaceOrNewLine(*szCurrent)) {
+        if (!(*szCurrent)) {
+            LogErrorNoThrow("Unexpected EOF/EOL while parsing bone name");
+            SMDI_PARSE_RETURN;
+        }
+        ++szCurrent;
+    }
+}

@@ -1,0 +1,361 @@
+case 'a':
+case 'A':
+    ++m_DataIt;
+    if (*m_DataIt == 'n') {
+        ++m_DataIt;
+        if (IsSpaceOrNewLine(*m_DataIt)) {
+            // Anisotropy
+            getFloatValue(m_pModel->m_pCurrentMaterial->Anisotropy);
+        }
+    } else if (*m_DataIt == 'n' || *m_DataIt == 'N') {
+        ++m_DataIt;
+        if (*m_DataIt == 'i') {
+            ++m_DataIt;
+            if (*m_DataIt == 's' || *m_DataIt == 'S') {
+                ++m_DataIt;
+                if (*m_DataIt == 'o' || *m_DataIt == 'O') {
+                    ++m_DataIt;
+                    if (*m_DataIt == 't' || *m_DataIt == 'T') {
+                        ++m_DataIt;
+                        if (*m_DataIt == 'r' || *m_DataIt == 'R') {
+                            ++m_DataIt;
+                            if (*m_DataIt == 'o' || *m_DataIt == 'O') {
+                                ++m_DataIt;
+                                if (*m_DataIt == 'p' || *m_DataIt == 'P') {
+                                    ++m_DataIt;
+                                    if (IsSpaceOrNewLine(*m_DataIt)) {
+                                        // Anisotropy rotation
+                                        getFloatValue(m_pModel->m_pCurrentMaterial->AnisotropyRotation);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    break;
+case 'N':
+case 'n':
+    ++m_DataIt;
+    if (*m_DataIt == 'i' || *m_DataIt == 'I') {
+        ++m_DataIt;
+        if (*m_DataIt == 'l' || *m_DataIt == 'L') {
+            ++m_DataIt;
+            if (*m_DataIt == 'l' || *m_DataIt == 'L') {
+                ++m_DataIt;
+                if (IsSpaceOrNewLine(*m_DataIt)) {
+                    // Illumination model
+                    int illum;
+                    getIntValue(illum);
+                    m_pModel->m_pCurrentMaterial->illumination_model = illum;
+                }
+            }
+        }
+    } else if (*m_DataIt == 's' || *m_DataIt == 'S') {
+        ++m_DataIt;
+        if (IsSpaceOrNewLine(*m_DataIt)) {
+            // Index of refraction
+            getFloatValue(m_pModel->m_pCurrentMaterial->ior);
+        }
+    } else if (*m_DataIt == 'e' || *m_DataIt == 'E') {
+        ++m_DataIt;
+        if (*m_DataIt == 'w') {
+            ++m_DataIt;
+            if (IsSpaceOrNewLine(*m_DataIt)) {
+                // New material declaration
+                std::string strName;
+                getName(strName);
+                createMaterial(strName);
+            }
+        }
+    }
+    break;
+case 'T':
+case 't':
+    ++m_DataIt;
+    if (*m_DataIt == 'r' || *m_DataIt == 'R') {
+        ++m_DataIt;
+        if (IsSpaceOrNewLine(*m_DataIt)) {
+            // Transparency
+            Maybe<float> f;
+            getFloatValue(f);
+            if (f) {
+                m_pModel->m_pCurrentMaterial->alpha = 1.0f - *f;
+            }
+        }
+    } else if (*m_DataIt == 'f' || *m_DataIt == 'F') {
+        ++m_DataIt;
+        if (*m_DataIt == 'i' || *m_DataIt == 'I') {
+            ++m_DataIt;
+            if (*m_DataIt == 'l' || *m_DataIt == 'L') {
+                ++m_DataIt;
+                if (*m_DataIt == 't' || *m_DataIt == 'T') {
+                    ++m_DataIt;
+                    if (IsSpaceOrNewLine(*m_DataIt)) {
+                        // Transmission filter
+                        getColorRGBA(m_pModel->m_pCurrentMaterial->transmission);
+                    }
+                }
+            }
+        }
+    } else if (*m_DataIt == 'e' || *m_DataIt == 'E') {
+        ++m_DataIt;
+        if (*m_DataIt == 'x' || *m_DataIt == 'X') {
+            ++m_DataIt;
+            if (*m_DataIt == 't' || *m_DataIt == 'T') {
+                ++m_DataIt;
+                if (IsSpaceOrNewLine(*m_DataIt)) {
+                    // Texture type: emissive
+                    loadTexture(TextureType::emissive, aiTextureType_EMISSION_COLOR);
+                }
+            }
+        }
+    }
+    break;
+case 'd':
+case 'D':
+    ++m_DataIt;
+    if (IsSpaceOrNewLine(*m_DataIt)) {
+        // Diffuse color
+        getColorRGBA(m_pModel->m_pCurrentMaterial->diffuse);
+    } else if (*m_DataIt == 'i' || *m_DataIt == 'I') {
+        ++m_DataIt;
+        if (*m_DataIt == 's' || *m_DataIt == 'S') {
+            ++m_DataIt;
+            if (*m_DataIt == 'p' || *m_DataIt == 'P') {
+                ++m_DataIt;
+                if (IsSpaceOrNewLine(*m_DataIt)) {
+                    // Displacement texture
+                    loadTexture(TextureType::disp, aiTextureType_DISPLACEMENT);
+                }
+            }
+        }
+    } else if (*m_DataIt == 'e' || *m_DataIt == 'E') {
+        ++m_DataIt;
+        if (*m_DataIt == 'c' || *m_DataIt == 'C') {
+            ++m_DataIt;
+            if (*m_DataIt == 'a' || *m_DataIt == 'A') {
+                ++m_DataIt;
+                if (*m_DataIt == 'l' || *m_DataIt == 'L') {
+                    ++m_DataIt;
+                    if (*m_DataIt == ' ' || *m_DataIt == '\t') {
+                        // Specular exponent (shininess)
+                        getFloatValue(m_pModel->m_pCurrentMaterial->shininess);
+                    }
+                }
+            }
+        }
+    }
+    break;
+case 'b':
+case 'B':
+    ++m_DataIt;
+    if (*m_DataIt == 'u' || *m_DataIt == 'U') {
+        ++m_DataIt;
+        if (*m_DataIt == 'm' || *m_DataIt == 'M') {
+            ++m_DataIt;
+            if (IsSpaceOrNewLine(*m_DataIt)) {
+                // Bump texture
+                loadTexture(TextureType::bump, aiTextureType_NORMALS);
+            } else if (*m_DataIt == 'p' || *m_DataIt == 'P') {
+                ++m_DataIt;
+                if (*m_DataIt == ' ' || *m_DataIt == '\t') {
+                    // Bump texture with optional parameter
+                    loadTexture(TextureType::bump, aiTextureType_NORMALS);
+                }
+            }
+        }
+    }
+    break;
+case 'r':
+case 'R':
+    ++m_DataIt;
+    if (*m_DataIt == 'e' || *m_DataIt == 'E') {
+        ++m_DataIt;
+        if (*m_DataIt == 'f' || *m_DataIt == 'F') {
+            ++m_DataIt;
+            if (IsSpaceOrNewLine(*m_DataIt)) {
+                // Reflection texture
+                loadTexture(TextureType::refl, aiTextureType_REFLECTION);
+            }
+        }
+    }
+    break;
+case 's':
+case 'S':
+    ++m_DataIt;
+    if (IsSpaceOrNewLine(*m_DataIt)) {
+        // Specular color
+        getColorRGBA(m_pModel->m_pCurrentMaterial->specular);
+    } else if (*m_DataIt == 'c' || *m_DataIt == 'C') {
+        ++m_DataIt;
+        if (*m_DataIt == 'a' || *m_DataIt == 'A') {
+            ++m_DataIt;
+            if (*m_DataIt == 'l' || *m_DataIt == 'L') {
+                ++m_DataIt;
+                if (*m_DataIt == 'e' || *m_DataIt == 'E') {
+                    ++m_DataIt;
+                    if (IsSpaceOrNewLine(*m_DataIt)) {
+                        // Scaleness
+                        getFloatValue(m_pModel->m_pCurrentMaterial->shadingm);
+                    }
+                }
+            }
+        }
+    }
+    break;
+case 'm':
+case 'M':
+    ++m_DataIt;
+    if (*m_DataIt == 'a' || *m_DataIt == 'A') {
+        ++m_DataIt;
+        if (*m_DataIt == 'p' || *m_DataIt == 'P') {
+            ++m_DataIt;
+            if (IsSpaceOrNewLine(*m_DataIt)) {
+                // Texture type: diffuse
+                loadTexture(TextureType::diffuse, aiTextureType_DIFFUSE);
+            } else if (*m_DataIt == '_') {
+                ++m_DataIt;
+                if (*m_DataIt == 'K' || *m_DataIt == 'k') {
+                    ++m_DataIt;
+                    if (*m_DataIt == 'd' || *m_DataIt == 'D') {
+                        ++m_DataIt;
+                        if (IsSpaceOrNewLine(*m_DataIt)) {
+                            // Texture type: diffuse
+                            loadTexture(TextureType::diffuse, aiTextureType_DIFFUSE);
+                        }
+                    } else if (*m_DataIt == 's' || *m_DataIt == 'S') {
+                        ++m_DataIt;
+                        if (IsSpaceOrNewLine(*m_DataIt)) {
+                            // Texture type: specular
+                            loadTexture(TextureType::specular, aiTextureType_SPECULAR);
+                        }
+                    } else if (*m_DataIt == 'a' || *m_DataIt == 'A') {
+                        ++m_DataIt;
+                        if (IsSpaceOrNewLine(*m_DataIt)) {
+                            // Texture type: ambient
+                            loadTexture(TextureType::ambient, aiTextureType_AMBIENT);
+                        }
+                    }
+                } else if (*m_DataIt == 'b' || *m_DataIt == 'B') {
+                    ++m_DataIt;
+                    if (*m_DataIt == 'u' || *m_DataIt == 'U') {
+                        ++m_DataIt;
+                        if (*m_DataIt == 'm' || *m_DataIt == 'M') {
+                            ++m_DataIt;
+                            if (IsSpaceOrNewLine(*m_DataIt) || *m_DataIt == 'p') {
+                                // Texture type: bump
+                                loadTexture(TextureType::bump, aiTextureType_NORMALS);
+                            }
+                        }
+                    }
+                } else if (*m_DataIt == 'd' || *m_DataIt == 'D') {
+                    ++m_DataIt;
+                    if (*m_DataIt == 'i' || *m_DataIt == 'I') {
+                        ++m_DataIt;
+                        if (*m_DataIt == 's' || *m_DataIt == 'S') {
+                            ++m_DataIt;
+                            if (*m_DataIt == 'p' || *m_DataIt == 'P') {
+                                ++m_DataIt;
+                                if (IsSpaceOrNewLine(*m_DataIt)) {
+                                    // Texture type: displacement
+                                    loadTexture(TextureType::disp, aiTextureType_DISPLACEMENT);
+                                }
+                            }
+                        }
+                    }
+                } else if (*m_DataIt == 'o' || *m_DataIt == 'O') {
+                    ++m_DataIt;
+                    if (*m_DataIt == 'p' || *m_DataIt == 'P') {
+                        ++m_DataIt;
+                        if (*m_DataIt == 'a' || *m_DataIt == 'A') {
+                            ++m_DataIt;
+                            if (*m_DataIt == 'c' || *m_DataIt == 'C') {
+                                ++m_DataIt;
+                                if (*m_DataIt == 'i' || *m_DataIt == 'I') {
+                                    ++m_DataIt;
+                                    if (*m_DataIt == 't' || *m_DataIt == 'T') {
+                                        ++m_DataIt;
+                                        if (*m_DataIt == 'y' || *m_DataIt == 'Y') {
+                                            ++m_DataIt;
+                                            if (IsSpaceOrNewLine(*m_DataIt)) {
+                                                // Texture type: opacity
+                                                loadTexture(TextureType::opacity, aiTextureType_OPACITY);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    break;
+case 'K':
+case 'k':
+    ++m_DataIt;
+    if (*m_DataIt == 'a') {
+        ++m_DataIt;
+        if (IsSpaceOrNewLine(*m_DataIt)) {
+            // Ambient color
+            getColorRGBA(m_pModel->m_pCurrentMaterial->ambient);
+        }
+    } else if (*m_DataIt == 'd') {
+        ++m_DataIt;
+        if (IsSpaceOrNewLine(*m_DataIt)) {
+            // Diffuse color
+            getColorRGBA(m_pModel->m_pCurrentMaterial->diffuse);
+        }
+    } else if (*m_DataIt == 's') {
+        ++m_DataIt;
+        if (IsSpaceOrNewLine(*m_DataIt)) {
+            // Specular color
+            getColorRGBA(m_pModel->m_pCurrentMaterial->specular);
+        }
+    } else if (*m_DataIt == 'e') {
+        ++m_DataIt;
+        if (IsSpaceOrNewLine(*m_DataIt)) {
+            // Emissive color
+            getColorRGBA(m_pModel->m_pCurrentMaterial->emissive);
+        }
+    }
+    break;
+case 'i':
+case 'I':
+    ++m_DataIt;
+    if (*m_DataIt == 'l' || *m_DataIt == 'L') {
+        ++m_DataIt;
+        if (*m_DataIt == 'l' || *m_DataIt == 'L') {
+            ++m_DataIt;
+            if (IsSpaceOrNewLine(*m_DataIt)) {
+                int illum;
+                getIntValue(illum);
+                m_pModel->m_pCurrentMaterial->illumination_model = illum;
+            }
+        }
+    }
+    break;
+case 'P':
+case 'p':
+    ++m_DataIt;
+    if (*m_DataIt == 'r' || *m_DataIt == 'R') {
+        ++m_DataIt;
+        if (*m_DataIt == 'i' || *m_DataIt == 'I') {
+            ++m_DataIt;
+            if (*m_DataIt == 's' || *m_DataIt == 'S') {
+                ++m_DataIt;
+                if (*m_DataIt == 'm' || *m_DataIt == 'M') {
+                    ++m_DataIt;
+                    if (IsSpaceOrNewLine(*m_DataIt)) {
+                        // Prism
+                        getFloatValue(m_pModel->m_pCurrentMaterial->prism);
+                    }
+                }
+            }
+        }
+    }
+    break;

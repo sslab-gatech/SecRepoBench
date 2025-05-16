@@ -1,0 +1,32 @@
+ret = xmlHashLookup(table, value);
+if (ret != NULL) {
+    if (streaming) {
+        if (ret->attr != NULL) {
+            /*
+             * There is already an ID registered for this value and
+             * we're operating in streaming mode. This can happen
+             * if a document is parsed in chunks and the same ID
+             * is used in multiple chunks. We can't issue an error
+             * here since the validation is incomplete.
+             */
+            ret->lineno = xmlGetLineNo(attribute->parent);
+        } else {
+            /*
+             * Make sure the ID is associated with the attribute
+             */
+            ret->lineno = xmlGetLineNo(attribute->parent);
+        }
+    } else {
+        /*
+         * The XML spec says that the ID should be in the
+         * attribute list, so just make sure that the attribute
+         * is attached to the ID.
+         */
+        ret->attr = attribute;
+    }
+    attribute->atype = XML_ATTRIBUTE_ID;
+    attribute->id = ret;
+    if (id != NULL)
+        *id = ret;
+    return(0);
+}
