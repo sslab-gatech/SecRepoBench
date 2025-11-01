@@ -1,5 +1,6 @@
 from projects import *
 import sys
+import json
 
 def get_meta(sample_id):
     with open(f'ARVO-Meta/meta/{sample_id}.json', 'r') as f:

@@ -50,6 +50,7 @@ def process_id(id, agent, model_name, context_type, prompt_type, mode, rerun):
 def run_inference(agent, model_name, context_type, prompt_type, mode, rerun, max_workers):
     with open('ids.txt', 'r') as f:
         ids = f.read().splitlines()[1:]
+        ids = ['910']
         
     if not rerun:
         print('Using cache where possible')
