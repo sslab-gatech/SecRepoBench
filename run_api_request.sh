@@ -1,11 +1,7 @@
 #!/bin/bash
 
-<<<<<<< HEAD
-MODELS=("llama4")
-=======
 
 MODELS=("llama4" "llama-maverick" "Qwen3" )
->>>>>>> 6b1e84907de5435ac2befc1846e1f4c4e1ffc457
 CONTEXTS=("cross-file") 
 PROMPTS=( "system-prompt")
 MODES=("perturbed")

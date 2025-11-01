@@ -7,16 +7,14 @@ from projects import *
 test_before_projects = ['ffmpeg', 'file', 'c-blosc2', 'fluent-bit', 'assimp', 'php-src', 'libxml2', 'imagemagick', 'mruby', 'wireshark','libarchive','openexr', 'libredwg', 'libxslt']
 no_colon_projects = ['harfbuzz', 'libplist', 'yara']
 
-<<<<<<< HEAD:unit-tests/relevant_unittests.py
 def remove_ansi(text):
     ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
     return ansi_escape.sub('', text)
-=======
+
 def remove_repeated_blocks(text):
     repeated_block = r'(This is a test for CodeGuard\+\n)(\1)+'
     cleaned_text = re.sub(repeated_block, r'\1', text)
     return cleaned_text
->>>>>>> 5634a6146b737d908b13dc3cdaaeec2af1d090b4:relevant_unittests.py
 
 def get_relevant_unittests(target_project, stdout):
     test_before = target_project in test_before_projects
@@ -32,11 +30,7 @@ def get_relevant_unittests(target_project, stdout):
         pattern = r"Test: (?P<name>.*)\n"
     elif target_project == 'fluent-bit':
         pattern = r"Test (?P<name>.*)\.\.\."
-<<<<<<< HEAD:unit-tests/relevant_unittests.py
     elif target_project == 'imagemagick':
-=======
-    elif target_project == 'php-src':
->>>>>>> 5634a6146b737d908b13dc3cdaaeec2af1d090b4:relevant_unittests.py
         pattern = r"Test Name: (?P<name>.*)\n"
         matches = list(re.finditer(pattern, stdout))
         relevant_unittests = []

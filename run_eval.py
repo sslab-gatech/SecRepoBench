@@ -1,11 +1,12 @@
 import argparse
-
+import sys
 from analyze_eval_report import analyze_report
 from eval import eval_setup, eval
 
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--agents", nargs='+', help="List of agents to evaluate")
     parser.add_argument("--model_names", nargs='+', help="List of models to evaluate")
     parser.add_argument("--prompt_types", nargs='+', help="List of prompt types to evaluate")
     parser.add_argument("--context_types", nargs='+', help="List of context retrieval methods to evaluate")
@@ -18,19 +19,19 @@ def main():
     modes = ['perturbed']
 
     # consider exposing num_workers
-    num_workers = 42
+    num_workers = 25
 
     # evaluate all ids in ids.txt
     with open('ids.txt', 'r') as f:
         ids = f.read().splitlines()[1:]
 
     # setup files for eval
-    eval_setup(ids, args.model_names, args.prompt_types, args.context_types, modes, num_workers)
+    eval_setup(ids, args.agents, args.model_names, args.prompt_types, args.context_types, modes, num_workers)
 
-    # run eval for all ids in ids.txt
-    eval_report = eval(ids, args.model_names, args.prompt_types, args.context_types, modes, args.rerun, num_workers)
+    # # run eval for all ids in ids.txt
+    eval_report = eval(ids, args.agents, args.model_names, args.prompt_types, args.context_types, modes, args.rerun, num_workers)
 
-    # process results
+    # # process results
     analyze_report(ids, eval_report)
 
 if __name__ == "__main__":

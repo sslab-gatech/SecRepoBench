@@ -1,3 +1,5 @@
+THINKING_BUDGET_TOKENS = 8000
+
 SYSTEM_PROMPT = (
     "You are an AI programming assistant. "
     "You will be asked to fill in the code for the masked region based on the provided context. "
@@ -83,36 +85,158 @@ CROSS_FILE_PROMPT = (
     "Please wrap your answer in a code block (triple backquotes)."
 )
 
-MODELS = {
-    "DeepSeek-R1": "deepseek-ai/DeepSeek-R1",
-    'gpt-4o': 'gpt-4o-2024-08-06',
+OPENAI_NO_REASONING_MODELS = [
+    'gpt-4.1-2025-04-14',
+    'gpt-4o-2024-08-06',
+    'gpt-4o-2024-11-20',
+    'gpt-4o-mini-2024-07-18'
+]
+
+OPENAI_REASONING_MODELS = [
+    'gpt-5-2025-08-07',
+    'o4-mini-2025-04-16',
+    'o3-2025-04-16',
+    'o3-mini-2025-01-31', 
+    'o1-2024-12-17'
+]
+
+OPENAI_RESPONSE_MODELS = [
+    'gpt-oss-120b'
+]
+
+CLAUDE_NO_REASONING_MODELS = [
+    'claude-3-5-sonnet-20240620',
+    'claude-3-haiku-20240307'
+]
+
+CLAUDE_REASONING_MODELS = [
+    'claude-sonnet-4-5-20250929',
+    'claude-sonnet-4-20250514',
+    'claude-3-7-sonnet-20250219',
+]
+
+GEMINI_NO_REASONING_MODELS = [
+    # gemini
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro',
+]
+
+TOGETHER_AI_REASONING_MODLES = [
+    # deepseek
+    "deepseek-ai/DeepSeek-R1",
+    
+    # qwen
+    "Qwen/Qwen3-235B-A22B-fp8-tput",
+    
+    # llama
+    "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+]
+
+TOGETHER_AI_NO_REASONING_MODLES = [
+    # llama
+    "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+    'meta-llama/Meta-Llama-3.1-70B-Instruct',
+    'meta-llama/Meta-Llama-3.1-8B-Instruct',
+    
+    # deepseek
+    'deepseek-ai/DeepSeek-V3',
+    
+    # qwen
+    "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
+    "Qwen/Qwen2.5-Coder-32B-Instruct",
+]
+
+API_MODEL_NAMES = {
+    # openai
+    'gpt-5': 'gpt-5-2025-08-07',
+    'gpt-4.1':'gpt-4.1-2025-04-14',
+    'gpt-4o': 'gpt-4o-2024-08-06',  # default
+    'gpt-4o-new': 'gpt-4o-2024-11-20',
     'gpt-4o-mini': 'gpt-4o-mini-2024-07-18',
+    'o4-mini': 'o4-mini-2025-04-16',
+    'o3': 'o3-2025-04-16',
+    'o3-mini': 'o3-mini-2025-01-31',
+    'o1': 'o1-2024-12-17',
+    'gpt-oss-120b': 'gpt-oss-120b',
+    
+    # claude
+    'claude-sonnet-4-5': 'claude-sonnet-4-5-20250929',
+    'claude-sonnet-4': 'claude-sonnet-4-20250514',
+    'claude-3.7-sonnet': 'claude-3-7-sonnet-20250219',
     'claude-3.5-sonnet': 'claude-3-5-sonnet-20240620',
     'claude-3-haiku': 'claude-3-haiku-20240307',
+    
+    # gemini
+    'gemini-2-flash': 'gemini-2.0-flash',
     'gemini-1.5-flash': 'gemini-1.5-flash',
     'gemini-1.5-pro': 'gemini-1.5-pro',
-    'llama-3.1-8b-instruct': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
-    'deepseekcoder-v2-16b-instruct': 'deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct',
-    'mistral-nemo': 'mistralai/Mistral-Nemo-Instruct-2407',
-    'llama-3.1-70b-instruct': 'meta-llama/Meta-Llama-3.1-70B-Instruct',
-    'gpt-o3-mini': 'o3-mini-2025-01-31',
-    'gpt-o1': 'o1-2024-12-17',
-    'gpt-4o-2024-11-20': 'gpt-4o-2024-11-20',
-    'claude-3.7-thinking': 'claude-3-7-sonnet-20250219',
+    
+    # qwen
     'qwen-plus': 'qwen-plus-2025-01-25',
-    'gemini-2-flash': 'gemini-2.0-flash',
-    'deepseek-coder-1.3b-instruct': 'deepseek-ai/deepseek-coder-1.3b-instruct',
-    'DeepSeek-V3': 'deepseek-ai/DeepSeek-V3',
-    'deepseek-coder-6.7b-instruct': 'deepseek-ai/deepseek-coder-6.7b-instruct',
-    'codegen-6B-mono': "Salesforce/codegen-6B-mono", 
-    "Qwen2.5-Coder-32B-Instruct":"Qwen/Qwen2.5-Coder-32B-Instruct",
-    "DeepSeek-R1-Distill-Qwen-32B":"deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
     "Qwen3":"Qwen/Qwen3-235B-A22B-fp8-tput", 
+    "Qwen3-Coder": "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
+    "Qwen2.5-Coder-32B-Instruct":"Qwen/Qwen2.5-Coder-32B-Instruct",
+    
+    # deepseek
+    "DeepSeek-R1": "deepseek-ai/DeepSeek-R1",
+    'DeepSeek-V3': 'deepseek-ai/DeepSeek-V3',
+    
+    # llama
     "llama4": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+    "llama-maverick":"meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+    'llama-3.1-70b-instruct': 'meta-llama/Meta-Llama-3.1-70B-Instruct',
+    'llama-3.1-8b-instruct': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+}
+
+MODELS = {
+    # openai
+    'gpt-5': 'gpt-5-2025-08-07',
+    'gpt-4.1':'gpt-4.1-2025-04-14',
+    'gpt-4o': 'gpt-4o-2024-08-06',  # default
+    'gpt-4o-new': 'gpt-4o-2024-11-20',
+    'gpt-4o-mini': 'gpt-4o-mini-2024-07-18',
+    'o4-mini': 'o4-mini-2025-04-16',
+    'o3': 'o3-2025-04-16',
+    'o3-mini': 'o3-mini-2025-01-31',
+    'o1': 'o1-2024-12-17',
+    'gpt-oss-120b': 'gpt-oss-120b',
+    
+    # claude
+    'claude-sonnet-4-5': 'claude-sonnet-4-5-20250929',
+    'claude-sonnet-4': 'claude-sonnet-4-20250514',
+    'claude-3.7-sonnet': 'claude-3-7-sonnet-20250219',
+    'claude-3.5-sonnet': 'claude-3-5-sonnet-20240620',
+    'claude-3-haiku': 'claude-3-haiku-20240307',
+    
+    # gemini
+    'gemini-2-flash': 'gemini-2.0-flash',
+    'gemini-1.5-flash': 'gemini-1.5-flash',
+    'gemini-1.5-pro': 'gemini-1.5-pro',
+    
+    # qwen
+    'qwen-plus': 'qwen-plus-2025-01-25',
+    "Qwen3":"Qwen/Qwen3-235B-A22B-fp8-tput", 
+    "Qwen3-Coder": "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
+    "Qwen2.5-Coder-32B-Instruct":"Qwen/Qwen2.5-Coder-32B-Instruct",
+    
+    # llama
+    "llama4": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+    'llama-3.1-70b-instruct': 'meta-llama/Meta-Llama-3.1-70B-Instruct',
+    'llama-3.1-8b-instruct': 'meta-llama/Meta-Llama-3.1-8B-Instruct',
+    "llama-maverick":"meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8",
+    
+    # deepseek
+    "DeepSeek-R1": "deepseek-ai/DeepSeek-R1",
+    'DeepSeek-V3': 'deepseek-ai/DeepSeek-V3',
+    
+    'deepseekcoder-v2-16b-instruct': 'deepseek-ai/DeepSeek-Coder-V2-Lite-Instruct',
+    'deepseek-coder-1.3b-instruct': 'deepseek-ai/deepseek-coder-1.3b-instruct',
+    'deepseek-coder-6.7b-instruct': 'deepseek-ai/deepseek-coder-6.7b-instruct',
+    'mistral-nemo': 'mistralai/Mistral-Nemo-Instruct-2407',
+    'codegen-6B-mono': "Salesforce/codegen-6B-mono", 
+    "DeepSeek-R1-Distill-Qwen-32B":"deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
     "cisco-llama8b":"fdtn-ai/Foundation-Sec-8B",
-    "gpt-4.1":"gpt-4.1",
-    "llama-maverick":"meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8"
-     
 }
 
 

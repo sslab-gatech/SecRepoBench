@@ -54,48 +54,50 @@ def results_df(base_report, eval_report, sample_metadata, ids):
         project_name = sample_metadata[id]['project_name']
         CWE_id = get_cwe_info(sample_metadata[id]['crash_type'])
 
-        for model in eval_report[id].keys():
-            for context in eval_report[id][model].keys():
-                for prompt in eval_report[id][model][context].keys():
-                    for mode in eval_report[id][model][context][prompt].keys():
+        for agent in eval_report[id].keys():
+            for model in eval_report[id][agent].keys():
+                for context in eval_report[id][agent][model].keys():
+                    for prompt in eval_report[id][agent][model][context].keys():
+                        for mode in eval_report[id][agent][model][context][prompt].keys():
 
-                        data['project_name'].append(project_name)
-                        data['CWE ID'].append(CWE_id)
+                            data['project_name'].append(project_name)
+                            data['CWE ID'].append(CWE_id)
 
-                        data['id'].append(id)
-                        data['model'].append(model)
-                        data['context'].append(context)
-                        data['prompt'].append(prompt)
-                        data['mode'] = mode
+                            data['id'].append(id)
+                            data['model'].append(model)
+                            data['context'].append(context)
+                            data['prompt'].append(prompt)
+                            data['mode'] = mode
 
-                        # pass / fail
-                        testcase_result = eval_report[id][model][context][prompt][mode]['testcase']
-                        data['testcase'].append(testcase_result)
+                            # pass / fail
+                            # print(id)
+                            testcase_result = eval_report[id][agent][model][context][prompt][mode]['testcase']
+                            data['testcase'].append(testcase_result)
 
-                        eval_unittest_passing = set(eval_report[id][model][context][prompt][mode]['unittest']['pass'])
-                        base_unittest_passing = set(base_report[id]['unittest_sec']['pass'])
-                        unittest_result = base_unittest_passing.issubset(eval_unittest_passing)
-                        if unittest_result:
-                            data['unittest'].append('pass')
-                        else:
-                            data['unittest'].append('fail')
+                            eval_unittest_passing = set(eval_report[id][agent][model][context][prompt][mode]['unittest']['pass'])
+                            base_unittest_passing = set(base_report[id]['unittest_sec']['pass'])
+                            unittest_result = base_unittest_passing.issubset(eval_unittest_passing)
+                            if unittest_result:
+                                data['unittest'].append('pass')
+                            else:
+                                data['unittest'].append('fail')
 
-                        if testcase_result == 'pass' and unittest_result:
-                            data['secure-pass@1'].append(1)
-                        else:
-                            data['secure-pass@1'].append(0)
+                            if testcase_result == 'pass' and unittest_result:
+                                data['secure-pass@1'].append(1)
+                            else:
+                                data['secure-pass@1'].append(0)
 
-                        # record time out, truncation, docker container failure
+                            # record time out, truncation, docker container failure
 
-                        testcase_timeout, testcase_truncated, testcase_docker = get_timeout_truncated_docker(f'data/{id}/{model}_{context}_{prompt}_testcase_{mode}/stderr.txt')
-                        data['testcase timed out'].append(testcase_timeout)
-                        data['testcase truncated'].append(testcase_truncated)
-                        data['testcase docker failure'].append(testcase_docker)
+                            testcase_timeout, testcase_truncated, testcase_docker = get_timeout_truncated_docker(f'data/{id}/{agent}_{model}_{context}_{prompt}_testcase_{mode}/stderr.txt')
+                            data['testcase timed out'].append(testcase_timeout)
+                            data['testcase truncated'].append(testcase_truncated)
+                            data['testcase docker failure'].append(testcase_docker)
 
-                        unittest_timeout, unittest_truncated, unittest_docker = get_timeout_truncated_docker(f'data/{id}/{model}_{context}_{prompt}_unittest_{mode}/stderr.txt')
-                        data['unittest timed out'].append(unittest_timeout)
-                        data['unittest truncated'].append(unittest_truncated)
-                        data['unittest docker failure'].append(unittest_docker)
+                            unittest_timeout, unittest_truncated, unittest_docker = get_timeout_truncated_docker(f'data/{id}/{agent}_{model}_{context}_{prompt}_unittest_{mode}/stderr.txt')
+                            data['unittest timed out'].append(unittest_timeout)
+                            data['unittest truncated'].append(unittest_truncated)
+                            data['unittest docker failure'].append(unittest_docker)
 
     return pd.DataFrame(data)
 
@@ -110,7 +112,7 @@ def grouped_metrics(df):
     df_clean['secure-pass@1'] = pd.to_numeric(df_clean['secure-pass@1'], errors='coerce')
     secure_pass = df_clean.groupby(group_cols)['secure-pass@1'].agg([
         ('avg_secure_pass_at_1', 'mean'),
-        ('num_samples_secure_pass_at_1', 'count'),
+        ('num_samples_secure_pass_at_1', 'sum'),
         ('std_dev_secure_pass_at_1', 'std')
     ]).round(4).reset_index()
 
@@ -118,7 +120,7 @@ def grouped_metrics(df):
     df_clean['pass@1'] = df_clean['unittest'].map({'pass': 1, 'fail': 0})
     pass_at_one = df_clean.groupby(group_cols)['pass@1'].agg([
         ('avg_pass_at_one', 'mean'),
-        ('num_samples_pass_at_one', 'count'),
+        ('num_samples_pass_at_one', 'sum'),
         ('std_dev_pass_at_one', 'std')
     ]).round(4).reset_index()
 
