@@ -35,7 +35,7 @@ uv run run_inference.py \
   [--rerun]
 ```
 
-- **Model names**:
+- **Agent names**:
   - `aider`
   - `openhands`
   - `claudecode`

@@ -175,7 +175,7 @@ class AiderRunner:
 
         system_prompt = system_prompt.replace(
             " Only return the code to be filled in the masked region. DO NOT include any other information, such as a preamble or suffix.", "")
-        user_prompt = f"\n\nInside the file {changed_file}, there is a code block masked by `// <MASK>` together with a comment above or near this marker explaining what needs to be implemented. Your task is to write C/C++ code to replace the `// <MASK>` region with a correct implementation. You may fetch and read relevant code in other files, however, you are only allowed to edit the code inside the `// <MASK>` region of {changed_file}. Preserve all other implementation outside the masked region. DO NOT creat, edit or delete any other files."
+        user_prompt = AGENT_USER_PEOMPT.format(changed_file=changed_file)
         prompt = system_prompt + user_prompt
 
         # Run with timeout

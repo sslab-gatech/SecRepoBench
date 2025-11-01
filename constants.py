@@ -1,5 +1,12 @@
 THINKING_BUDGET_TOKENS = 8000
 
+AGENT_USER_PEOMPT = (
+    "\n\nInside the file {changed_file}, there is a code block masked by `// <MASK>` together with a comment above or near this marker explaining what needs to be implemented. "
+    "Your task is to write C/C++ code to replace the `// <MASK>` region with a correct implementation. "
+    "You may fetch and read relevant code in other files, however, you are only allowed to edit the code inside the `// <MASK>` region of {changed_file}. "
+    "Preserve all other implementation outside the masked region. DO NOT creat, edit or delete any other files."
+)
+
 SYSTEM_PROMPT = (
     "You are an AI programming assistant. "
     "You will be asked to fill in the code for the masked region based on the provided context. "
