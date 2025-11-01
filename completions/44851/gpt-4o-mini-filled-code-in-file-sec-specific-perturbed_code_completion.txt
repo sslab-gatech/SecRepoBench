@@ -1,3 +1,0 @@
-winding_number += p->direction;
-  }
-  return subpath_alpha;

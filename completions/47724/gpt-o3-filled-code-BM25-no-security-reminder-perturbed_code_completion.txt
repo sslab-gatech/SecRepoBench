@@ -1,3 +1,0 @@
-default:
-      /* No suspicious HTTP header detected */
-      break;

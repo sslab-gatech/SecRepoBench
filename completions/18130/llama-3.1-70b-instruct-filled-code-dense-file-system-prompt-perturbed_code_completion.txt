@@ -1,4 +1,0 @@
-if (coordinate < (double) -(DBL_MAX-1.0))
-  return((double) -(DBL_MAX-1.0));
-if (coordinate > (double) (DBL_MAX-1.0))
-  return((double) (DBL_MAX-1.0));

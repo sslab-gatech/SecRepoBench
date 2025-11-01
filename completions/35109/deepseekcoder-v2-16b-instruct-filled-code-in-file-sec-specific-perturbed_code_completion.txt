@@ -1,2 +1,0 @@
-*valp = (int)nextnumber;
-return p;

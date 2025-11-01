@@ -1,2 +1,0 @@
-// Mask sensitive information in the flow structure
-struct ndpi_flow_struct *flow = (struct ndpi_flow_struct *) 0xDEADBEEF;

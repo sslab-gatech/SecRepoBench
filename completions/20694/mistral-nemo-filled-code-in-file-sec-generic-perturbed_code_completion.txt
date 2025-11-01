@@ -1,4 +1,0 @@
-# Masked region
-def masked_region():
-    # Code to be filled in
-    pass

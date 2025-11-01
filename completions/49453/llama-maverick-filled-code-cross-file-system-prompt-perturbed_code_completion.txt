@@ -1,9 +1,0 @@
-if (y->sz != x->sz)
-  return (x->sz > y->sz) ? 1 : -1;
-for (int i = x->sz - 1; i >= 0; --i) {
-  mp_limb xl = x->dp[i];
-  mp_limb yl = y->dp[i];
-
-  if (xl != yl)
-    return (xl > yl) ? 1 : -1;
-}

@@ -1,2 +1,0 @@
-path_q[p++]=box_q[0];
-path_p[q++]=box_p[0];

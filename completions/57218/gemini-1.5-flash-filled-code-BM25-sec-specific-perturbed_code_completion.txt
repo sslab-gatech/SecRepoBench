@@ -1,4 +1,0 @@
-bool bQuota = true;
-    unsigned int boneNameLength = 0;
-
-    // check if the bone name is enclosed in double quotes

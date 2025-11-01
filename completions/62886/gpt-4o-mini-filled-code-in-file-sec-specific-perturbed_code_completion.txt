@@ -1,6 +1,0 @@
-if (dict->subdict) {
-        entry = xmlDictFindEntry(dict->subdict, pref, name, klen, hashValue, &found);
-        if (found) {
-            return entry;
-        }
-    }

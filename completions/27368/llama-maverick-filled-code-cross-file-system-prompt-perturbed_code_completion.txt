@@ -1,5 +1,0 @@
-size_t max_out_size;
-max_out_size = input_size + ((input_size + 7) >> 3) + 
-               ((input_size + 63) >> 6) + 5 + FLB_GZIP_HEADER_OFFSET + 8;
-out_buf = flb_malloc(max_out_size);
-out_size = max_out_size;

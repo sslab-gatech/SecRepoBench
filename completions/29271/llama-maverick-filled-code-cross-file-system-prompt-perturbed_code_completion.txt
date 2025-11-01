@@ -1,4 +1,0 @@
-if (*p != ';') {
-	goto outexcept;
-}
-++p;

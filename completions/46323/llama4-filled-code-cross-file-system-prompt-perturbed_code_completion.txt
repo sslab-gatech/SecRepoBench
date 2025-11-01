@@ -1,7 +1,0 @@
-if (copy == NULL) {
-    cur = cur->next;
-    continue;
-}
-insert->children = copy;
-insert->last = copy;
-cur = cur->next;

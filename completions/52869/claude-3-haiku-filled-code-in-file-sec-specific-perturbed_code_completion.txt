@@ -1,7 +1,0 @@
-// <MASK>
-ref->inc = xmlXIncludeCopyNode(ctxt, node, 0);
-if (ref->inc == NULL) {
-    return;
-}
-ctxt->incTotal++;
-ref->replace = 1;

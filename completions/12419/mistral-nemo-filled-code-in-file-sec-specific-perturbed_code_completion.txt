@@ -1,5 +1,0 @@
-import xml.etree.ElementTree as ET
-
-def xmlTextReaderReadTree(reader):
-    tree = ET.fromstring(reader.content)
-    return tree

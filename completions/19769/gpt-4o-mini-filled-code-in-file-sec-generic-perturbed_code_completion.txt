@@ -1,3 +1,0 @@
-return ((expressionstr != (const char *) NULL) &&
-          (LocaleNCompare(expressionstr,name,length) == 0) &&
-          ((expressionstr[length] == ' ') || (expressionstr[length] == '(')));

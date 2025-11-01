@@ -1,2 +1,0 @@
-# This is a placeholder for the code snippet that should fill in the masked region
-pass

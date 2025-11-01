@@ -1,7 +1,0 @@
-mrb_int num;
-  mrb_get_args(mrb, "i", &num);
-  mrb_value str = mrb_str_new(mrb, NULL, 0);
-  mrb_str_resize(mrb, str, 32); // Allocate a buffer of size 32
-  mrb_int len = mrb_str_itoa(mrb, mrb_str_ptr(str), num, 10);
-  mrb_str_resize(mrb, str, len);
-  return str;

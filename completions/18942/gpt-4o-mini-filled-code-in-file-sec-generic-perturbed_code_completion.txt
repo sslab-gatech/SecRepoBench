@@ -1,4 +1,0 @@
-loop_vars_cleanup(compiler->loop_depth);
-        compiler->loop[compiler->loop_depth].vars_count = 0;
-        compiler->loop[compiler->loop_depth].vars_internal_count = 0;
-        compiler->loop[compiler->loop_depth].addr = NULL;

@@ -1,8 +1,0 @@
-slice->ref = (char *)b->data;
-slice->ref_start = slice->hdr->ref_seq_start;
-slice->ref_end   = slice->hdr->ref_seq_start + slice->hdr->ref_seq_span - 1;
-if ((int64_t)(slice->ref_end - slice->ref_start + 1) > b->uncomp_size) {
-    hts_log_error("Embedded reference block is too small for #%d:%"PRId64"-%"PRId64,
-                  ref_id, slice->ref_start, slice->ref_end);
-    return -1;
-}

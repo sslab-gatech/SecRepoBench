@@ -1,5 +1,0 @@
-((prefix == NULL) && (len == entry->name[len])) ||
-                    ((prefix != NULL) && (xmlStrEqual(prefix, entry->prefix)) && (xmlStrEqual(name, entry->name)))) {
-                    found = 1;
-                    break;
-                }

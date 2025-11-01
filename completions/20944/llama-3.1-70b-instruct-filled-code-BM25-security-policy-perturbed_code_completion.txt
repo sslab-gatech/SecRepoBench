@@ -1,1 +1,0 @@
-num_glyphs = hb_min ((loca_table.length - short_offset) / (short_offset? 2 : 4), face->num_glyphs);

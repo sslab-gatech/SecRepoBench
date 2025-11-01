@@ -1,9 +1,0 @@
-char
-            buffer[MagickPathExtent];
-
-          char
-            *value;
-
-          value=(char *) NULL;
-          if (p > (exif_data+length-number_bytes))
-            break;

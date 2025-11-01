@@ -1,3 +1,0 @@
-tiff_pixels=(unsigned char *) AcquireMagickMemory((size_t) TIFFScanlineSize(tiff));
-if (tiff_pixels == (unsigned char *) NULL)
-  ThrowTIFFException(ResourceLimitError,"MemoryAllocationFailed");

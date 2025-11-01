@@ -1,4 +1,0 @@
-if (mpz_fits_slong_p(*mpzptr) == 0) {
-  return FALSE;
-}
-i = mpz_get_si(*mpzptr);

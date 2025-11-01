@@ -1,8 +1,0 @@
-next_token[i]='\0';
-if (strncmp(next_token,"url(",4) == 0)
-{
-  char *url = next_token + 4;
-  if (*url == '#')
-    url++;
-  (void) memmove(next_token,url,strlen(url)+1);
-}

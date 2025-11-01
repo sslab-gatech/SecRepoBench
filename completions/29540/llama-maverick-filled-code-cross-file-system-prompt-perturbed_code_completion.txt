@@ -1,9 +1,0 @@
-if ( nfields*nelems > 0 ) {
-    size_t nbytes = nfields*nelems*sizeof(*fields);
-    data_variable->data = malloc(nbytes);
-    fields = (matvar_t**)data_variable->data;
-    memset(fields,0,nbytes);
-} else {
-    data_variable->data = NULL;
-    fields = NULL;
-}

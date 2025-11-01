@@ -1,9 +1,0 @@
-len = internal_exr_get_string_from_data (curin, *length, suffix, 128);
-if (len == 0) return EXR_ERR_CORRUPT_CHUNK;
-
-mem = (char*) alloc_fn (len + 1);
-if (!mem) return EXR_ERR_OUT_OF_MEMORY;
-
-memcpy (mem, suffix, len + 1);
-out->_suffix = mem;
-out->_flags |= DWA_CLASSIFIER_SUFFIX_ALLOC;

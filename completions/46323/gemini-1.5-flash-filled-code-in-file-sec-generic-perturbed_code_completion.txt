@@ -1,2 +1,0 @@
-if (copy == NULL) continue;
-            xmlAddChildList(insert, copy);

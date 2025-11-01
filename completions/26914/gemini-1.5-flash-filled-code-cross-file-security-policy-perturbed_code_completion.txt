@@ -1,3 +1,0 @@
-if (charcode > 255)
-    return(charcode);
-  return(tolower((unsigned char) charcode));

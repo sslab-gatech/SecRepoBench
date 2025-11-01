@@ -1,8 +1,0 @@
-{
-            if (attribute->id != NULL) {
-                xmlRemoveID(doc, attribute);
-            }
-            attribute->id = ret;
-            *id = ret;
-            return 1;
-        }

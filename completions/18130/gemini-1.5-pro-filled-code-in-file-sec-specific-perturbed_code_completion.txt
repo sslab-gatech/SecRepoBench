@@ -1,4 +1,0 @@
-if (coordinate > MagickMaximumCoordinate)
-    coordinate = MagickMaximumCoordinate;
-  else if (coordinate < MagickMinimumCoordinate)
-    coordinate = MagickMinimumCoordinate;

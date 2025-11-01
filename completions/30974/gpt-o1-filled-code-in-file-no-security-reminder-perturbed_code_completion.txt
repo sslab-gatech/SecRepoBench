@@ -1,6 +1,0 @@
-uint8_t *off_start = container->cframe + header_len + (container->sframe ? 0 : cbytes);
-  if (off_cbytes != NULL) {
-    int64_t trailer_offset = get_trailer_offset(container, header_len, cbytes > 0);
-    *off_cbytes = (int32_t)(trailer_offset - (header_len + (container->sframe ? 0 : cbytes)));
-  }
-  container->coffsets = off_start;

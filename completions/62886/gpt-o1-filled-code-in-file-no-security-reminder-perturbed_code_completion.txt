@@ -1,6 +1,0 @@
-if (dict->subdict != NULL) {
-    int foundSub = 0;
-    xmlDictEntry *subEntry = xmlDictFindEntry(dict->subdict, pref, name, klen, hashValue, &foundSub);
-    if (foundSub)
-        return subEntry;
-}

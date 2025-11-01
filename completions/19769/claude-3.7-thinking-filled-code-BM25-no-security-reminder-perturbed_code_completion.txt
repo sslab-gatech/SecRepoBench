@@ -1,5 +1,0 @@
-if (LocaleNCompare(expressionstr,name,length) != 0)
-  return(MagickFalse);
-if (expressionstr[length] != ' ' && expressionstr[length] != '(')
-  return(MagickFalse);
-return(MagickTrue);

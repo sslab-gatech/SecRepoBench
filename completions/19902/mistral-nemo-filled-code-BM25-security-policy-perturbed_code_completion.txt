@@ -1,9 +1,0 @@
-for (; p < pend; p++) {
-    if (*p == '_') continue;
-    if (p - buf >= buf_size) {
-      // Buffer is full, truncate input or return a safe value
-      break;
-    }
-    *n++ = *p;
-  }
-  *n = '\0';

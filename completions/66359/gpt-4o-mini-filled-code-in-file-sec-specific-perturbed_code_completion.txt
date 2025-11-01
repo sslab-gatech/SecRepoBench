@@ -1,2 +1,0 @@
-if (current >= remain) break;
-            frame = memchr(start + current, 'p', remain - current);

@@ -1,5 +1,0 @@
-gc->generational = FALSE;
-gc->state = MRB_GC_STATE_ROOT;
-gc->current_white_part = (gc->current_white_part == GC_WHITE_A) ? GC_WHITE_B : GC_WHITE_A;
-incremental_gc_finish(mrbstateptr, gc);
-gc->generational = TRUE;

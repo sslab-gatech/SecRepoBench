@@ -1,6 +1,0 @@
-u_int8_t num_found = 0;
-char buffer[64];
-char rdnSeqBuf[256];
-u_int16_t rdn_len = 0;
-struct ndpi_packet_struct *packet = &detectionmodulestruct->packet;
-u_int i;

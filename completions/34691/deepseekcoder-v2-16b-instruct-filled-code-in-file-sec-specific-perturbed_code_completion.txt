@@ -1,4 +1,0 @@
-if (n > ARY_LEN(ary)) {
-    mrb_raise(mrb, E_INDEX_ERROR, "index out of array");
-  }
-  return RARRAY_PTR(ary)[n];

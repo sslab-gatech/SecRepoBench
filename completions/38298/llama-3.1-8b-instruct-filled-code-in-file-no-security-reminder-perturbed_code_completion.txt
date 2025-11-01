@@ -1,3 +1,0 @@
-case MRB_RANGE_OUT:
-  mrb_raisef(mrb, E_RANGE_ERROR, "%v out of range", v1);
-  break;

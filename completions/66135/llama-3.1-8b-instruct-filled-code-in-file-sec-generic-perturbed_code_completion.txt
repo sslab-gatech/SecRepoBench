@@ -1,5 +1,0 @@
-case EXIF_FMT_UNDEFINED:
-{
-  EXIFMultipleValues("%s",(char *) p);
-  break;
-}

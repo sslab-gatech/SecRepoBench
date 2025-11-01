@@ -1,4 +1,0 @@
-do {
-                    size_t const l = *ctx->literalsPtr++;
-                    length += l;
-                } while (length < 0);  /* overflow detection */

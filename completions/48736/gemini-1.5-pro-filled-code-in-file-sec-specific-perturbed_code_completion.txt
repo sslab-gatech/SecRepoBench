@@ -1,4 +1,0 @@
-for (; length > 0 && uc < ue && *uc == *str; length--, str++, uc++)
-		continue;
-	if (length == 0) {
-		*ucp = uc;

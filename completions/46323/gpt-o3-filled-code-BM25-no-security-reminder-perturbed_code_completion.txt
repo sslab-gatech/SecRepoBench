@@ -1,5 +1,0 @@
-if (copy == NULL) {
-                /* nothing was copied, move on to the next sibling */
-                cur = cur->next;
-                continue;
-            }

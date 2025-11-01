@@ -1,2 +1,0 @@
-st[i] = ch;
-words = oldwords;

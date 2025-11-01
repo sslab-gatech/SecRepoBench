@@ -1,5 +1,0 @@
-SMD::Bone bone;
-    unsigned int boneNameLength = 0;
-    bool bQuota = true;
-
-    SkipSpaces(&szCurrent);

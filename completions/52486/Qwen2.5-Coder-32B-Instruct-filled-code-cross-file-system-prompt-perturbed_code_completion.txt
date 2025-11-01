@@ -1,6 +1,0 @@
-if (affixed) {
-  st[i] = ch;
-} else {
-  numsyllable = oldnumsyllable;
-  wordnum = previouswordnum;
-}

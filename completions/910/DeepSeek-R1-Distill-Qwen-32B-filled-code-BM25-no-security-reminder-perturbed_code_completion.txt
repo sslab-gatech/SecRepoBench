@@ -1,1 +1,0 @@
-if (!io->Seek(io, Offset)) goto Error;

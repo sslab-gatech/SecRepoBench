@@ -1,5 +1,0 @@
-face->num_glyphs = num_glyphs;
-      face->short_offset = short_offset;
-      face->loca_table = loca_table;
-      face->glyf_table = glyf_table;
-    }

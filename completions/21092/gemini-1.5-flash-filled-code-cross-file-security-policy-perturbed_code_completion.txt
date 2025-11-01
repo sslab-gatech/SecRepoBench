@@ -1,9 +1,0 @@
-unsigned int i;
-    for (i = 1; i < len; i++) {
-      if (inputvalue < arrayZ[i].fromCoord)
-	break;
-      if (arrayZ[i-1].fromCoord == arrayZ[i].fromCoord)
-	continue;
-    }
-
-    long long denom = arrayZ[i].fromCoord - arrayZ[i-1].fromCoord;

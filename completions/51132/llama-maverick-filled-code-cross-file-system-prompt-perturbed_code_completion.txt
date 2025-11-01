@@ -1,5 +1,0 @@
-type = get_parser_type(config, cf, s, "type");
-if (type == -1) {
-    flb_error("[multiline_parser] no valid 'type' defined in file '%s'", cfg);
-    goto fconf_error;
-}

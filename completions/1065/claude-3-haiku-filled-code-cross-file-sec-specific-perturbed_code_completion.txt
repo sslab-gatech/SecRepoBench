@@ -1,2 +1,0 @@
-int result = regexec(&regex->rx, str, nmatch, pmatch, eflags);
-return result;

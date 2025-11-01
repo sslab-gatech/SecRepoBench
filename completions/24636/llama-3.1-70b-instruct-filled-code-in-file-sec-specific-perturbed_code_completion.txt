@@ -1,3 +1,0 @@
-tp->header_tpg = tile->packed_headers_stream;
-bytestream2_init(&tile->tile_part[tile->tp_idx].tpg, tp->tp_end, tp->tp_end - decodercontext->g.buffer);
-decodercontext->g = tile->tile_part[tile->tp_idx].tpg;

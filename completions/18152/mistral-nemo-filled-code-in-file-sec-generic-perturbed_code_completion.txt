@@ -1,2 +1,0 @@
-// Masked region
-const char *masked_region = "*****************************";

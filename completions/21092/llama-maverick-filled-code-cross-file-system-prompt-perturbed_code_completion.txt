@@ -1,9 +1,0 @@
-unsigned int i;
-int denom;
-
-for (i = 1; i < len && inputvalue >= arrayZ[i].fromCoord; i++)
-  ;
-
-i--;
-
-denom = arrayZ[i+1].fromCoord - arrayZ[i].fromCoord;

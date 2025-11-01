@@ -1,5 +1,0 @@
-if (chunksize > psf->filelength - psf_fseek (psf, 0, SEEK_CUR))
-{	psf_log_printf (psf, "cart : %u (too big)\n", chunksize) ;
-	psf_binheader_readf (psf, "j", chunksize) ;
-	return 0 ;
-}

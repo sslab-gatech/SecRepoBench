@@ -1,4 +1,0 @@
-if (ctxt->errNo != XML_ERR_OK) {
-        xmlHaltParser(ctxt);
-        return(ctxt->errNo);
-    }

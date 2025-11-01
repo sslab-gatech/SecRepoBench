@@ -1,5 +1,0 @@
-number_points=2047;
-primitive_info=(PrimitiveInfo *) AcquireQuantumMemory(number_points+1,
-  sizeof(*primitive_info));
-if (stops != (StopInfo *) NULL)
-  stopcount=0;

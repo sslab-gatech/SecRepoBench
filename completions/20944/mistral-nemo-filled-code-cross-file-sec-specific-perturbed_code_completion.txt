@@ -1,5 +1,0 @@
-// <MASK>
-  faceptr->short_offset = (indexToLocFormat == 0) ? 0 : 2;
-  faceptr->num_glyphs = (indexToLocFormat == 0) ? loca_table.length / 4 : (loca_table.length - 2) / 4;
-  faceptr->loca_table = hb_sanitize_context_get_table (sanitize_context, "loca", &loca_table);
-  faceptr->glyf_table = hb_sanitize_context_get_table (sanitize_context, "glyf", &glyf_table);

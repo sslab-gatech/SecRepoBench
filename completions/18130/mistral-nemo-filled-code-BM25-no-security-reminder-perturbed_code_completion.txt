@@ -1,2 +1,0 @@
-// <MASK>
-(void) SetImageOption(_image_info,option+1,ArgOption(NULL));

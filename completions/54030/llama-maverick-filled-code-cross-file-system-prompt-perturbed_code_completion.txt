@@ -1,2 +1,0 @@
-rv = compound_check(st, i, numsyllable, wordnum, wnum + 1, words, rwords,
-                    hu_mov_rule, is_sug, info);

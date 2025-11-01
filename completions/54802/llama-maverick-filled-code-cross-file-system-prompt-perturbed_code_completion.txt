@@ -1,7 +1,0 @@
-if((packet->payload[0] == 0x43 && packet->payload[1] == 0x4f && packet->payload[2] == 0x4e && packet->payload[3] == 0x4e) &&
-   (packet->payload[4] == 0x45 && packet->payload[5] == 0x43 && packet->payload[6] == 0x54) &&
-   (packet->payload[7] == 0x00 && packet->payload[8] == 0x00 && packet->payload[9] == 0x00)) {
-  stream->l4.udp.ppstream_stage++;
-  ndpi_int_ppstream_add_connection(ndpi_struct, stream);
-  return;
-}

@@ -1,6 +1,0 @@
-st[i + compound_result->blen] = '\0';
-if ((checkcompoundrep && cpdrep_check(st.c_str(), i + compound_result->blen)) ||
-    (forbiddenword && pAMgr->lookup(st.c_str(), i + compound_result->blen)) ||
-    cpdwordpair_check(st.c_str(), i + compound_result->blen + 1))
-  compound_result = NULL;
-st[i + compound_result->blen] = r;

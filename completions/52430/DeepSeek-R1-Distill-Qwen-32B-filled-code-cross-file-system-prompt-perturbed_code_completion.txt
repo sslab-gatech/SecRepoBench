@@ -1,4 +1,0 @@
-(rv) &&
-((wordnum + 1 < maxwordnum) || 
- (cpdmaxsyllable != 0 && syllable_count <= cpdmaxsyllable)) &&
-(rv != rv_first)

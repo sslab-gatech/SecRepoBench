@@ -1,4 +1,0 @@
-unsigned int tail_length = c->length () - initial_table_position;
-unsigned int record_length = tail_length - sizeof (CmapSubtableFormat14);
-src_tbl->length = tail_length;
-src_tbl->record.len = record_length;

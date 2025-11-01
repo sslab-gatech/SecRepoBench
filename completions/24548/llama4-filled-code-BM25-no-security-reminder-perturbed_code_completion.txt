@@ -1,3 +1,0 @@
-unsigned int total_length = c->length () - initial_table_position;
-    this->length = total_length;
-    this->numRecords = obj_indices.length;

@@ -1,1 +1,0 @@
-int64_t *offsets = (int64_t *) malloc((size_t)off_nbytes);

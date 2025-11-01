@@ -1,3 +1,0 @@
-if (chunk == MKTAG('S', 'A', 'N', 'M') && length < 14)
-    return 0;
-i += 8;

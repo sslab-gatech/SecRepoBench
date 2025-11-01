@@ -1,4 +1,0 @@
-if (cur->children!= NULL) {
-    cur = cur->children;
-    continue;
-}

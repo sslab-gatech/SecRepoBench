@@ -1,3 +1,0 @@
-#ifndef HB_NO_VAR
-  _collect_layout_variation_indices (plan);
-#endif

@@ -1,4 +1,0 @@
-if (mpz_sizeinbase(mpzptr, 2) > sizeof(mrb_int) * CHAR_BIT) {
-  return FALSE;
-}
-i = mpz_get_ui(mpzptr);

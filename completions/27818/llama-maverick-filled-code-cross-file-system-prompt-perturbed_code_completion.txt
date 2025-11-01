@@ -1,4 +1,0 @@
-length = token & MAX_SHORT_LITLEN;
-do {
-    length += *ctx->flagsPtr++;
-} while (*ctx->flagsPtr == 255);

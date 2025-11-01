@@ -1,4 +1,0 @@
-// <MASK>
-env.process_blend_values (interp_env, param);
-param.remove_blend_values ();
-// <MASK>

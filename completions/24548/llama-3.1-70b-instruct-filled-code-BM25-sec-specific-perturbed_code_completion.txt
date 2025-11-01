@@ -1,8 +1,0 @@
-// Calculate the tail length and update the length and record length fields
-// with the appropriate values based on the current context length and offsets.
-unsigned int tail_length = c->length() - initial_table_position;
-src_tbl->record.len = obj_indices.length();
-src_tbl->length = initial_table_position + tail_length;
-for (unsigned int i = 0; i < src_tbl->record.len; i++) {
-  src_tbl->record[i].offset = obj_indices[i].first;
-}

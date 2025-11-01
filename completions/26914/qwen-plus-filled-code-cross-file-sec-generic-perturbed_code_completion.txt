@@ -1,5 +1,0 @@
-if (charcode == EOF)
-    return EOF;
-
-int lowercase_char = tolower(static_cast<unsigned char>(charcode));
-return lowercase_char;

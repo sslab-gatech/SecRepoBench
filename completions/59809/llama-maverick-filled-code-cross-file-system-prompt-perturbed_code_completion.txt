@@ -1,9 +1,0 @@
-if (tlvDataBasePtr == NULL || tlvDataLength == 0)
-{
-	TLVRecordType nullRec;
-	nullRec.assign(NULL);
-	return nullRec;
-}
-
-TLVRecordType result(tlvDataBasePtr);
-return result;

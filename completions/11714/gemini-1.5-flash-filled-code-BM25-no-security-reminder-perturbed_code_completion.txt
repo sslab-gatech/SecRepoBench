@@ -1,8 +1,0 @@
-int count = interp_env.argStack.pop_int ();
-    int num = interp_env.argStack.pop_int ();
-    interp_env.blend.resize (count);
-    for (int i = 0; i < count; i++)
-    {
-      interp_env.blend[i] = interp_env.argStack.pop_int ();
-    }
-    interp_env.argStack.push (num);

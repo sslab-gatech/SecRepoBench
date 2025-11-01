@@ -1,4 +1,0 @@
-coeff = (magnitude ^ -(pos & 1)) + (pos & 1);
-coeff <<= num_bits;
-if (coeff && qscale > 1)
-    coeff += (2 * (coeff > 0) - 1) * (qscale - 1);

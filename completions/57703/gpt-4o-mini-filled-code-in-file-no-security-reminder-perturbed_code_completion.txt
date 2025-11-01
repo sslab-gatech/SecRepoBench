@@ -1,3 +1,0 @@
-flip_white_part(gc);
-  gc->state = MRB_GC_STATE_MARK;
-  gc->live_after_mark = gc->live;

@@ -1,3 +1,0 @@
-st[i] = ch;
-wordnum = previouswordnum;
-numsyllable = oldnumsyllable;

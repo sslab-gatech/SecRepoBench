@@ -1,4 +1,0 @@
-unsigned tail_length = c->length() - initial_table_position;
-    src_tbl->record.len = obj_indices.size();
-    src_tbl->record = obj_indices.data();
-    src_tbl->length = tail_length;

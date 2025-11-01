@@ -1,4 +1,0 @@
-if (copy != NULL) {
-                insert->children = copy;
-                insert->last = copy;
-            }

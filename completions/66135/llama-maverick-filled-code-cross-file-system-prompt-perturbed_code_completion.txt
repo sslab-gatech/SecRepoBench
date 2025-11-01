@@ -1,8 +1,0 @@
-char
-  buffer[MagickPathExtent];
-
-const char
-  *value;
-
-(void) memset(buffer,0,sizeof(buffer));
-value=(const char *) NULL;

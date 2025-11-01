@@ -1,7 +1,0 @@
-hb_set_t* glyph_set = get_glyph_set_for_lookup_index(indexlookup);
-if (hb_set_contains(glyph_set, parent_active_glyphs())) {
-  return true;
-}
-hb_set_clear(glyph_set);
-hb_set_union(covered_glyph_set, glyph_set);
-return false;

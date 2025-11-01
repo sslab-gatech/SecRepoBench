@@ -1,5 +1,0 @@
-if (my_strstr(probe_data, "<!DOCTYPE", probelength) || my_strstr(probe_data, "<xml", probelength)) {
-		*score = GF_FPROBE_NOT_SUPPORTED;
-		if (dst) gf_free(dst);
-		return NULL;
-	}

@@ -1,3 +1,0 @@
-// <MASK>
-tm->m = c->stats[DS_SC];
-// <MASK>

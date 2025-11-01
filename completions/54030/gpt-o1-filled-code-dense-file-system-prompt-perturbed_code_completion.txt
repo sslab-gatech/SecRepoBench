@@ -1,8 +1,0 @@
-{
-  // Attempt to identify the second word as a compound word (rv has just been set).
-  // Validate the result against the compound pattern table.
-  // If it violates any compound pattern conditions, set rv to NULL.
-  if (rv && !checkcpdtable.empty() && cpdpat_check(word, i, rv_first, rv, is_affixed)) {
-    rv = NULL;
-  }
-}

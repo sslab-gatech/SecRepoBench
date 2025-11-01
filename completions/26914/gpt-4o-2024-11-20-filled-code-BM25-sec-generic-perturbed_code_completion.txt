@@ -1,6 +1,0 @@
-if (charcode == EOF)
-    return EOF;
-
-  // Use the standard library function tolower for conversion
-  // This function is locale-aware if locale support is enabled
-  return tolower(charcode);

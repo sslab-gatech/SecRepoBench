@@ -1,8 +1,0 @@
-result_str = zend_string_extend(op1_string, result_len, 0);
-if (UNEXPECTED(op1_string == op2_string)) {
-    op2_string = zend_string_copy(op2_string);
-    free_op2_string = true;
-}
-shouldfreeopstring = false; /* result_str = op1_string */
-memcpy(ZSTR_VAL(result_str) + op1_len, ZSTR_VAL(op2_string), op2_len + 1);
-ZVAL_NEW_STR(result, result_str);

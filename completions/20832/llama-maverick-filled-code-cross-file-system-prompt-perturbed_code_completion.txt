@@ -1,9 +1,0 @@
-while((offset < flow->packet.payload_packet_len) && (flow->packet.payload[offset] != '\0')) {
-  offset++;
-}
-offset++; /* Skip the null character */
-if((offset + 4) <= flow->packet.payload_packet_len) {
-  u_int16_t query_type = ntohs(get_u_int16_t(flow->packet.payload, offset));
-  // Optionally, log the query type for debugging purposes.
-  // printf("[query_type: %u]\n", query_type);
-}

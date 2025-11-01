@@ -1,3 +1,0 @@
-if (num_digits + dec > buf_remaining) {
-        num_digits = buf_remaining - dec;
-      }

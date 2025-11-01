@@ -1,5 +1,0 @@
-if (!io->Seek(io, Offset)) goto Error;
-if (TagSize < sizeof(cmsTagBase)) goto Error;
-TagSize -= sizeof(cmsTagBase);
-
-// Get type handler

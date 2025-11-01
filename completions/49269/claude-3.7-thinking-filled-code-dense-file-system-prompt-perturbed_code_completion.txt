@@ -1,7 +1,0 @@
-size_t i;
-for (i = number->sz; i > 0; i--) {
-  if (number->p[i-1] != 0) {
-    return i;
-  }
-}
-return 0;

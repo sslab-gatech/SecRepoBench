@@ -1,2 +1,0 @@
-if (!struct_fits_in_pe(pe, table_offset, row_size))
-  break;

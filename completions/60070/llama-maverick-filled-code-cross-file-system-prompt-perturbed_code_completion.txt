@@ -1,6 +1,0 @@
-if (thrift_validate_method(method, methodlen) != 0) {
-  ndpi_snprintf(flow->protos.thrift.method, sizeof(flow->protos.thrift.method), "%.*s", (int)methodlen, method);
-} else {
-  NDPI_SET_RISK(ndpi_struct, flow, NDPI_RISK_MALFORMED_PACKET, "Invalid Thrift method");
-  flow->protos.thrift.method[0] = '\0';
-}
