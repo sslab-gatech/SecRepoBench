@@ -1,1 +1,0 @@
-cil_reset_classpermission(permissionsset->set);

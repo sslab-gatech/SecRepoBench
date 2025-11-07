@@ -22,6 +22,12 @@ uv pip install -e ./software-agent-sdk/openhands-sdk
 uv pip install -e ./software-agent-sdk/openhands-tools
 ```
 
+Upzip useful metadata.
+
+```bash
+gunzip -k report.json.gz sample_metadata.json.gz
+```
+
 ## 🚀 Running Inference
 
 To run inference using SecRepoBench:
@@ -36,6 +42,7 @@ uv run run_inference.py \
 ```
 
 - **Agent names**:
+  - `none` (Without using agent framework)
   - `aider`
   - `openhands`
   - `claudecode`

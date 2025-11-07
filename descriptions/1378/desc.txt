@@ -1,7 +1,0 @@
-// Calculate the number of padded bits needed for video decoding.
-// Verify if the video size is sufficient for the given parameters 
-// (aligned width, height, and bits per pixell). 
-// Depending on the encoding type, palette size, bits per pixel, and 
-// format, determine the appropriate pixel format to use (e.g., PAL8, BGR24, 
-// RGB24). If conditions don't match expected patterns, request a sample and 
-// return a "patch welcome" error.

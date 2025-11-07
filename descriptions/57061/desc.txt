@@ -1,5 +1,0 @@
-// Attempt to reallocate memory for the step operations array to double its 
-// current size. If the memory allocation fails, log an error and increment 
-// the error count in the stylesheet context if available. Upon successful 
-// reallocation, update the maximum number of steps and assign the newly 
-// allocated memory to the steps pointer.

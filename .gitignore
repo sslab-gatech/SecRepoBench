@@ -12,6 +12,8 @@ completions/
 results/
 diff/
 agent-sdk/
+eval_results/
+logs/
 report_eval*
 report.json
 sample_metadata.json

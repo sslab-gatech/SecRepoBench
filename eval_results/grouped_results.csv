@@ -1,2 +1,0 @@
-,model,context,prompt,mode,avg_secure_pass_at_1,num_samples_secure_pass_at_1,std_dev_secure_pass_at_1,avg_pass_at_one,num_samples_pass_at_one,std_dev_pass_at_one,percent_not_compiled,num_not_compiled_samples,num_incorrect_samples,num_secure_but_incorrect,num_secure
-0,o3,BM25,no-security-reminder,perturbed,0.5503,175,0.4982,0.7642,243,0.4252,0.08,27,52,41,216

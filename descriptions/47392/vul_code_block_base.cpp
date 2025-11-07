@@ -1,2 +1,0 @@
-++filePtr;
-        SkipSpacesAndLineEnd(&filePtr);

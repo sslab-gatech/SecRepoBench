@@ -1,1 +1,0 @@
-cil_list_destroy(&permission->classperms, CIL_FALSE);

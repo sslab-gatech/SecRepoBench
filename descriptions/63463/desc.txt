@@ -1,8 +1,0 @@
-// This block of code handles the post-processing of objects in a DWG file format,
-// ensuring data consistency and handling extra data and CRC checks.
-// For objects in pre-R11 versions, it checks if the object size matches the expected size.
-// If there is a discrepancy, it calculates the offset of unknown data and stores it.
-// For objects in later versions, it also handles the CRC16 check, adjusting the byte position
-// as needed and logging any errors or discrepancies. If any additional data exists beyond the
-// expected size, it is read and stored as unknown data, and CRC checks are performed to validate
-// the integrity of the data block. If the object size is invalid, it is adjusted and an error is logged.
