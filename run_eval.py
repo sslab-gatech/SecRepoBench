@@ -1,7 +1,7 @@
 import argparse
 import sys
-from analyze_eval_report import analyze_report
-from evaler import eval_setup, eval
+from tools.report_analyzer import analyze_report
+from tools.evaler import eval_setup, eval
 
 
 def main():
@@ -22,7 +22,7 @@ def main():
     num_workers = 25
 
     # evaluate all ids in ids.txt
-    with open('ids.txt', 'r') as f:
+    with open('assets/ids.txt', 'r') as f:
         ids = f.read().splitlines()[1:]
 
     # setup files for eval
@@ -35,13 +35,4 @@ def main():
     analyze_report(ids, eval_report)
 
 if __name__ == "__main__":
-    sys.argv = [
-        "run_eval.py",
-        "--agents", "aider",
-        "--model-names", "gpt-5",
-        "--context-types", "BM25",  # bm25
-        # no-security-reminder security-policy
-        "--prompt-types", "no-security-reminder",
-        "--rerun"
-    ]
     main()

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import pandas as pd
-from cwe_map import *
+from assets.cwe_map import *
 
 
 def get_cwe_info(crash_type):
@@ -199,7 +199,7 @@ def analyze_report(ids, eval_report_path):
 
 if __name__ == "__main__":
     # evaluate all ids in ids.txt
-    with open('ids.txt', 'r') as f:
+    with open('assets/ids.txt', 'r') as f:
         ids = f.read().splitlines()[1:]
 
     eval_report_path = "report_eval_DeepSeek-R1-Distill-Qwen-32B.json"

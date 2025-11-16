@@ -1,12 +1,12 @@
 import argparse
-from patcher import APIEvaler, ChatEvaler, AgentEvaler, ClaudeCodeEvaler
+from tools.patcher import APIEvaler, ChatEvaler, AgentEvaler, ClaudeCodeEvaler
 from tqdm import tqdm
 from dotenv import load_dotenv
 from pathlib import Path
 from alive_progress import alive_bar
 import sys
 import subprocess
-from constants import *
+from assets.constants import *
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
 load_dotenv()
@@ -71,9 +71,8 @@ def process_id(id, agent, model_name, context_type, prompt_type, mode, rerun):
 
 
 def run_inference(agent, model_name, context_type, prompt_type, mode, rerun, max_workers):
-    with open('ids.txt', 'r') as f:
+    with open('assets/ids.txt', 'r') as f:
         ids = f.read().splitlines()[1:]
-        # ids = ["24548"]
 
     if not rerun:
         print('Using cache where possible')
@@ -136,13 +135,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.argv = [
-        "run_inference.py",
-        "--agents", "openhands",
-        "--model-names", "gpt-5",
-        "--context-types", "BM25",  # bm25
-        # no-security-reminder security-policy
-        "--prompt-types", "no-security-reminder",
-        # "--rerun"
-    ]
     main()

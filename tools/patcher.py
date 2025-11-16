@@ -13,8 +13,8 @@ import google.generativeai as genai
 from harnesses.claudecode_harness import ClaudeCodeRunner
 from google.generativeai import GenerationConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from constants import *
-from cwe_map import *
+from assets.constants import *
+from assets.cwe_map import *
 from itertools import chain
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
@@ -250,7 +250,7 @@ class AgentEvaler(BaseEvaler):
             )
 
         volumes = [
-            f"{base_dir}/constants.py:/workdir/constants.py",
+            f"{base_dir}/assets/constants.py:/workdir/constants.py",
             f"{base_dir}/descriptions/{id}:/descriptions",
             f"{base_dir}/harnesses:/harnesses",
             f"{base_dir}/diff/{id}:/diff",

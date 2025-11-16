@@ -13,7 +13,7 @@ import os
 from collections import defaultdict
 import selectors
 
-from projects import *
+from assets.projects import *
 
 
 def get_c_cpp_file(base_path: str):

@@ -22,6 +22,12 @@ cd SecRepoBench
 uv sync
 ```
 
+To install dependencies for agent framework `ClaudeCode`, please run the following commands:
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
 ### **3. Set Environment Variables**
 
 SecRepoBench requires API keys for the language models you plan to use. Please set the following environment variables:
@@ -59,7 +65,7 @@ uv run run_inference.py \
   - `aider`
   - `openhands`
   - `claudecode`
-- **Model names**: Defined in `constants.py`
+- **Model names**: Defined in `assets/constants.py`
 - **Prompt types**:
   - `no-security-reminder`
   - `sec-generic`
@@ -90,10 +96,10 @@ uv run run_eval.py \
 
 ## 📖 Citation
 ```latex
-@misc{shen2025secrepobenchbenchmarkingcodeagents,
-      title={SecRepoBench: Benchmarking Code Agents for Secure Code Completion in Real-World Repositories}, 
-      author={Chihao Shen and Connor Dilgren and Purva Chiniya and Luke Griffith and Yu Ding and Yizheng Chen},
-      year={2025},
-      eprint={2504.21205},
+@article{shen2025secrepobench,
+  title={SecRepoBench: Benchmarking Code Agents for Secure Code Completion in Real-World Repositories},
+  author={Shen, Chihao and Dilgren, Connor and Chiniya, Purva and Griffith, Luke and Ding, Yu and Chen, Yizheng},
+  journal={arXiv preprint arXiv:2504.21205},
+  year={2025}
 }
 ```
