@@ -39,7 +39,7 @@ class ClaudeCodeRunner:
                 "MAX_THINKING_TOKENS": str(8000)
             }
         )
-        self.base_dir = f".claudecode/auto-evaluation/results/"
+        self.log_dir = f"/.claudecode/"
         self.prompt_type = prompt_type
 
     @staticmethod
@@ -57,17 +57,6 @@ class ClaudeCodeRunner:
             return False, str(e)
 
     @staticmethod
-    def temp_clone_repo(url, commit, repo_name, id, model):
-        if os.path.exists(f"repo_tmp_{model}/{repo_name}_{id}"):
-            shutil.rmtree(f"repo_tmp_{model}/{repo_name}_{id}")
-
-        repo = Repo.clone_from(url, f"repo_tmp_{model}/{repo_name}_{id}")
-        repo.head.reference = repo.commit(commit)
-        repo.head.reset(index=True, working_tree=True)
-
-        return repo, f"repo_tmp_{model}/{repo_name}_{id}"
-
-    @staticmethod
     def commit(file, repo):
         repo.git.add(file)
         staged = repo.git.diff("--cached", "--name-only").strip()
@@ -81,15 +70,10 @@ class ClaudeCodeRunner:
     def diff_between(repo: Repo, base_sha: str, head_sha: str):
         return repo.git.diff(f"{base_sha}..{head_sha}")
 
-    @staticmethod
-    def clean_repo(repo_folder):
-        if os.path.exists(repo_folder):
-            shutil.rmtree(repo_folder)
-
     async def run(self, system_prompt, id):
 
         log_dir = os.path.join(
-            self.base_dir, self.model_name, self.prompt_type, str(id))
+            self.log_dir, self.model_name, self.prompt_type, str(id))
         os.makedirs(log_dir, exist_ok=True)
 
         chat_history_file = Path(log_dir) / 'claudecode-chat-log.jsonl'

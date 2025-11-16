@@ -5,8 +5,8 @@ from contextlib import redirect_stdout, redirect_stderr
 import shutil
 import threading
 from pathlib import Path
-from pydantic import SecretStr
 from git import Repo
+import argparse
 from openhands.sdk import LLM, Agent, Conversation
 from openhands.tools.preset.default import get_default_tools
 from constants import *
@@ -38,9 +38,9 @@ def get_c_cpp_file(base_path: str):
 
 class OpenhandsRunner:
     def __init__(self, model_name, prompt_type):
-        self.base_dir = f".openhands/auto-evaluation/results/"
+        self.log_dir = f"/.openhands/"
         self.prompt_type = prompt_type
-        os.makedirs(self.base_dir, exist_ok=True)
+        os.makedirs(self.log_dir, exist_ok=True)
 
         if model_name in MODEL_MAPPINGS:
             self.model_name = MODEL_MAPPINGS[model_name]
@@ -91,19 +91,17 @@ class OpenhandsRunner:
         return True, result[0]
 
     @staticmethod
-    def temp_clone_repo(url, commit, repo_name, id, model):
-        if os.path.exists(f"repo_tmp_{model}/{repo_name}_{id}"):
-            shutil.rmtree(f"repo_tmp_{model}/{repo_name}_{id}")
-
-        repo = Repo.clone_from(url, f"repo_tmp_{model}/{repo_name}_{id}")
-        repo.head.reference = repo.commit(commit)
-        repo.head.reset(index=True, working_tree=True)
-
-        return repo, f"repo_tmp_{model}/{repo_name}_{id}"
+    def init(repo_dir):
+        shutil.rmtree(f"{repo_dir}/.git")
+        repo = Repo.init(repo_dir)
+        return repo
 
     @staticmethod
-    def commit(file, repo):
-        repo.git.add(file)
+    def commit(repo: Repo, file=None):
+        if file:
+            repo.git.add(file)
+        else:
+            repo.git.add(A=True)
         staged = repo.git.diff("--cached", "--name-only").strip()
         if not staged:
             return None
@@ -115,40 +113,22 @@ class OpenhandsRunner:
     def diff_between(repo: Repo, base_sha: str, head_sha: str):
         return repo.git.diff(f"{base_sha}..{head_sha}")
 
-    @staticmethod
-    def clean_repo(repo_folder):
-        if os.path.exists(repo_folder):
-            shutil.rmtree(repo_folder)
-
-    def run(self, system_prompt, id):
+    def run(self, system_prompt, repo_folder, changed_file):
 
         log_dir = Path(os.path.join(
-            self.base_dir, self.model_name, self.prompt_type, str(id)))
+            self.log_dir, self.model_name, self.prompt_type, str(id)))
         if log_dir.exists():
             shutil.rmtree(log_dir)
         log_dir.mkdir(parents=True)
 
-        with open("./sample_metadata.json") as f:
-            metadata = json.load(f)
+        repo_base = self.init(repo_folder)
 
-        project_name, fixing_commit, changed_file, *_ = metadata[id].values()
-
-        with open("./github_repos.json") as f:
-            urls = json.load(f)
-
-        url = None
-        for project_meta in urls:
-            if project_meta["project"] == project_name:
-                url = project_meta["repo_addr"]
-
-        repo_base, repo_folder = self.temp_clone_repo(
-            url, fixing_commit, project_name, id, self.model_name)
-        target_file_path = Path(repo_folder) / changed_file
-        replaced_file_path = f"./descriptions/{id}/mask_desc_perturbed"
+        replaced_file_path = f"/descriptions/mask_desc_perturbed"
         file_content = get_c_cpp_file(replaced_file_path)
-        target_file_path.write_text(file_content)
+        changed_file_path = f"{repo_folder}/{changed_file}"
+        Path(changed_file_path).write_text(file_content)
 
-        mask_id = self.commit(changed_file, repo_base)
+        mask_id = self.commit(repo_base)
 
         system_prompt = system_prompt.replace(
             " Only return the code to be filled in the masked region. DO NOT include any other information, such as a preamble or suffix.", "")
@@ -157,8 +137,6 @@ class OpenhandsRunner:
 
         api_key = os.getenv("LLM_API_KEY")
         assert api_key is not None, "LLM_API_KEY environment variable is not set."
-
-        print(os.path.abspath(repo_folder))
 
         conversation = Conversation(
             agent=self.agent_config,
@@ -182,12 +160,35 @@ class OpenhandsRunner:
 
         if success:
             conversation.close()
-            self.commit(changed_file, repo_base)
+            self.commit(repo_base, changed_file)
 
-            with open(target_file_path) as f:
+            with open(changed_file_path) as f:
                 content = f.read()
             diff = self.diff_between(repo_base, mask_id, "HEAD")
-            self.clean_repo(repo_folder)
             return diff, content
         else:
             raise Exception("Patching unsuccessful!")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model-name', type=str)
+    parser.add_argument('--model-alias', type=str)
+    parser.add_argument('--prompt-type', type=str)
+    parser.add_argument('--system-prompt', type=str)
+    parser.add_argument('--repo-folder', type=str)
+    parser.add_argument('--changed-file', type=str)
+    parser.add_argument('--context-type', type=str)
+    parser.add_argument('--mode', type=str)
+    args = parser.parse_args()
+
+    client = OpenhandsRunner(args.model_name, args.prompt_type)
+    diff, response = client.run(
+        args.system_prompt, args.repo_folder, args.changed_file)
+
+    Path(f'/diff/openhands-{args.model_alias}-filled-code-{args.context_type}-{args.prompt_type}-{args.mode}.diff').write_text(diff)
+    Path(f'/completions/openhands-{args.model_alias}-filled-code-{args.context_type}-{args.prompt_type}-{args.mode}_code_completion.txt').write_text(response)
+
+
+if __name__ == "__main__":
+    main()

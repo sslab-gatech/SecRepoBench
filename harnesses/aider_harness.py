@@ -5,6 +5,7 @@ import time
 import sys
 import threading
 from contextlib import redirect_stdout, redirect_stderr
+import argparse
 from aider.repo import GitRepo
 from aider.coders import Coder
 from aider.models import Model
@@ -46,9 +47,9 @@ def get_c_cpp_file(base_path: str):
 
 class AiderRunner:
     def __init__(self, model_name, prompt_type):
-        self.base_dir = f".aider/auto-evaluation/results/"
+        self.log_dir = f"/.aider/"
         self.prompt_type = prompt_type
-        os.makedirs(self.base_dir, exist_ok=True)
+        os.makedirs(self.log_dir, exist_ok=True)
 
         if model_name in MODEL_MAPPINGS:
             self.model_name = MODEL_MAPPINGS[model_name]
@@ -101,19 +102,17 @@ class AiderRunner:
         return True, result[0]
 
     @staticmethod
-    def temp_clone_repo(url, commit, repo_name, id, model):
-        if os.path.exists(f"repo_tmp_{model}/{repo_name}_{id}"):
-            shutil.rmtree(f"repo_tmp_{model}/{repo_name}_{id}")
-
-        repo = Repo.clone_from(url, f"repo_tmp_{model}/{repo_name}_{id}")
-        repo.head.reference = repo.commit(commit)
-        repo.head.reset(index=True, working_tree=True)
-
-        return repo, f"repo_tmp_{model}/{repo_name}_{id}"
+    def init(repo_dir):
+        shutil.rmtree(f"{repo_dir}/.git")
+        repo = Repo.init(repo_dir)
+        return repo
 
     @staticmethod
-    def commit(file, repo):
-        repo.git.add(file)
+    def commit(repo: Repo, file=None):
+        if file:
+            repo.git.add(file)
+        else:
+            repo.git.add(A=True)
         staged = repo.git.diff("--cached", "--name-only").strip()
         if not staged:
             return None
@@ -125,49 +124,26 @@ class AiderRunner:
     def diff_between(repo: Repo, base_sha: str, head_sha: str):
         return repo.git.diff(f"{base_sha}..{head_sha}")
 
-    @staticmethod
-    def clean_repo(repo_folder):
-        if os.path.exists(repo_folder):
-            shutil.rmtree(repo_folder)
-
-    def run(self, system_prompt, id):
-
-        log_dir = os.path.join(
-            self.base_dir, self.model_name, self.prompt_type, str(id))
-        os.makedirs(log_dir, exist_ok=True)
-
+    def run(self, system_prompt, repo_folder, changed_file):
         self.io.chat_history_file = Path(
-            log_dir).resolve() / 'aider-chat-log.md'
+            self.log_dir).resolve() / 'aider-chat-log.md'
         self.io.chat_history_file.write_bytes(b"")
 
         os.environ['AIDER_ANALYTICS_LOG'] = os.path.abspath(
-            os.path.join(log_dir, 'aider-analytics-log.jsonl'))
+            os.path.join(self.log_dir, 'aider-analytics-log.jsonl'))
         os.environ['AIDER_AUTO_CONFIRM'] = "1"
         os.environ['AIDER_DISABLE_PLAYWRIGHT'] = "true"
 
-        with open("./sample_metadata.json") as f:
-            metadata = json.load(f)
+        repo_base = self.init(repo_folder)
 
-        project_name, fixing_commit, changed_file, *_ = metadata[id].values()
-
-        with open("./github_repos.json") as f:
-            urls = json.load(f)
-
-        url = None
-        for project_meta in urls:
-            if project_meta["project"] == project_name:
-                url = project_meta["repo_addr"]
-
-        repo_base, repo_folder = self.temp_clone_repo(
-            url, fixing_commit, project_name, id, self.model_name)
-        target_file_path = Path(repo_folder) / changed_file
-        replaced_file_path = f"./descriptions/{id}/mask_desc_perturbed"
+        replaced_file_path = f"/descriptions/mask_desc_perturbed"
         file_content = get_c_cpp_file(replaced_file_path)
-        target_file_path.write_text(file_content)
+        changed_file_path = f"{repo_folder}/{changed_file}"
+        Path(changed_file_path).write_text(file_content)
+
+        mask_id = self.commit(repo_base)
 
         os.chdir(repo_folder)
-        mask_id = self.commit(changed_file, repo_base)
-
         repo_aider = GitRepo(io=self.io, fnames=[], git_dname=None,
                              subtree_only=True, models=self.model.commit_message_models())
         coder = Coder.create(
@@ -193,10 +169,32 @@ class AiderRunner:
         if success:
             with open(changed_file) as f:
                 content = f.read()
-            self.commit(changed_file, repo_base)
+            self.commit(repo_base, changed_file)
             diff = self.diff_between(repo_base, mask_id, "HEAD")
-            os.chdir("../../")
-            self.clean_repo(repo_folder)
             return diff, content
         else:
             raise Exception("Patching unsuccessful!")
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model-name', type=str)
+    parser.add_argument('--model-alias', type=str)
+    parser.add_argument('--prompt-type', type=str)
+    parser.add_argument('--system-prompt', type=str)
+    parser.add_argument('--repo-folder', type=str)
+    parser.add_argument('--changed-file', type=str)
+    parser.add_argument('--context-type', type=str)
+    parser.add_argument('--mode', type=str)
+    args = parser.parse_args()
+
+    client = AiderRunner(args.model_name, args.prompt_type)
+    diff, response = client.run(
+        args.system_prompt, args.repo_folder, args.changed_file)
+
+    Path(f'/diff/aider-{args.model_alias}-filled-code-{args.context_type}-{args.prompt_type}-{args.mode}.diff').write_text(diff)
+    Path(f'/completions/aider-{args.model_alias}-filled-code-{args.context_type}-{args.prompt_type}-{args.mode}_code_completion.txt').write_text(response)
+
+
+if __name__ == "__main__":
+    main()

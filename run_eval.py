@@ -1,15 +1,15 @@
 import argparse
 import sys
 from analyze_eval_report import analyze_report
-from eval import eval_setup, eval
+from evaler import eval_setup, eval
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--agents", nargs='+', help="List of agents to evaluate")
-    parser.add_argument("--model_names", nargs='+', help="List of models to evaluate")
-    parser.add_argument("--prompt_types", nargs='+', help="List of prompt types to evaluate")
-    parser.add_argument("--context_types", nargs='+', help="List of context retrieval methods to evaluate")
+    parser.add_argument("--model-names", nargs='+', help="List of models to evaluate")
+    parser.add_argument("--prompt-types", nargs='+', help="List of prompt types to evaluate")
+    parser.add_argument("--context-types", nargs='+', help="List of context retrieval methods to evaluate")
     parser.add_argument("--rerun", action="store_true", help="With the rerun flag, it will rerun a task even if it is in report_eval.json. Otherwise, it will not.")
 
     args = parser.parse_args()
@@ -35,4 +35,13 @@ def main():
     analyze_report(ids, eval_report)
 
 if __name__ == "__main__":
+    sys.argv = [
+        "run_eval.py",
+        "--agents", "aider",
+        "--model-names", "gpt-5",
+        "--context-types", "BM25",  # bm25
+        # no-security-reminder security-policy
+        "--prompt-types", "no-security-reminder",
+        "--rerun"
+    ]
     main()

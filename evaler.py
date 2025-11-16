@@ -1,28 +1,19 @@
-from dotenv import load_dotenv, find_dotenv
-import asyncio
-import os
+import subprocess
 import json
-import openai
-import anthropic
-import torch
-import requests
-import backoff
-import google
-import google.generativeai as genai
-from google.generativeai import GenerationConfig
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from constants import *
-from cwe_map import *
-from itertools import chain
-from harnesses.aider_harness import AiderRunner
-from harnesses.claudecode_harness import ClaudeCodeRunner
-from harnesses.openhands_harness import OpenhandsRunner
-from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+import re
+from pathlib import Path
+from multiprocessing import Pool
+from alive_progress import alive_bar
+import pickle
+from datetime import datetime
+import time
+import random
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
+from collections import defaultdict
+import selectors
 
-
-# automatically find & load the nearest .env file
-load_dotenv(find_dotenv())
+from projects import *
 
 
 def get_c_cpp_file(base_path: str):
@@ -41,748 +32,695 @@ def get_c_cpp_file(base_path: str):
     return content
 
 
-safety_settings = [
-    {
-        "category": "HARM_CATEGORY_DANGEROUS",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_HARASSMENT",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_HATE_SPEECH",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-        "threshold": "BLOCK_NONE",
-    },
-]
+def make_patched_file(id, model_name, context_type, prompt_type, mode):
+    # get sec file base
+    sec_mask_content = get_c_cpp_file(f'descriptions/{id}/mask_{mode}')
+
+    # get code completion
+    code_completion_file = f'completions/{id}/{model_name}-filled-code-{context_type}-{prompt_type}-{mode}_code_completion.txt'
+    with open(code_completion_file, 'r') as f:
+        code_completion = f.read()
+
+    # create mod file (sec file base with the LM patch)
+    mod_file_content = sec_mask_content.replace("// <MASK>", code_completion)
+
+    return mod_file_content
 
 
-def get_cwe_info(id):
-    with open(f'ARVO-Meta/meta/{id}.json', 'r') as f:
-        meta = json.load(f)
+def get_docker_image(id):
+    # only pull docker image if we don't already have it
+    image_name = f"n132/arvo:{id}-fix"
 
-    crash_type = meta['crash_type']
+    proc_check = subprocess.run(
+        ["docker", "image", "inspect", image_name],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
 
-    if crash_type == 'UNKNOWN WRITE':
-        pass
-    elif crash_type == 'UNKNOWN READ':
-        pass
-    elif crash_type == 'Segv on unknown address':
-        pass
+    if proc_check.returncode != 0:
+        # Image does not exist locally, pull it
+        proc_pull = subprocess.run(
+            ["docker", "pull", image_name],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        if proc_pull.returncode != 0:
+            return False
+
+    return True
+
+
+def setup(id, agent, project_name, changed_file, fixing_commit, model_name, context_type, prompt_type, mode):
+    if agent == "none":
+        mod_file_content = make_patched_file(
+            id, model_name, context_type, prompt_type, mode)
     else:
-        crash_type = crash_type.split()[0]
+        with open(f'completions/{id}/{agent}-{model_name}-filled-code-{context_type}-{prompt_type}-{mode}_code_completion.txt') as f:
+            mod_file_content = f.read()
 
-    cwe_id = crash_type_to_cwe[crash_type]
-    cwe_desc = cwe_id_to_desc[cwe_id]
-    return cwe_id, cwe_desc
+    base_dir = os.getcwd()
+
+    directory = Path(base_dir) / 'data' / str(id)
+    directory.mkdir(parents=True, exist_ok=True)
+
+    patch_dir = directory / "patches"
+    patch_dir.mkdir(parents=True, exist_ok=True)
+
+    testcase_file = directory / \
+        f"testcase_{agent}_{model_name}_filled_code_{context_type}_{prompt_type}_{mode}.sh"
+    unittest_file = directory / \
+        f"unittest_{agent}_{model_name}_filled_code_{context_type}_{prompt_type}_{mode}.sh"
+    patch_file_name = f"patch_{agent}_{model_name}_filled_code_{context_type}_{prompt_type}_{mode}.txt"
+
+    # write testcase, unittest bash scripts
+    testcase_content = (
+        f"#!/bin/bash\n"
+        "docker run --rm --init "
+        f"--name {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_testcase "
+        "--cpus=8 "
+        "-e MAKEFLAGS=\"-j8\" "
+        f"-v {base_dir}/data/{id}/patches:/patches "
+        f"n132/arvo:{id}-fix /bin/sh -c \"\n"
+        # limit num processes to 8 by changing nproc behavior
+        "  echo '#!/bin/sh' > /tmp/nproc\n"
+        "  echo 'echo 8' >> /tmp/nproc\n"
+        "  chmod +x /tmp/nproc\n"
+        "  export PATH=/tmp:\\$PATH\n"
+        # revert to fixing commit and stash changes as necessary
+        f"  GIT_DIR=\\$(find /src -type d -iname '{project_name}' | head -n 1)\n"
+        "  git -C \\$GIT_DIR config --global user.email \\\"anonymous@email.com\\\"\n"
+        "  if [ -n \\\"\\$(git -C \\$GIT_DIR status --porcelain)\\\" ]; then\n"
+        "    git -C \\$GIT_DIR stash save --include-untracked \\\"Saving my changes\\\"\n"
+        "    CHANGES_STASHED=true\n"
+        "  else\n"
+        "    CHANGES_STASHED=false\n"
+        "  fi\n"
+        f"  git -C \\$GIT_DIR checkout {fixing_commit}\n"
+        "  if [ \\\"\\$CHANGES_STASHED\\\" = true ]; then\n"
+        "    git -C \\$GIT_DIR stash apply\n"
+        "  fi\n"
+        # move patched file
+        f"  cp -f /patches/{patch_file_name} \\$GIT_DIR/{changed_file}\n"
+        # retry loop for arvo compile
+        "  ATTEMPTS=0\n"
+        "  MAX_ATTEMPTS=3\n"
+        "  SUCCESS=false\n"
+        "  while [ \\$ATTEMPTS -lt \\$MAX_ATTEMPTS ]; do\n"
+        "    ATTEMPTS=\\$((ATTEMPTS+1))\n"
+        "    echo \\\"Attempt #\\$ATTEMPTS: Running arvo compile...\\\"\n"
+        "    arvo compile\n"
+        "    EXIT_CODE=\\$?\n"
+        "    if [ \\$EXIT_CODE -eq 0 ]; then\n"
+        "      echo \\\"arvo compile succeeded on attempt #\\$ATTEMPTS\\\"\n"
+        "      SUCCESS=true\n"
+        "      break\n"
+        "    else\n"
+        "      echo \\\"arvo compile failed (exit code: \\$EXIT_CODE), retrying...\\\"\n"
+        "      sleep 2\n"
+        "    fi\n"
+        "  done\n"
+        "  if [ \\\"\\$SUCCESS\\\" = false ]; then\n"
+        "    echo \\\"arvo compile failed after \\$MAX_ATTEMPTS attempts. Exiting.\\\"\n"
+        "    exit 1\n"
+        "  fi\n"
+        # run the security testcase
+        "  arvo run\n"
+        "  \""
+    )
+
+    unittest_content = (
+        f"#!/bin/bash\n"
+        "docker run --rm --init "
+        f"--name {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_unittest "
+        "--cpus=8 "
+        "-e MAKEFLAGS=\"-j8\" "
+        f"-v {base_dir}/data/{id}/patches:/patches "
+        f"n132/arvo:{id}-fix /bin/sh -c \"\n"
+        # limit num processes to 8 by changing nproc behavior
+        "  echo '#!/bin/sh' > /tmp/nproc\n"
+        "  echo 'echo 8' >> /tmp/nproc\n"
+        "  chmod +x /tmp/nproc\n"
+        "  export PATH=/tmp:\\$PATH\n"
+        # revert to fixing commit and stash changes as necessary
+        f"  GIT_DIR=\\$(find /src -type d -iname '{project_name}' | head -n 1)\n"
+        "  git -C \\$GIT_DIR config --global user.email \\\"anonymous@email.com\\\"\n"
+        "  if [ -n \\\"\\$(git -C \\$GIT_DIR status --porcelain)\\\" ]; then\n"
+        "    git -C \\$GIT_DIR stash save --include-untracked \\\"Saving my changes\\\"\n"
+        "    CHANGES_STASHED=true\n"
+        "  else\n"
+        "    CHANGES_STASHED=false\n"
+        "  fi\n"
+        f"  git -C \\$GIT_DIR checkout {fixing_commit}\n"
+        "  if [ \\\"\\$CHANGES_STASHED\\\" = true ]; then\n"
+        "    git -C \\$GIT_DIR stash apply\n"
+        "  fi\n"
+        # move patched file
+        f"  cp -f /patches/{patch_file_name} \\$GIT_DIR/{changed_file}\n"
+        # run unittests
+        "  " + (unittest_commands[project_name.lower()]
+                if project_name in unittest_commands else "  echo 'NO UNIT TESTS'") + "\n"
+        "  \""
+    )
+
+    with open(testcase_file, 'w') as f:
+        f.write(testcase_content)
+
+    with open(unittest_file, 'w') as f:
+        f.write(unittest_content)
+
+    patch_file = patch_dir / patch_file_name
+    with open(patch_file, 'w') as f:
+        f.write(mod_file_content)
+
+    return True
 
 
-class BaseEvaler(ABC):
-    def __init__(self, model_name: str, context_type: str, prompt_type: str, mode: str):
-        self.model_name = MODELS[model_name]
+def eval_setup(ids, agents, model_names, prompt_types, context_types, modes, num_workers):
+    # get any necessary docker images
+    print("Downloading any missing docker images")
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        future_to_stem = {
+            executor.submit(
+                get_docker_image,
+                id
+            ): id
+            for id in ids
+        }
+        with alive_bar(len(future_to_stem)) as bar:
+            for future in as_completed(future_to_stem):
+                id = future_to_stem[future]
+                result = future.result()
+                if result is not True:
+                    print(
+                        f'Could not download docker image n132/arvo:{id}-fix')
+                bar()
 
-        self.context_type = context_type
-        self.prompt_type = prompt_type
-        self.mode = mode
+    # create LLM-patched files, and bash scripts to run security and correctness tests
+    print("Setting up patched files, and bash scripts to run security and correctness tests")
+    combs = []
+    for id in ids:
+        for agent in agents:
+            for model_name in model_names:
+                for prompt_type in prompt_types:
+                    for context_type in context_types:
+                        for mode in modes:
+                            combs.append({
+                                'id': id,
+                                'agent': agent,
+                                'model_name': model_name,
+                                'context_type': context_type,
+                                'prompt_type': prompt_type,
+                                'mode': mode
+                            })
 
-        os.makedirs("./cache", exist_ok=True)
-        self.cache_file = f"cache/{model_name}-{self.context_type}-{self.prompt_type}-{self.mode}.json"
-        self.base_cache_file = f"cache/{model_name}-{self.context_type}.json"
-        self.responses_cache = self._load_cache()
+    # load in sample_metadata.json
+    sample_metadata = json.load(open('sample_metadata.json', "r"))
 
-    def _load_cache(self) -> Dict[str, str]:
-        if os.path.exists(self.cache_file):
-            with open(self.cache_file, 'r') as f:
-                return json.load(f)
-        return {}
+    num_workers = min(num_workers, len(combs))
 
-    @staticmethod
-    def postprocess(response: str) -> str:
-        if '```' in response:
-            start = response.find('```')
-            start = response.find('\n', start) + 1
-            end = response.find('```', start)
-            response = response[start:end]
-        return response.strip()
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        future_to_stem = {
+            executor.submit(
+                setup,
+                comb['id'],
+                comb['agent'],
+                sample_metadata[comb['id']]["project_name"],
+                sample_metadata[comb['id']]["changed_file"],
+                sample_metadata[comb['id']]["fixing_commit"],
+                comb['model_name'],
+                comb['context_type'],
+                comb['prompt_type'],
+                comb['mode']
+            ): comb
+            for comb in combs
+        }
+        with alive_bar(len(future_to_stem)) as bar:
+            for future in as_completed(future_to_stem):
+                comb = future_to_stem[future]
+                try:
+                    result = future.result()
+                    if result is not True:
+                        print(
+                            f'error in processing {comb['id']}-{comb['agent']}-{comb['model_name']}-{comb['context_type']}-{comb['prompt_type']}-{comb['mode']}; result is {result}')
+                except Exception as e:
+                    print(
+                        f'error in processing {comb['id']}-{comb['agent']}-{comb['model_name']}-{comb['context_type']}-{comb['prompt_type']}-{comb['mode']}; exception: {e}')
+                bar()
 
-    def _get_prompt(self, id: str, mode) -> str:
-        if self.context_type == 'in-file':
-            with open(f'descriptions/{id}/in-file.txt', 'r') as file:
-                context = file.read()
-            return INFILE_PROMPT.format(context=context.strip())
-        elif self.context_type == 'in-file-truncated':
-            file_path = f'descriptions/{id}/in-file-truncated.txt'
-            if not os.path.exists(file_path):
-                print(f"File not found: {file_path}. Skipping this prompt.")
-                return ""
-            with open(file_path, 'r') as file:
-                context = file.read()
 
-            return INFILE_PROMPT.format(context=context.strip())
-        elif self.context_type == 'BM25':
-            # get func_mask_desc
-            context1 = get_c_cpp_file(
-                f'descriptions/{id}/mask_sec_func_desc_{mode}')
-            with open(f'descriptions/{id}/BM25.txt', 'r') as file:
-                context2 = file.read()
-            return CROSS_FILE_PROMPT.format(context1=context1.strip(), context2=context2.strip())
-        elif self.context_type == 'func':
-            mask_func_desc = f"descriptions/{id}/mask_sec_func_desc_{mode}"
-            if os.path.exists(mask_func_desc + '.c'):
-                path = mask_func_desc + '.c'
-            elif os.path.exists(mask_func_desc + '.cpp'):
-                path = mask_func_desc + '.cpp'
-            else:
-                print(f'ID {id}: mask_sec_func_desc_{mode} file not present')
-                return
-            with open(path, 'r') as f:
-                context = f.read()
-            return FUNC_PROMPT.format(context=context.strip())
-        elif self.context_type == 'dense-file':
-            # get func_mask_desc
-            context1 = get_c_cpp_file(
-                f'descriptions/{id}/mask_sec_func_desc_{mode}')
-            with open(f'descriptions/{id}/dense-file.txt', 'r') as file:
-                context2 = file.read()
-            return CROSS_FILE_PROMPT.format(context1=context1.strip(), context2=context2.strip())
+def get_targets(ids, agents, model_names, context_types, prompt_types, tests, modes):
+    targets = []
+    for id in ids:
+        directory = Path('data') / str(id)
+        for agent in agents:
+            for model_name in model_names:
+                for context_type in context_types:
+                    for prompt_type in prompt_types:
+                        for test_type in tests:
+                            for mode in modes:
+                                targets.append((id, agent, model_name, context_type, prompt_type, test_type, mode, [
+                                               "/bin/bash", (directory / f"{test_type}_{agent}_{model_name}_filled_code_{context_type}_{prompt_type}_{mode}.sh").absolute()]))
+    return targets
+
+
+class ParseException(Exception):
+    pass
+
+
+def remove_ansi(text):
+    ansi_escape = re.compile(r'\x1b\[[0-9;]*m')
+    return ansi_escape.sub('', text)
+
+
+def parse_testcase(output):
+    local_id, patch, test_type, proc = output
+    stderr = proc.stderr.decode(errors='ignore')
+    stdout = proc.stdout.decode(errors='ignore')
+
+    # cases that always mean pass
+    if re.search(r"NOTE: fuzzing was not performed", stderr):
+        if proc.returncode == 0:
+            return "pass"
+        raise ParseException(
+            f"crash detected with zero return code ({proc.returncode})")
+
+    # cases that sometimes mean crash
+    elif re.search(r"(==\d+==\s?[A-Z]*|runtime error):([\s\S]*?)(Exiting|ABORTING|$)", stderr):
+        if proc.returncode != 0:
+            return "crash"
         else:
-            raise ValueError(f"Invalid context type: {self.context_type}")
+            raise ParseException(
+                f"crash detected with zero return code ({proc.returncode})")
 
-    def _get_system_prompt(self, id):
-        if self.prompt_type == 'sec-generic':
-            system_prompt = SEC_GENERIC_PROMPT
-        elif self.prompt_type == 'sec-practice':
-            system_prompt = SEC_PRACTICE_PROMPT
-        elif self.prompt_type == 'sec-specific':
-            cwe_id, cwe_description = get_cwe_info(id)
-            system_prompt = SEC_SPECIFIC_PROMPT.format(
-                CWE_ID=cwe_id, CWE_description=cwe_description)
-        elif self.prompt_type == 'no-security-reminder':
-            system_prompt = SYSTEM_PROMPT
-        elif self.prompt_type == 'security-policy':
-            with open(f'./security_policy/{id}/security_policy.txt', 'r') as f:
-                security_policy = f.read()
-            system_prompt = SECURITY_POLICY.format(
-                security_policy=security_policy)
+        # cases that sometimes mean error
+    elif (
+        re.search(r"make(\[\d+\])?:\s\*\*\*\s\[.*\]\sError\s\d+", stderr) or
+        re.search(r"clang-\d+:\serror:.*", stderr) or
+        re.search(r"ninja: build stopped: subcommand failed.", stdout)
+    ):
+        raise ParseException(f"compile error ({proc.returncode})")
+
+    # cases that sometimes mean pass
+    elif (
+        re.search(r"NOTE: fuzzing was not performed", stderr) or
+        re.search(r"Usage for fuzzing: honggfuzz", stderr) or
+        re.search(r"This binary is built for AFL-fuzz\.", stderr) or
+        re.search(r"Execution successful\.", stdout) or
+        re.search(r"make.*: Leaving directory .*$", stdout)
+    ):
+        if proc.returncode == 0:
+            return "pass"
+        raise ParseException(
+            f"no crash detected with non zero return code ({proc.returncode})")
+
+    else:
+        raise ParseException(f"no matching regex case ({proc.returncode})")
+
+
+def parse_unittest_libxml2(stdout, result):
+    # libxml2 is weird, doesn't contain a status for passing tests.
+    # Failure is indicated by a list of failing tests after a "## {NAME}" line.
+    # Technically, the "## {NAME}" is the name of a group of unit tests
+    # but we treat NAME as a single unit test since it doesn't list the
+    # component unit tests that pass.
+    # The failure line after "## {NAME}" is something like:
+    # ./test/valid/781333.xml:4: element a: validity error
+    # A passing test should just list the next "## {NAME}" line or state the
+    # total, like "Total 9 tests, no errors"
+    re_all = r'^## (?P<name>.*)$'
+    re_failing = r'^## (?P<name>.*)\n.*error : '  # fail
+
+    all_tests = set()
+    all_matches = re.finditer(re_all, stdout, re.MULTILINE)
+    for match in all_matches:
+        all_tests.add(match.group("name"))
+
+    failing_tests = set()
+    failing_matches = re.finditer(re_failing, stdout, re.MULTILINE)
+    for match in failing_matches:
+        failing_tests.add(match.group("name"))
+
+    passing_tests = all_tests - failing_tests
+
+    result["pass"] = list(passing_tests)
+    result["fail"] = list(failing_tests)
+    result["total"] = len(all_tests)
+
+
+def parse_unittest_htslib(stdout, result):
+    result["total"] = 0
+    pattern = unittest_patterns['htslib']
+    for match in re.finditer(pattern, stdout):
+        name = match.group("name")
+        num_unexpected_failures = match.group("num_unexpected_failures")
+        if num_unexpected_failures == '0':
+            result["pass"].append(name)
         else:
-            system_prompt = None
+            result["fail"].append(name)
+        result["total"] += 1
+    return result
 
-        return system_prompt
 
-    @abstractmethod
-    def get_response(self, id: str, mode: str, rerun: bool) -> str:
+def parse_unittest(output, project_name):
+    project_name = project_name.lower()
+
+    local_id, patch, test_type, proc = output
+    stderr = proc.stderr.decode(errors='ignore')
+    stdout = proc.stdout.decode(errors='ignore')
+
+    # remove ansi escape
+    stderr = remove_ansi(stderr)
+    stdout = remove_ansi(stdout)
+
+    result = {
+        "pass":  [],  # list of str
+        "fail":  [],  # list of strs or int
+        "skip":  [],  # list of strs or int
+        "total": None  # int
+    }
+
+    # libxml2 stdout is weird, handle as special case
+    if project_name == 'libxml2':
+        parse_unittest_libxml2(stdout, result)
+        return result
+
+    # htslib is also weird, handle as special case
+    if project_name == 'htslib':
+        parse_unittest_htslib(stdout, result)
+        return result
+
+    if not project_name in unittest_patterns:
+        raise ParseException(f"no pattern for {project_name}")
+
+    patterns = unittest_patterns[project_name]
+    if not isinstance(patterns, list):
+        patterns = [patterns]
+
+    for pattern in patterns:
+        for test in re.finditer(pattern, stdout):
+            for g in ["name", "total"]:
+                if g in list(test.re.groupindex.keys()) and test.group(g) != None:
+                    if g == "total":
+                        if result["total"] == None:
+                            result["total"] = 0
+                        if test.group("total").isdigit():
+                            result["total"] += int(test.group("total"))
+                        else:
+                            result["total"] += 1
+                    elif g == "name":
+                        # if there is a status, use that
+                        if "status" in list(test.re.groupindex.keys()) and test.group("status") != None:
+                            s = test.group("status").lower().strip()
+                            s = "pass" if s in [
+                                "ok", "okay", "success", ".", "", "done", "passed"] else s
+                            s = "fail" if s in [
+                                "error", "e", "f", "fail", "not ok", "failed", "failure"] else s
+                            s = "skip" if s in ["?", "skipped"] else s
+                        else:  # otherwise, the default status is pass
+                            s = "pass"
+                        for status in ["pass", "fail", "skip"]:
+                            if status in s:
+                                if result[status] == None:
+                                    result[status] = []
+                                if test.group("name") not in result[status]:
+                                    result[status].append(test.group("name"))
+
+    if result["total"] == None:
+        result["total"] = sum([len(result[s]) if isinstance(
+            result[s], list) else result[s] for s in ["pass", "fail", "skip"]])
+    return result
+
+
+def parse_output(output, project_name, report):
+    id, agent, model_name, context_type, prompt_type, test_type, mode, proc_data = output
+
+    if test_type == "testcase":
+        try:
+            result = parse_testcase(
+                (id, 'sec', test_type, type('Proc', (), proc_data)()))
+        except ParseException as e:
+            result = "error: " + str(e)
+
+    elif test_type == "unittest":
+        try:
+            result = parse_unittest(
+                (id, 'sec', test_type, type('Proc', (), proc_data)()), project_name)
+        except ParseException as e:
+            result = "error: " + str(e)
+
+    report[id][agent][model_name][context_type][prompt_type][mode][test_type] = result
+
+    return report
+
+
+def write_output(output):
+    id, agent, model_name, context_type, prompt_type, test_type, mode, proc = output
+    directory = Path('data') / str(id) / \
+        f"{agent}_{model_name}_{context_type}_{prompt_type}_{test_type}_{mode}"
+    directory.mkdir(exist_ok=True, parents=True)
+    (directory / "stdout.txt").open("wb").write(proc["stdout"])
+    (directory / "stderr.txt").open("wb").write(proc["stderr"])
+
+    # Cache the raw output
+    cache_file = directory / "cache.pkl"
+    with cache_file.open("wb") as f:
+        pickle.dump({
+            "stdout": proc["stdout"],
+            "stderr": proc["stderr"],
+            "returncode": proc["returncode"],
+            "timestamp": datetime.now().isoformat()
+        }, f)
+
+
+def read_limited_output(proc, timeout=3000):
+    # 50 MB limit -- so that our disk space isn't filled up,
+    # and passing cases should be much less than this.
+    # Truncated failing cases will still fail.
+    max_output = 50 * 1024 * 1024
+    TRUNCATION_NOTICE = b"\n[output truncated]\n"
+
+    selector = selectors.DefaultSelector()
+    stdout_chunks, stderr_chunks = [], []
+    stdout_total, stderr_total = 0, 0
+    stdout_truncated, stderr_truncated = False, False
+
+    selector.register(proc.stdout, selectors.EVENT_READ)
+    selector.register(proc.stderr, selectors.EVENT_READ)
+
+    start = time.time()
+    time_elapsed = 0
+
+    while selector.get_map() and (time_elapsed < timeout) and not (stdout_truncated and stderr_truncated):
+        for key, _ in selector.select(timeout=1):
+            data = key.fileobj.read1(4096)  # non-blocking chunk read
+            if not data:
+                selector.unregister(key.fileobj)
+                continue
+
+            if key.fileobj is proc.stdout:
+                if stdout_total < max_output:
+                    chunk = data[:max_output - stdout_total]
+                    stdout_chunks.append(chunk)
+                    stdout_total += len(chunk)
+                    if stdout_total >= max_output:
+                        stdout_truncated = True
+                else:
+                    stdout_truncated = True
+
+            elif key.fileobj is proc.stderr:
+                if stderr_total < max_output:
+                    chunk = data[:max_output - stderr_total]
+                    stderr_chunks.append(chunk)
+                    stderr_total += len(chunk)
+                    if stderr_total >= max_output:
+                        stderr_truncated = True
+                else:
+                    stderr_truncated = True
+
+        time_elapsed = time.time() - start
+
+    # Ensure process is killed if still running
+    proc.kill()
+    try:
+        proc.wait(timeout=10)
+    except subprocess.TimeoutExpired:
         pass
 
-    def save_cache(self):
-        with open(self.cache_file, 'w') as f:
-            json.dump(self.responses_cache, f)
+    if stdout_truncated:
+        stdout_chunks.append(TRUNCATION_NOTICE)
+    if stderr_truncated:
+        stderr_chunks.append(TRUNCATION_NOTICE)
 
-class AiderEvaler(BaseEvaler):
-    def __init__(self, model_name: str, context_type: str, prompt_type: str, mode: str):
-        super().__init__(model_name, context_type, prompt_type, mode)
-        self.cache_file = f"cache/aider-{model_name}-{self.context_type}-{self.prompt_type}-{self.mode}.json"
-        self.base_cache_file = f"cache/aider-{model_name}-{self.context_type}.json"
-        self.model_name_alias = model_name
-        self.client = AiderRunner(self.model_name, prompt_type)
-        
-    def get_response(self, id: str, mode:str, rerun: bool) -> str:
-        prompt = ""
-        system_prompt = self._get_system_prompt(id)
+    # we stopped early if process timed out or stdout/stderr filled up
+    timed_out = time_elapsed >= timeout
+    filled_up = stdout_truncated and stderr_truncated
 
-        if not rerun and os.path.exists(f'./diff/{id}/aider-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}.diff') and os.path.exists(f'./completions/{id}/aider-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}_code_completion.txt'):
-            print(f'Using cache for {id}') 
-            with open(f'./completions/{id}/aider-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}_code_completion.txt') as f:
-                response = f.read()
-                return response, prompt, system_prompt
-        try:
-            diff, response = self.client.run(system_prompt, id)
-            os.makedirs(f"./diff/{id}", exist_ok=True)
-            with open(f'./diff/{id}/aider-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}.diff', "w") as f:
-                f.write(diff)
-        except Exception as e:
-            print(f"{id}: Error: {e}")
-            return "", prompt, system_prompt
-
-        return response, prompt, system_prompt
-
-class OpenhandsEvaler(BaseEvaler):
-    def __init__(self, model_name: str, context_type: str, prompt_type: str, mode: str):
-        super().__init__(model_name, context_type, prompt_type, mode)
-        self.cache_file = f"cache/openhands-{model_name}-{self.context_type}-{self.prompt_type}-{self.mode}.json"
-        self.base_cache_file = f"cache/openhands-{model_name}-{self.context_type}.json"
-        self.model_name_alias = model_name
-        self.client = OpenhandsRunner(self.model_name, prompt_type)
-        
-    def get_response(self, id: str, mode:str, rerun: bool) -> str:
-        prompt = ""
-        system_prompt = self._get_system_prompt(id)
-
-        if not rerun and os.path.exists(f'./diff/{id}/openhands-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}.diff') and os.path.exists(f'./completions/{id}/openhands-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}_code_completion.txt'):
-            print(f'Using cache for {id}') 
-            with open(f'./completions/{id}/openhands-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}_code_completion.txt') as f:
-                response = f.read()
-                return response, prompt, system_prompt
-        try:
-            diff, response = self.client.run(system_prompt, id)
-            os.makedirs(f"./diff/{id}", exist_ok=True)
-            with open(f'./diff/{id}/openhands-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}.diff', "w") as f:
-                f.write(diff)
-        except Exception as e:
-            print(f"{id}: Error: {e}")
-            return "", prompt, system_prompt
-
-        return response, prompt, system_prompt
-    
-class ClaudeCodeEvaler(BaseEvaler):
-    def __init__(self, model_name: str, context_type: str, prompt_type: str, mode: str):
-        super().__init__(model_name, context_type, prompt_type, mode)
-        self.cache_file = f"cache/claudecode-{model_name}-{self.context_type}-{self.prompt_type}-{self.mode}.json"
-        self.base_cache_file = f"cache/claudecode-{model_name}-{self.context_type}.json"
-        self.model_name_alias = model_name
-        self.client = ClaudeCodeRunner(self.model_name, prompt_type)
-        
-    def get_response(self, id: str, mode:str, rerun: bool) -> str:
-        prompt = ""
-        system_prompt = self._get_system_prompt(id)
-
-        if not rerun and os.path.exists(f'./diff/{id}/claudecode-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}.diff') and os.path.exists(f'./completions/{id}/claudecode-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}_code_completion.txt'):
-            print(f'Using cache for {id}') 
-            with open(f'./completions/{id}/claudecode-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}_code_completion.txt') as f:
-                response = f.read()
-                return response, prompt, system_prompt
-        try:
-            diff, response = asyncio.run(self.client.run(system_prompt, id))
-            os.makedirs(f"./diff/{id}", exist_ok=True)
-            with open(f'./diff/{id}/claudecode-{self.model_name_alias}-filled-code-{self.context_type}-{self.prompt_type}-{mode}.diff', "w") as f:
-                f.write(diff)
-        except Exception as e:
-            print(f"{id}: Error: {e}")
-            return "", prompt, system_prompt
-
-        return response, prompt, system_prompt
+    return b''.join(stdout_chunks), b''.join(stderr_chunks), timed_out, filled_up
 
 
-class APIEvaler(BaseEvaler):
-    def __init__(self, model_name: str, context_type: str, prompt_type: str, mode: str):
-        super().__init__(model_name, context_type, prompt_type, mode)
-        self.client = self._initialize_client()
-        self.create = self._get_create_function()
-        self.get_content = self._get_content_function()
+def proc_runner(target):
+    id, agent, model_name, context_type, prompt_type, test_type, mode, cmd = target
+    print(
+        f"Running {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_{test_type}", flush=True)
 
-    def _initialize_client(self, system_prompt=None):
-        if self.model_name in OPENAI_NO_REASONING_MODELS or self.model_name in OPENAI_REASONING_MODELS or self.model_name in OPENAI_RESPONSE_MODELS:
-            return openai.OpenAI()
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS or self.model_name in CLAUDE_REASONING_MODELS:
-            return anthropic.Anthropic()
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-            if system_prompt is not None:
-                return genai.GenerativeModel(model_name=self.model_name,
-                                             system_instruction=system_prompt,
-                                             )
-            else:
-                return genai.GenerativeModel(model_name=self.model_name)
-        elif 'qwen-' in self.model_name:
-            return openai.OpenAI(
-                api_key=os.getenv("QWEN_API_KEY"),
-                base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-            )
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
+    # get unique container id
+    container_id = f"{id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_{test_type}"
 
-            together_api_key = os.environ.get("TOGETHER_API_KEY")
-            if not together_api_key:
-                raise ValueError("TOGETHER_API_KEY not set in environment")
-            # Return a simple dict; our create function will use this key.
-            return {"api_key": together_api_key}
+    # If no cache, cached result was a rate limit error, or rerun is True, run the process with retry
+    max_retries = 5
+    base_delay = 60  # 1 minute
+    for attempt in range(max_retries):
+        proc = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+
+        stdout, stderr, timed_out, filled_up = read_limited_output(
+            proc, timeout=3000)
+
+        return_code = proc.returncode
+        if timed_out or filled_up:
+            return_code = -1
+
+            if timed_out:
+                print(
+                    f"Timeout: {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_{test_type}", flush=True)
+                stderr = b"Timeout\n" + stderr
+            if filled_up:
+                print(
+                    f"Truncated: {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_{test_type}", flush=True)
+                stderr = b"Truncated\n" + stderr
+
+            stdout = stdout or b""
+            stderr = stderr or b""
+
+        if "429 Too Many Requests" not in stderr.decode(errors='ignore'):
+            break
+        if attempt < max_retries - 1:
+            delay = base_delay * (2 ** attempt) + random.uniform(0, 10)
+            print(
+                f"Rate limit reached. Retrying in {delay:.2f} seconds...", flush=True)
+            time.sleep(delay)
         else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
+            print(
+                f"Failed to run {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_{test_type} after {max_retries} attempts", flush=True)
 
-    def _get_create_function(self):
-        if self.model_name in OPENAI_NO_REASONING_MODELS or self.model_name in OPENAI_REASONING_MODELS:
-            return self.client.chat.completions.create
-        elif self.model_name in OPENAI_RESPONSE_MODELS:
-            return self.client.responses.create
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS or self.model_name in CLAUDE_REASONING_MODELS:
-            return self.client.messages.create
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            return self.client.generate_content
-        elif 'qwen-' in self.model_name:
-            return self.client.chat.completions.create
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
-            # Define a function that calls the Together API endpoint.
-            def together_create(**kwargs):
-                url = "https://api.together.xyz/v1/chat/completions"
-                headers = {
-                    "Authorization": f"Bearer {os.environ['TOGETHER_API_KEY']}",
-                    "Content-Type": "application/json",
-                }
-                response = requests.post(url, headers=headers, json=kwargs)
-                response.raise_for_status()
-                return response.json()
-            return together_create
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
+    # Always attempt to remove the container, just to be sure it's gone
+    subprocess.run(['docker', 'rm', '-f', container_id],
+                   stdout=subprocess.DEVNULL,
+                   stderr=subprocess.DEVNULL)
 
-    def _get_content_function(self):
-        if self.model_name in OPENAI_NO_REASONING_MODELS or self.model_name in OPENAI_REASONING_MODELS:
-            return lambda response: [choice.message.content for choice in response.choices]
-        elif self.model_name in OPENAI_RESPONSE_MODELS:
-            return lambda response: [j.text for j in list(chain(*[i.content for i in response.output if i.type == "message"])) if j.type == "output_text"]
-        elif self.model_name in CLAUDE_REASONING_MODELS:
-            return lambda response: [response.content[1].text]
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS:
-            return lambda response: [content.text for content in response.content]
-        elif 'gemini-' in self.model_name:
-            return lambda response: [response.text]
-        elif 'qwen-' in self.model_name:
-            return lambda response: [choice.message.content for choice in response.choices]
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
-            return lambda response: [response['choices'][0]['message']['content']]
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
+    output = id, agent, model_name, context_type, prompt_type, test_type, mode, {
+        "stdout": stdout,
+        "stderr": stderr,
+        "returncode": return_code
+    }
 
-    def _create_messages(self, prompt: str, system_prompt: str, history=[]) -> List[Dict[str, str]]:
-        if self.model_name in OPENAI_NO_REASONING_MODELS or self.model_name in OPENAI_REASONING_MODELS:
-            if system_prompt is not None:
-                messages = [
-                    {'role': 'system', 'content': system_prompt},
-                ]
-            else:
-                messages = []
-            messages.extend([
-                *[{'role': role, 'content': content}
-                    for role, content in history],
-                {'role': 'user', 'content': prompt},
-            ])
-        elif self.model_name in OPENAI_RESPONSE_MODELS:
-            if system_prompt is not None:
-                messages = [
-                    {'role': 'developer', 'content': system_prompt},
-                ]
-            else:
-                messages = []
-            messages.extend([
-                *[{'role': role, 'content': content}
-                    for role, content in history],
-                {'role': 'user', 'content': prompt},
-            ])
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS or self.model_name in CLAUDE_REASONING_MODELS:
-            messages = [
-                *[{'role': role, 'content': content}
-                    for role, content in history],
-                {'role': 'user', 'content': prompt},
-            ]
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            messages = [
-                *[{'role': role.replace("assistant", "model"), 'parts': [content]}
-                  for role, content in history],
-                {'role': 'user', 'parts': [prompt]}
-            ]
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            if system_prompt is not None:
-                messages = [
-                    {'role': 'system', 'content': system_prompt},
-                ]
-            else:
-                messages = []
-            messages.extend([
-                *[{'role': role, 'content': content}
-                    for role, content in history],
-                {'role': 'user', 'content': prompt},
-            ])
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
-            messages = [{'role': 'system', 'content': system_prompt}
-                        ] if system_prompt else []
-            messages.extend([{'role': role, 'content': content}
-                            for role, content in history])
-            messages.append({'role': 'user', 'content': prompt})
+    # write to output files
+    write_output(output)
 
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
-
-        return messages
-
-    def _get_model_kwargs(self, messages: List[Dict[str, str]], system_prompt: str, temperature: float = 0, max_tokens: int = 3072) -> Dict[str, Any]:
-        if self.model_name in OPENAI_NO_REASONING_MODELS:
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'temperature': temperature,
-                'max_completion_tokens': max_tokens,
-                'top_p': 1,
-                'n': 1,
-            }
-
-        # reasoning models
-        elif self.model_name in OPENAI_REASONING_MODELS:
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'max_completion_tokens': max_tokens + THINKING_BUDGET_TOKENS,
-                'reasoning_effort': 'medium',
-                'top_p': 1,
-                'n': 1,
-            }
-        elif self.model_name in OPENAI_RESPONSE_MODELS:
-            return {
-                'model': self.model_name,
-                'tool_choice': 'none',
-                'input': messages,
-                'reasoning': {
-                    'effort': 'medium'
-                },
-                'max_output_tokens': max_tokens + THINKING_BUDGET_TOKENS,
-                'top_p': 1,
-            }
-
-        elif self.model_name in CLAUDE_REASONING_MODELS:
-            if system_prompt is None:
-                return {
-                    'model': self.model_name,
-                    'messages': messages,
-                    'max_tokens': max_tokens + THINKING_BUDGET_TOKENS,
-                    'thinking': {
-                        "type": "enabled",
-                        "budget_tokens": THINKING_BUDGET_TOKENS
-                    },
-                    'top_p': 1,
-                }
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'max_tokens': max_tokens + THINKING_BUDGET_TOKENS,
-                'system': system_prompt,
-                'thinking': {
-                    "type": "enabled",
-                    "budget_tokens": THINKING_BUDGET_TOKENS
-                },
-                'top_p': 1,
-            }
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS:
-            if system_prompt is None:
-                return {
-                    'model': self.model_name,
-                    'messages': messages,
-                    'temperature': temperature,
-                    'max_tokens': max_tokens,
-                    'top_p': 1,
-                }
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'temperature': temperature,
-                'max_tokens': max_tokens,
-                'top_p': 1,
-                'system': system_prompt,
-            }
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            config = GenerationConfig(
-                max_output_tokens=max_tokens,
-                temperature=temperature,
-                top_p=1,
-            )
-            return {
-                'contents': messages,
-                'generation_config': config,
-                'safety_settings': safety_settings,
-            }
-        elif 'qwen-' in self.model_name:
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'temperature': temperature,
-                'max_tokens': max_tokens,
-                'top_p': 1,
-                'n': 1,
-            }
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES:
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'temperature': temperature,
-                'reasoning_effort': 'medium',
-                'max_tokens': max_tokens + THINKING_BUDGET_TOKENS,
-                'top_p': 1,
-                'n': 1,
-            }
-        elif self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'temperature': temperature,
-                'max_tokens': max_tokens,
-                'top_p': 1,
-                'n': 1,  
-            }
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
-
-    @backoff.on_exception(backoff.expo, (openai.RateLimitError,
-                                         openai.InternalServerError,
-                                         openai.APIConnectionError,
-                                         anthropic.RateLimitError,
-                                         anthropic.APIConnectionError,
-                                         anthropic.InternalServerError,
-                                         google.api_core.exceptions.ResourceExhausted,
-                                         google.api_core.exceptions.TooManyRequests,
-                                         google.api_core.exceptions.InternalServerError,
-                                         requests.exceptions.HTTPError,
-                                         requests.exceptions.RequestException))
-    def get_response(self, id: str, mode, rerun: bool) -> str:
-        prompt = self._get_prompt(id, mode)
-        system_prompt = self._get_system_prompt(id)
-
-        if not rerun and id in self.responses_cache:
-            print(f'Using cache for {id}')
-            return self.postprocess(self.responses_cache[id]), prompt, system_prompt
-
-        if self.model_name in GEMINI_NO_REASONING_MODELS:
-            self.client = self._initialize_client(system_prompt)
-            self.create = self._get_create_function()
-
-        if self.prompt_type != 'refine':
-            messages = self._create_messages(prompt, system_prompt)
-            kwargs = self._get_model_kwargs(messages, system_prompt)
-
-            response = self.create(**kwargs)
-        else:
-            with open(self.base_cache_file, 'r') as f:
-                base_cache = json.load(f)
-            base_response = self.postprocess(base_cache[id])
-            with open(f'descriptions/{id}/new-in-file.txt', 'r') as file:
-                context1 = file.read()
-            with open(f'descriptions/{id}/BM25.txt', 'r') as file:
-                context2 = file.read()
-            prompt1 = REFINE_PROMPT_FIRST.format(
-                context1=context1.strip(), context2=context2.strip(), solution=base_response)
-            messages = self._create_messages(prompt1, system_prompt)
-            kwargs = self._get_model_kwargs(messages, system_prompt)
-            analysis = self.create(**kwargs)
-            analysis = self.get_content(analysis)[0]
-            prompt2 = REFINE_PROMPT_SECOND
-            messages = self._create_messages(prompt2, system_prompt, history=[
-                                             ("user", prompt1), ("assistant", analysis)])
-            kwargs = self._get_model_kwargs(messages, system_prompt)
-            response = self.create(**kwargs)
-        try:
-            response = self.get_content(response)[0]
-        except Exception as e:
-            print(f"{id}: Error: {e}")
-            return "", prompt, system_prompt
-        self.responses_cache[id] = response
-
-        return self.postprocess(response), prompt, system_prompt
+    print(
+        f"Finished {id}_{agent}_{model_name}_{context_type}_{prompt_type}_{mode}_{test_type}", flush=True)
+    return output
 
 
-class ChatEvaler(BaseEvaler):
-    def __init__(self, model_name: str, context_type: str, prompt_type: str, mode: str):
-        super().__init__(model_name, context_type, prompt_type, mode)
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.model_name, trust_remote_code=True)
-        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
-        self.mode = mode
-        self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_name,
-            torch_dtype=torch.bfloat16,
-            attn_implementation="flash_attention_2",
-            device_map="auto",
-            trust_remote_code=True, cache_dir="/space2/cache")
-        self.model.generation_config.pad_token_id = self.tokenizer.pad_token_id
-        self.model.eval()
-
-    def get_response(self, id: str, mode, rerun: bool) -> str:
-        prompt = self._get_prompt(id, mode)
-        system_prompt = self._get_system_prompt(id)
-
-        if not rerun and id in self.responses_cache:
-            print(f'Using cache for {id}')
-            return self.postprocess(self.responses_cache[id]), prompt, system_prompt
-
-        terminators = [
-            self.tokenizer.eos_token_id,
-        ]
-        # if 'llama' in self.model_name.lower():
-        #     terminators.append(self.tokenizer.convert_tokens_to_ids("<|eot_id|>"))
-
-        if self.prompt_type != 'refine':
-            if system_prompt is not None:
-                messages = [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt},
-                ]
-            else:
-                messages = [
-                    {"role": "user", "content": prompt},
-                ]
-            input_ids = self.tokenizer.apply_chat_template(
-                messages, add_generation_prompt=True, return_tensors="pt", truncation=True, max_length=16384).to(self.model.device)
-
-            outputs = self.model.generate(input_ids,
-                                          max_new_tokens=3072,
-                                          attention_mask=torch.ones_like(
-                                              input_ids),
-                                          do_sample=False,
-                                          temperature=None,
-                                          top_p=None,
-                                          num_return_sequences=1,
-                                          eos_token_id=terminators,
-                                          use_cache=True,
-                                          )
-        else:
-            with open(self.base_cache_file, 'r') as f:
-                base_cache = json.load(f)
-            base_response = self.postprocess(base_cache[id])
-            with open(f'descriptions/{id}/new-in-file.txt', 'r') as file:
-                context1 = file.read()
-            with open(f'descriptions/{id}/BM25.txt', 'r') as file:
-                context2 = file.read()
-            prompt1 = REFINE_PROMPT_FIRST.format(
-                context1=context1.strip(), context2=context2.strip(), solution=base_response)
-            messages = [
-                {"role": "user", "content": prompt1},
-            ]
-            input_ids = self.tokenizer.apply_chat_template(
-                messages, add_generation_prompt=True, return_tensors="pt").to(self.model.device)
-            outputs = self.model.generate(input_ids,
-                                          max_new_tokens=3072,
-                                          attention_mask=torch.ones_like(
-                                              input_ids),
-                                          do_sample=False,
-                                          temperature=None,
-                                          top_p=None,
-                                          num_return_sequences=1,
-                                          eos_token_id=terminators,
-                                          use_cache=True,
-                                          )
-            analysis = self.tokenizer.decode(
-                outputs[0][len(input_ids[0]):], skip_special_tokens=True)
-            prompt2 = REFINE_PROMPT_SECOND
-            messages = [
-                {"role": "user", "content": prompt1},
-                {"role": "assistant", "content": analysis},
-                {"role": "user", "content": prompt2},
-            ]
-            input_ids = self.tokenizer.apply_chat_template(
-                messages, add_generation_prompt=True, return_tensors="pt").to(self.model.device)
-            outputs = self.model.generate(input_ids,
-                                          max_new_tokens=3072,
-                                          attention_mask=torch.ones_like(
-                                              input_ids),
-                                          do_sample=False,
-                                          temperature=None,
-                                          top_p=None,
-                                          num_return_sequences=1,
-                                          eos_token_id=terminators,
-                                          use_cache=True,
-                                          )
-
-        response = self.tokenizer.decode(
-            outputs[0][len(input_ids[0]):], skip_special_tokens=True)
-        self.responses_cache[id] = response
-
-        return self.postprocess(response), prompt, system_prompt
+def get_remaining(targets, completed):
+    return [target for target in targets if (target[0], target[1], target[2], target[3], target[4], target[5]) not in completed]
 
 
-class CosecEvaler(BaseEvaler):
-    def __init__(self, model_name: str, final_model_path: str, context_type: str, prompt_type: str, mode: str, args):
-        super().__init__(model_name, context_type, prompt_type, mode)
-        self.args = args  # Save the command-line arguments
-        # Load specialized model (for example, CodeLlamaModelLM)
-        self.model = CodeLlamaModelLM.from_pretrained(
-            self.model_name, torch_dtype=torch.bfloat16, device_map='auto')
-        # Load expert (final) model
-        self.sec_model = AutoModelForCausalLM.from_pretrained(
-            final_model_path, torch_dtype=torch.bfloat16, attn_implementation="flash_attention_2",  device_map='auto')
+def eval(ids, agents, model_names, prompt_types, context_types, modes, rerun, num_workers):
+    # consider exposing
+    tests = ['testcase', 'unittest']
 
-        # Load tokenizer from the specialized model path
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            self.model_name, trust_remote_code=True)
-        self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+    # get targes
+    targets = get_targets(ids, agents, model_names,
+                          context_types, prompt_types, tests, modes)
 
-        # Set models to evaluation mode
-        self.model.eval()
-        self.sec_model.eval()
+    # Get completed runs from existing eval report
+    completed = set()
+    all_report_file = Path("report_eval.json")
+    if all_report_file.exists() and not rerun:
+        with open(all_report_file, 'r') as f:
+            all_report = json.load(f)
+        for id in all_report.keys():
+            for agent in all_report[id].keys():
+                for model in all_report[id][agent].keys():
+                    for context in all_report[id][agent][model].keys():
+                        for prompt in all_report[id][agent][model][context].keys():
+                            for mode in all_report[id][agent][model][context][prompt].keys():
+                                for test in all_report[id][agent][model][context][prompt][mode].keys():
+                                    completed.add(
+                                        (id, agent, model, context, prompt, test, mode))
+    # Remove non-relevant completed
+    targets_completed_format = {target[:6] for target in targets}
+    completed = completed.intersection(targets_completed_format)
+    remaining_targets = get_remaining(
+        targets, completed) if not rerun else targets
 
-    def get_response(self, id: str, mode, rerun: bool) -> str:
-        prompt = self._get_prompt(id, mode)
-        system_prompt = self._get_system_prompt(id)
-
-        if not rerun and id in self.responses_cache:
-            print(f'Using cache for {id}')
-            return self.postprocess(self.responses_cache[id]), prompt, system_prompt
-
-        if not prompt.strip():
-            print(f"ID {id}: prompt is empty, skipping.")
-            return "", prompt, None
-
-        terminators = [
-            self.tokenizer.eos_token_id,
-        ]
-        if 'llama' in self.model_name.lower():
-            terminators.append(
-                self.tokenizer.convert_tokens_to_ids("<|eot_id|>"))
-
-        if system_prompt is not None:
-            messages = [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": prompt},
-            ]
-        else:
-            messages = [
-                {"role": "user", "content": prompt},
-            ]
-        input_ids = self.tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt", truncation=True
-        ).to(self.model.device)
-        print("Input IDs shape:", input_ids.shape)
-
-        # Create kwargs for expert generation using values from self.args
-        extra_kwargs = {
-            'expert': True,
-            'expert_lm': self.sec_model,
-            'model_kwargs_expert': {},
-            'threshold': self.args.threshold,  # use threshold from args
-        }
-        import time
-        generation_results = {}
-
-        print(len(input_ids[0]))
-        start_time = time.time()
-        gen_output = self.model.generate_with_experts(
-            input_ids=input_ids,
-            do_sample=True,
-            num_return_sequences=1,
-            temperature=self.args.temp,
-            max_new_tokens=400,
-            top_p=0.95,
-            pad_token_id=self.tokenizer.pad_token_id,
-            use_cache=True,
-            expert_min_prob=0.0,
-            expert_temperature=0.4,
-            expert_top_p=0.95,
-            **extra_kwargs
-        )
-        gen_time = time.time() - start_time
-        print(f"Generation time: {gen_time:.2f} seconds")
-
-        # Decode the generated output
-        response = self.tokenizer.decode(
-            gen_output[0], skip_special_tokens=True
-        )
-        final_response = self.postprocess(response)
-        print(final_response)
-        # Save the result and generation time for this token limit
+    print(
+        f"Found {len(completed)} cached results cases out of {len(targets)} total targets.")
+    if rerun:
         print(
-            f"Max new tokens: {len(gen_output[0])}, Generation time: {gen_time:.2f} seconds")
+            f"Rerunning all {len(targets)} targets, including those with cached results.")
+    else:
+        print(
+            f"Running {len(remaining_targets)} targets which do not have cached results.")
 
-        # Cache and return the response along with prompt details
-        self.responses_cache[id] = final_response
-        return final_response, prompt, system_prompt
+    procs = []
+    pool_size = min(num_workers, len(remaining_targets))
+    if pool_size > 0:
+        try:
+            with alive_bar(len(remaining_targets)) as bar, Pool(pool_size) as p:
+                for proc in p.imap_unordered(proc_runner, remaining_targets):
+                    procs.append(proc)
+                    bar()
+        except KeyboardInterrupt:
+            print("Interrupted. Processing all results...")
+
+    # Process all targets, including cached ones
+    report = defaultdict(lambda: defaultdict(lambda: defaultdict(
+        lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))))
+    # Format the current date and time
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    new_report_file = f"report_eval_{timestamp}.json"
+
+    # load in sample_metadata.json
+    sample_metadata = json.load(open('sample_metadata.json', "r"))
+
+    if not rerun:
+        # useful when parse_output has changed, and we already have the stdout and stderr
+        for complete in completed:
+            id, agent, model_name, context_type, prompt_type, test_type, mode = complete
+            test_patch = f"{agent}_{model_name}_{context_type}_{prompt_type}_{test_type}_{mode}"
+
+            cache_file = f'data/{id}/{test_patch}/cache.pkl'
+            with open(cache_file, 'rb') as f:
+                cache = pickle.load(f)
+
+            stdout = cache['stdout']
+            stderr = cache['stderr']
+            returncode = cache['returncode']
+
+            output = (id, agent, model_name, context_type, prompt_type, test_type, mode, {
+                "stdout": stdout,
+                "stderr": stderr,
+                "returncode": returncode
+            })
+
+            parse_output(output, sample_metadata[str(
+                id)]["project_name"], report=report)
+
+    with alive_bar(len(targets)) as bar:
+        for target in targets:
+            id, agent, model_name, context_type, prompt_type, test_type, mode, _ = target
+            output = next((p for p in procs if p[:7] == (
+                id, agent, model_name, context_type, prompt_type, test_type, mode)), None)
+
+            if output:
+                parse_output(output, sample_metadata[str(
+                    id)]["project_name"], report=report)
+
+            bar()
+
+    with open(new_report_file, 'w') as f:
+        json.dump(report, f, indent=4)
+
+    return new_report_file
