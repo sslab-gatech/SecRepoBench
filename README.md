@@ -1,11 +1,11 @@
 # 🛡️ SecRepoBench
 ### **Links:**
 - Paper: [SecRepoBench: Benchmarking Code Agents for Secure Code Completion in Real-World Repositories](https://arxiv.org/abs/2504.21205)
-- Website & Leaderboard: Under Construction
+- Website & Leaderboard: https://stevenshen3641.github.io/projects/secrepobench/
 
 ## 📝 Overview
 
-SecRepoBench is a benchmark that evaluates Large Language Models and code agents on secure code completion in real-world repositories. SecRepoBench has 318 code completion tasks in 27 C/C++ repositories, covering 15 CWEs. We evaluate 28 standalone LLMs and 13 code agents across 3 state-of-the-art agent frameworks using our benchmark. We find that state-of-the-art LLMs struggle with generating correct and secure code completions. However, code agents significantly outperform standalone LLMs. We show that SecRepoBench is more difficult than the prior state-of-the-art benchmark. Finally, our comprehensive analysis provides insights into potential directions for enhancing the ability of code agents to write correct and secure code in real-world repositories.
+SecRepoBench is a repository-level secure code completion benchmark. It contains 318 code completion tasks obtained from 27 popular GitHub C/C++ repositories covering 15 CWEs. Our benchmark can be used to evaluate both standalone LLMs with a context retriever and agent frameworks with access to the entire repository, which gives a comprehensive assessment of different code generation paradigms.
 
 ## 💡 Framework
 
