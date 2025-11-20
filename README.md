@@ -1,7 +1,7 @@
 # 🛡️ SecRepoBench
 ### **Links:**
 - Paper: [SecRepoBench: Benchmarking Code Agents for Secure Code Completion in Real-World Repositories](https://arxiv.org/abs/2504.21205)
-- Website & Leaderboard: https://stevenshen3641.github.io/projects/secrepobench/
+- Website & Leaderboard: https://secrepobench.github.io/
 
 ## 📝 Overview
 
