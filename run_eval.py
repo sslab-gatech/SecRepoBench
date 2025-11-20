@@ -21,7 +21,6 @@ def main():
     # consider exposing num_workers
     num_workers = 25
 
-    # evaluate all ids in ids.txt
     with open('assets/ids.txt', 'r') as f:
         ids = f.read().splitlines()[1:]
 
@@ -35,13 +34,4 @@ def main():
     analyze_report(ids, eval_report)
 
 if __name__ == "__main__":
-    sys.argv = [
-        "run_inference.py",
-        "--agents", "openhands",
-        "--model-names", "gpt-5",
-        "--context-types", "BM25",  # bm25
-        # no-security-reminder security-policy
-        "--prompt-types", "no-security-reminder",
-        "--rerun"
-    ]
     main()

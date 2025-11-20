@@ -114,9 +114,9 @@ uv run run_eval.py \
 
 📁 *Evaluation results are saved in the `eval_results/` directory.*
 
-## 🔧 Testing Your Own Models
+## 🔧 Testing New Models and Agents
 
-SecRepoBench allows you to test new models and agents. The process differs depending on whether you want to test a standalone LLM or an agent framework.
+SecRepoBench allows you to test new models and agent frameworks. The process differs between different setups.
 
 ### Standalone LLMs
 

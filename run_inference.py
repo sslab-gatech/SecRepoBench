@@ -8,38 +8,31 @@ load_dotenv()
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--agents", nargs='+',
-                        help="List of agents to evaluate")
-    parser.add_argument('--model-names', nargs='+', type=str)
-    parser.add_argument('--context-types', nargs='+', type=str)
-    parser.add_argument('--prompt-types', nargs='+', type=str)
-    parser.add_argument('--rerun', action="store_true",
-                        help="With the rerun flag, it will run inference for a task even if it is in the cache. Otherwise, it will not.")
+    parser.add_argument("--agents", nargs='+', help="List of agents to evaluate")
+    parser.add_argument("--model-names", nargs='+', help="List of models to evaluate")
+    parser.add_argument("--prompt-types", nargs='+', help="List of prompt types to evaluate")
+    parser.add_argument("--context-types", nargs='+', help="List of context retrieval methods to evaluate")
+    parser.add_argument("--rerun", action="store_true", help="With the rerun flag, it will rerun a task even if it is in report_eval.json. Otherwise, it will not.")
+
     args = parser.parse_args()
+
+    # modes refers to the code mutation strategy to mitigate memorization.
+    # We only have the local var perturbation ('perturbed' mode).
+    modes = ['perturbed']
+
+    # consider exposing num_workers
+    num_workers = 5
 
     with open('assets/ids.txt', 'r') as f:
         ids = f.read().splitlines()[1:]
 
-    max_workers = 5  # Adjust based on API limits
-
-    modes = ["perturbed"]
-
     for agent in args.agents:
         if agent != "none" and agent != "claudecode":
-            docker_setup(ids, max_workers, args.rerun)
+            docker_setup(ids, num_workers, args.rerun)
 
     run_inferences(ids, args.agents, args.model_names, args.prompt_types,
-                   args.context_types, args.rerun, modes, max_workers)
+                   args.context_types, args.rerun, modes, num_workers)
 
 
 if __name__ == "__main__":
-    sys.argv = [
-        "run_inference.py",
-        "--agents", "openhands",
-        "--model-names", "o3",
-        "--context-types", "BM25",  # bm25
-        # no-security-reminder security-policy
-        "--prompt-types", "no-security-reminder",
-        # "--rerun"
-    ]
     main()
