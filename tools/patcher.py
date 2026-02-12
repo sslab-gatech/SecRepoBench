@@ -9,10 +9,9 @@ import torch
 import requests
 import backoff
 import subprocess
-import google
-import google.generativeai as genai
+from google import genai
+from google.genai import types, errors
 from harnesses.claudecode_harness import ClaudeCodeRunner
-from google.generativeai import GenerationConfig
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from assets.constants import *
 from assets.cwe_map import *
@@ -323,14 +322,8 @@ class APIPatcher(BasePatcher):
             return openai.OpenAI()
         elif self.model_name in CLAUDE_NO_REASONING_MODELS or self.model_name in CLAUDE_REASONING_MODELS:
             return anthropic.Anthropic()
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
-            if system_prompt is not None:
-                return genai.GenerativeModel(model_name=self.model_name,
-                                             system_instruction=system_prompt,
-                                             )
-            else:
-                return genai.GenerativeModel(model_name=self.model_name)
+        elif self.model_name in GEMINI_NO_REASONING_MODELS or self.model_name in GEMINI_REASONING_MODELS:
+            return genai.Client()
         elif 'qwen-' in self.model_name:
             return openai.OpenAI(
                 api_key=os.getenv("QWEN_API_KEY"),
@@ -353,8 +346,8 @@ class APIPatcher(BasePatcher):
             return self.client.responses.create
         elif self.model_name in CLAUDE_NO_REASONING_MODELS or self.model_name in CLAUDE_REASONING_MODELS:
             return self.client.messages.create
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            return self.client.generate_content
+        elif self.model_name in GEMINI_NO_REASONING_MODELS or self.model_name in GEMINI_REASONING_MODELS:
+            return self.client.models.generate_content
         elif 'qwen-' in self.model_name:
             return self.client.chat.completions.create
         elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
@@ -421,23 +414,17 @@ class APIPatcher(BasePatcher):
                     for role, content in history],
                 {'role': 'user', 'content': prompt},
             ]
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            messages = [
-                *[{'role': role.replace("assistant", "model"), 'parts': [content]}
-                  for role, content in history],
-                {'role': 'user', 'parts': [prompt]}
-            ]
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
+        elif self.model_name in GEMINI_NO_REASONING_MODELS or self.model_name in GEMINI_REASONING_MODELS:
             if system_prompt is not None:
                 messages = [
-                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'system', 'parts': [{"text": system_prompt}]},
                 ]
             else:
                 messages = []
             messages.extend([
-                *[{'role': role, 'content': content}
-                    for role, content in history],
-                {'role': 'user', 'content': prompt},
+                *[{'role': role.replace("assistant", "model"), 'parts': [{"text": content}]}
+                  for role, content in history],
+                {'role': 'user', 'parts': [{"text": prompt}]}
             ])
         elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
             messages = [{'role': 'system', 'content': system_prompt}
@@ -525,15 +512,27 @@ class APIPatcher(BasePatcher):
                 'system': system_prompt,
             }
         elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            config = GenerationConfig(
+            config = types.GenerateContentConfig(
                 max_output_tokens=max_tokens,
                 temperature=temperature,
                 top_p=1,
             )
             return {
+                'model': self.model_name,
                 'contents': messages,
-                'generation_config': config,
-                'safety_settings': safety_settings,
+                'config': config,
+            }
+        elif self.model_name in GEMINI_REASONING_MODELS:
+            config = types.GenerateContentConfig(
+                max_output_tokens=max_tokens + THINKING_BUDGET_TOKENS,
+                temperature=temperature,
+                top_p=1,
+                thinking_config=types.ThinkingConfig(thinking_budget=THINKING_BUDGET_TOKENS)
+            )
+            return {
+                'model': self.model_name,
+                'contents': messages,
+                'config': config,
             }
         elif 'qwen-' in self.model_name:
             return {
@@ -572,9 +571,8 @@ class APIPatcher(BasePatcher):
                                          anthropic.RateLimitError,
                                          anthropic.APIConnectionError,
                                          anthropic.InternalServerError,
-                                         google.api_core.exceptions.ResourceExhausted,
-                                         google.api_core.exceptions.TooManyRequests,
-                                         google.api_core.exceptions.InternalServerError,
+                                         errors.ClientError,
+                                         errors.ServerError,
                                          requests.exceptions.HTTPError,
                                          requests.exceptions.RequestException))
     def get_response(self, id: str, mode, rerun: bool) -> str:
@@ -584,10 +582,6 @@ class APIPatcher(BasePatcher):
         if not rerun and id in self.responses_cache:
             print(f'Using cache for {id}')
             return self.postprocess(self.responses_cache[id]), prompt, system_prompt
-
-        if self.model_name in GEMINI_NO_REASONING_MODELS:
-            self.client = self._initialize_client(system_prompt)
-            self.create = self._get_create_function()
 
         if self.prompt_type != 'refine':
             messages = self._create_messages(prompt, system_prompt)
