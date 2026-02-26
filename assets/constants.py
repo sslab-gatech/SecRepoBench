@@ -135,11 +135,13 @@ OPENAI_NO_REASONING_MODELS = [
     'gpt-4.1-2025-04-14',
     'gpt-4o-2024-08-06',
     'gpt-4o-2024-11-20',
-    'gpt-4o-mini-2024-07-18'
+    'gpt-4o-mini-2024-07-18',
+    'gpt-5-nano',
 ]
 
 OPENAI_REASONING_MODELS = [
     'gpt-5-2025-08-07',
+    'gpt-5.2',
     'o4-mini-2025-04-16',
     'o3-2025-04-16',
     'o3-mini-2025-01-31',
@@ -157,6 +159,7 @@ CLAUDE_NO_REASONING_MODELS = [
 ]
 
 CLAUDE_REASONING_MODELS = [
+    'claude-opus-4-6',
     'claude-sonnet-4-5-20250929',
     'claude-sonnet-4-20250514',
     'claude-3-7-sonnet-20250219',
@@ -201,6 +204,8 @@ TOGETHER_AI_NO_REASONING_MODLES = [
 API_MODEL_NAMES = {
     # openai
     'gpt-5': 'gpt-5-2025-08-07',
+    'gpt-5-nano': 'gpt-5-nano',
+    'gpt-5.2': 'gpt-5.2',
     'gpt-4.1': 'gpt-4.1-2025-04-14',
     'gpt-4o': 'gpt-4o-2024-08-06',  # default
     'gpt-4o-new': 'gpt-4o-2024-11-20',
@@ -213,6 +218,7 @@ API_MODEL_NAMES = {
     'gpt-5.1-codex-max': 'gpt-5.1-codex-max',
 
     # claude
+    'claude-opus-4-6': 'claude-opus-4-6',
     'claude-sonnet-4-5': 'claude-sonnet-4-5-20250929',
     'claude-sonnet-4': 'claude-sonnet-4-20250514',
     'claude-3.7-sonnet': 'claude-3-7-sonnet-20250219',
@@ -245,6 +251,8 @@ API_MODEL_NAMES = {
 MODELS = {
     # openai
     'gpt-5': 'gpt-5-2025-08-07',
+    'gpt-5-nano': 'gpt-5-nano',
+    'gpt-5.2': 'gpt-5.2',
     'gpt-4.1': 'gpt-4.1-2025-04-14',
     'gpt-4o': 'gpt-4o-2024-08-06',  # default
     'gpt-4o-new': 'gpt-4o-2024-11-20',
@@ -257,6 +265,7 @@ MODELS = {
     'gpt-5.1-codex-max': 'gpt-5.1-codex-max',
 
     # claude
+    'claude-opus-4-6': 'claude-opus-4-6',
     'claude-sonnet-4-5': 'claude-sonnet-4-5-20250929',
     'claude-sonnet-4': 'claude-sonnet-4-20250514',
     'claude-3.7-sonnet': 'claude-3-7-sonnet-20250219',

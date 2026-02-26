@@ -55,12 +55,13 @@ class CodexRunner:
         user_prompt = AGENT_USER_PEOMPT.format(changed_file=changed_file)
         prompt = system_prompt + user_prompt
         
-        login_cmd = "printenv OPENAI_API_KEY | codex login --with-api-key"
-        result = subprocess.run(login_cmd, shell=True, check=False)
-        if result.returncode:
-            print("Login unsuccessful!")
-            return None, None
-              
+        if os.environ.get("OPENAI_API_KEY"):
+            login_cmd = "printenv OPENAI_API_KEY | codex login --with-api-key"
+            result = subprocess.run(login_cmd, shell=True, check=False)
+            if result.returncode:
+                print("Login unsuccessful!")
+                return None, None
+
         run_cmd = [
             "codex",
             "--ask-for-approval", "never",

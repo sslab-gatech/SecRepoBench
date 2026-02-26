@@ -30,14 +30,14 @@ def get_c_cpp_file(base_path: str):
 class ClaudeCodeRunner:
     def __init__(self, model_name, prompt_type):
         self.model_name = model_name
+        env = {"MAX_THINKING_TOKENS": str(8000)}
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            env["ANTHROPIC_API_KEY"] = os.environ["ANTHROPIC_API_KEY"]
         self.agent_config = ClaudeAgentOptions(
             disallowed_tools=["WebSearch", "WebFetch"],
             permission_mode="bypassPermissions",
             model=model_name,
-            env={
-                "ANTHROPIC_API_KEY": os.environ["ANTHROPIC_API_KEY"],
-                "MAX_THINKING_TOKENS": str(8000)
-            }
+            env=env,
         )
         self.base_dir = f".claudecode/"
         self.prompt_type = prompt_type
@@ -149,18 +149,28 @@ class ClaudeCodeRunner:
             user_prompt = AGENT_USER_PEOMPT.format(changed_file=changed_file)
             prompt = system_prompt + user_prompt
 
-            # Run with timeout
-            max_retries = 3
+            # Run with timeout and rate limit handling
+            max_retries = 10
             retry_count = 0
+            backoff_time = 1
 
             success, result = False, None
             while retry_count < max_retries:
                 # 1200 secs timeout
                 success, result = await self.run_async_with_timeout(client.query, 1200, prompt)
-                if success or result != "Timeout occurred":
+                if success:
                     break
                 retry_count += 1
-                time.sleep(1)  # Brief pause between retries
+                result_lower = result.lower()
+                if "rate" in result_lower or "429" in result or "overloaded" in result_lower:
+                    print(f"Rate limited (attempt {retry_count}/{max_retries}), waiting {backoff_time}s...")
+                    await asyncio.sleep(backoff_time)
+                    backoff_time = min(backoff_time * 2, 120)
+                elif result == "Timeout occurred":
+                    print(f"Timeout (attempt {retry_count}/{max_retries}), retrying...")
+                    await asyncio.sleep(1)
+                else:
+                    break  # Non-retryable error
 
             async for message in client.receive_response():
                 if isinstance(message, ResultMessage):

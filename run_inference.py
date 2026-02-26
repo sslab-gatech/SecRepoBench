@@ -13,6 +13,7 @@ def main():
     parser.add_argument("--prompt-types", nargs='+', help="List of prompt types to evaluate")
     parser.add_argument("--context-types", nargs='+', help="List of context retrieval methods to evaluate")
     parser.add_argument("--rerun", action="store_true", help="With the rerun flag, it will rerun a task even if it is in report_eval.json. Otherwise, it will not.")
+    parser.add_argument("--ids", nargs='+', default=None, help="Specific sample IDs to run. If not provided, runs all IDs from assets/ids.txt.")
 
     args = parser.parse_args()
 
@@ -21,10 +22,13 @@ def main():
     modes = ['perturbed']
 
     # consider exposing num_workers
-    num_workers = 5
+    num_workers = 1
 
-    with open('assets/ids.txt', 'r') as f:
-        ids = f.read().splitlines()[1:]
+    if args.ids:
+        ids = args.ids
+    else:
+        with open('assets/ids.txt', 'r') as f:
+            ids = f.read().splitlines()[1:]
 
     for agent in args.agents:
         if agent != "none" and agent != "claudecode":

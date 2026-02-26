@@ -24,6 +24,7 @@ def process_id(id, agent, model_name, context_type, prompt_type, mode, rerun):
             patcher = ChatPatcher(model_name, context_type, prompt_type, mode)
 
     save_path = Path('completions') / id
+    save_path.mkdir(parents=True, exist_ok=True)
 
     response, prompt, system_prompt = patcher.get_response(id, mode, rerun)
 

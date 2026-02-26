@@ -4,18 +4,13 @@ import os
 import json
 import openai
 import shutil
-import anthropic
 import torch
-import requests
 import backoff
 import subprocess
-from google import genai
-from google.genai import types, errors
 from harnesses.claudecode_harness import ClaudeCodeRunner
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from assets.constants import *
 from assets.cwe_map import *
-from itertools import chain
 from abc import ABC, abstractmethod
 from typing import List, Dict, Any
 from tools.utils import get_c_cpp_file
@@ -23,30 +18,6 @@ from tools.utils import get_c_cpp_file
 
 # automatically find & load the nearest .env file
 load_dotenv(find_dotenv())
-
-
-safety_settings = [
-    {
-        "category": "HARM_CATEGORY_DANGEROUS",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_HARASSMENT",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_HATE_SPEECH",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-        "threshold": "BLOCK_NONE",
-    },
-    {
-        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-        "threshold": "BLOCK_NONE",
-    },
-]
 
 
 def get_cwe_info(id):
@@ -313,144 +284,24 @@ class ClaudeCodePatcher(BasePatcher):
 class APIPatcher(BasePatcher):
     def __init__(self, model_name: str, context_type: str, prompt_type: str, mode: str):
         super().__init__(model_name, context_type, prompt_type, mode)
-        self.client = self._initialize_client()
-        self.create = self._get_create_function()
-        self.get_content = self._get_content_function()
-
-    def _initialize_client(self, system_prompt=None):
-        if self.model_name in OPENAI_NO_REASONING_MODELS or self.model_name in OPENAI_REASONING_MODELS or self.model_name in OPENAI_RESPONSE_MODELS:
-            return openai.OpenAI()
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS or self.model_name in CLAUDE_REASONING_MODELS:
-            return anthropic.Anthropic()
-        elif self.model_name in GEMINI_NO_REASONING_MODELS or self.model_name in GEMINI_REASONING_MODELS:
-            return genai.Client()
-        elif 'qwen-' in self.model_name:
-            return openai.OpenAI(
-                api_key=os.getenv("QWEN_API_KEY"),
-                base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
-            )
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
-
-            together_api_key = os.environ.get("TOGETHER_API_KEY")
-            if not together_api_key:
-                raise ValueError("TOGETHER_API_KEY not set in environment")
-            # Return a simple dict; our create function will use this key.
-            return {"api_key": together_api_key}
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
-
-    def _get_create_function(self):
-        if self.model_name in OPENAI_NO_REASONING_MODELS or self.model_name in OPENAI_REASONING_MODELS:
-            return self.client.chat.completions.create
-        elif self.model_name in OPENAI_RESPONSE_MODELS:
-            return self.client.responses.create
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS or self.model_name in CLAUDE_REASONING_MODELS:
-            return self.client.messages.create
-        elif self.model_name in GEMINI_NO_REASONING_MODELS or self.model_name in GEMINI_REASONING_MODELS:
-            return self.client.models.generate_content
-        elif 'qwen-' in self.model_name:
-            return self.client.chat.completions.create
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
-            # Define a function that calls the Together API endpoint.
-            def together_create(**kwargs):
-                url = "https://api.together.xyz/v1/chat/completions"
-                headers = {
-                    "Authorization": f"Bearer {os.environ['TOGETHER_API_KEY']}",
-                    "Content-Type": "application/json",
-                }
-                response = requests.post(url, headers=headers, json=kwargs)
-                response.raise_for_status()
-                return response.json()
-            return together_create
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
-
-    def _get_content_function(self):
-        if self.model_name in OPENAI_NO_REASONING_MODELS or self.model_name in OPENAI_REASONING_MODELS:
-            return lambda response: [choice.message.content for choice in response.choices]
-        elif self.model_name in OPENAI_RESPONSE_MODELS:
-            return lambda response: [j.text for j in list(chain(*[i.content for i in response.output if i.type == "message"])) if j.type == "output_text"]
-        elif self.model_name in CLAUDE_REASONING_MODELS:
-            return lambda response: [response.content[1].text]
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS:
-            return lambda response: [content.text for content in response.content]
-        elif 'gemini-' in self.model_name:
-            return lambda response: [response.text]
-        elif 'qwen-' in self.model_name:
-            return lambda response: [choice.message.content for choice in response.choices]
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
-            return lambda response: [response['choices'][0]['message']['content']]
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
+        self.client = openai.OpenAI(
+            api_key=os.getenv("LITELLM_API_KEY"),
+            base_url=os.getenv("LITELLM_BASE_URL"),
+        )
 
     def _create_messages(self, prompt: str, system_prompt: str, history=[]) -> List[Dict[str, str]]:
-        if self.model_name in OPENAI_NO_REASONING_MODELS or self.model_name in OPENAI_REASONING_MODELS:
-            if system_prompt is not None:
-                messages = [
-                    {'role': 'system', 'content': system_prompt},
-                ]
-            else:
-                messages = []
-            messages.extend([
-                *[{'role': role, 'content': content}
-                    for role, content in history],
-                {'role': 'user', 'content': prompt},
-            ])
-        elif self.model_name in OPENAI_RESPONSE_MODELS:
-            if system_prompt is not None:
-                messages = [
-                    {'role': 'developer', 'content': system_prompt},
-                ]
-            else:
-                messages = []
-            messages.extend([
-                *[{'role': role, 'content': content}
-                    for role, content in history],
-                {'role': 'user', 'content': prompt},
-            ])
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS or self.model_name in CLAUDE_REASONING_MODELS:
-            messages = [
-                *[{'role': role, 'content': content}
-                    for role, content in history],
-                {'role': 'user', 'content': prompt},
-            ]
-        elif self.model_name in GEMINI_NO_REASONING_MODELS or self.model_name in GEMINI_REASONING_MODELS:
-            if system_prompt is not None:
-                messages = [
-                    {'role': 'system', 'parts': [{"text": system_prompt}]},
-                ]
-            else:
-                messages = []
-            messages.extend([
-                *[{'role': role.replace("assistant", "model"), 'parts': [{"text": content}]}
-                  for role, content in history],
-                {'role': 'user', 'parts': [{"text": prompt}]}
-            ])
-        elif self.model_name in TOGETHER_AI_REASONING_MODLES or self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
-            messages = [{'role': 'system', 'content': system_prompt}
-                        ] if system_prompt else []
-            messages.extend([{'role': role, 'content': content}
-                            for role, content in history])
-            messages.append({'role': 'user', 'content': prompt})
-
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
-
+        messages = []
+        if system_prompt is not None:
+            messages.append({'role': 'system', 'content': system_prompt})
+        messages.extend([
+            {'role': role, 'content': content} for role, content in history
+        ])
+        messages.append({'role': 'user', 'content': prompt})
         return messages
 
     def _get_model_kwargs(self, messages: List[Dict[str, str]], system_prompt: str, temperature: float = 0, max_tokens: int = 3072) -> Dict[str, Any]:
-        if self.model_name in OPENAI_NO_REASONING_MODELS:
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'temperature': temperature,
-                'max_completion_tokens': max_tokens,
-                'top_p': 1,
-                'n': 1,
-            }
-
-        # reasoning models
-        elif self.model_name in OPENAI_REASONING_MODELS:
+        # OpenAI reasoning models
+        if self.model_name in OPENAI_REASONING_MODELS or self.model_name in OPENAI_RESPONSE_MODELS:
             return {
                 'model': self.model_name,
                 'messages': messages,
@@ -459,90 +310,34 @@ class APIPatcher(BasePatcher):
                 'top_p': 1,
                 'n': 1,
             }
-        elif self.model_name in OPENAI_RESPONSE_MODELS:
-            return {
-                'model': self.model_name,
-                'tool_choice': 'none',
-                'input': messages,
-                'reasoning': {
-                    'effort': 'medium'
-                },
-                'max_output_tokens': max_tokens + THINKING_BUDGET_TOKENS,
-                'top_p': 1,
-            }
-
+        # Claude reasoning models (pass thinking config via extra_body)
         elif self.model_name in CLAUDE_REASONING_MODELS:
-            if system_prompt is None:
-                return {
-                    'model': self.model_name,
-                    'messages': messages,
-                    'max_tokens': max_tokens + THINKING_BUDGET_TOKENS,
-                    'thinking': {
-                        "type": "enabled",
-                        "budget_tokens": THINKING_BUDGET_TOKENS
-                    },
-                    'top_p': 1,
-                }
             return {
                 'model': self.model_name,
                 'messages': messages,
                 'max_tokens': max_tokens + THINKING_BUDGET_TOKENS,
-                'system': system_prompt,
-                'thinking': {
-                    "type": "enabled",
-                    "budget_tokens": THINKING_BUDGET_TOKENS
+                'top_p': 1,
+                'extra_body': {
+                    'thinking': {
+                        'type': 'enabled',
+                        'budget_tokens': THINKING_BUDGET_TOKENS,
+                    }
                 },
-                'top_p': 1,
             }
-        elif self.model_name in CLAUDE_NO_REASONING_MODELS:
-            if system_prompt is None:
-                return {
-                    'model': self.model_name,
-                    'messages': messages,
-                    'temperature': temperature,
-                    'max_tokens': max_tokens,
-                    'top_p': 1,
-                }
-            return {
-                'model': self.model_name,
-                'messages': messages,
-                'temperature': temperature,
-                'max_tokens': max_tokens,
-                'top_p': 1,
-                'system': system_prompt,
-            }
-        elif self.model_name in GEMINI_NO_REASONING_MODELS:
-            config = types.GenerateContentConfig(
-                max_output_tokens=max_tokens,
-                temperature=temperature,
-                top_p=1,
-            )
-            return {
-                'model': self.model_name,
-                'contents': messages,
-                'config': config,
-            }
+        # Gemini reasoning models
         elif self.model_name in GEMINI_REASONING_MODELS:
-            config = types.GenerateContentConfig(
-                max_output_tokens=max_tokens + THINKING_BUDGET_TOKENS,
-                temperature=temperature,
-                top_p=1,
-                thinking_config=types.ThinkingConfig(thinking_budget=THINKING_BUDGET_TOKENS)
-            )
-            return {
-                'model': self.model_name,
-                'contents': messages,
-                'config': config,
-            }
-        elif 'qwen-' in self.model_name:
             return {
                 'model': self.model_name,
                 'messages': messages,
+                'max_tokens': max_tokens + THINKING_BUDGET_TOKENS,
                 'temperature': temperature,
-                'max_tokens': max_tokens,
                 'top_p': 1,
                 'n': 1,
+                'extra_body': {
+                    'thinking': {'thinking_budget': THINKING_BUDGET_TOKENS},
+                },
             }
+        # Together AI reasoning models
         elif self.model_name in TOGETHER_AI_REASONING_MODLES:
             return {
                 'model': self.model_name,
@@ -553,7 +348,8 @@ class APIPatcher(BasePatcher):
                 'top_p': 1,
                 'n': 1,
             }
-        elif self.model_name in TOGETHER_AI_NO_REASONING_MODLES:
+        # All non-reasoning models
+        else:
             return {
                 'model': self.model_name,
                 'messages': messages,
@@ -562,19 +358,10 @@ class APIPatcher(BasePatcher):
                 'top_p': 1,
                 'n': 1,
             }
-        else:
-            raise ValueError(f'Invalid model name: {self.model_name}')
 
     @backoff.on_exception(backoff.expo, (openai.RateLimitError,
                                          openai.InternalServerError,
-                                         openai.APIConnectionError,
-                                         anthropic.RateLimitError,
-                                         anthropic.APIConnectionError,
-                                         anthropic.InternalServerError,
-                                         errors.ClientError,
-                                         errors.ServerError,
-                                         requests.exceptions.HTTPError,
-                                         requests.exceptions.RequestException))
+                                         openai.APIConnectionError))
     def get_response(self, id: str, mode, rerun: bool) -> str:
         prompt = self._get_prompt(id, mode)
         system_prompt = self._get_system_prompt(id)
@@ -587,7 +374,7 @@ class APIPatcher(BasePatcher):
             messages = self._create_messages(prompt, system_prompt)
             kwargs = self._get_model_kwargs(messages, system_prompt)
 
-            response = self.create(**kwargs)
+            response = self.client.chat.completions.create(**kwargs)
         else:
             with open(self.base_cache_file, 'r') as f:
                 base_cache = json.load(f)
@@ -600,15 +387,15 @@ class APIPatcher(BasePatcher):
                 context1=context1.strip(), context2=context2.strip(), solution=base_response)
             messages = self._create_messages(prompt1, system_prompt)
             kwargs = self._get_model_kwargs(messages, system_prompt)
-            analysis = self.create(**kwargs)
-            analysis = self.get_content(analysis)[0]
+            analysis = self.client.chat.completions.create(**kwargs)
+            analysis = analysis.choices[0].message.content
             prompt2 = REFINE_PROMPT_SECOND
             messages = self._create_messages(prompt2, system_prompt, history=[
                                              ("user", prompt1), ("assistant", analysis)])
             kwargs = self._get_model_kwargs(messages, system_prompt)
-            response = self.create(**kwargs)
+            response = self.client.chat.completions.create(**kwargs)
         try:
-            response = self.get_content(response)[0]
+            response = response.choices[0].message.content
         except Exception as e:
             print(f"{id}: Error: {e}")
             return "", prompt, system_prompt

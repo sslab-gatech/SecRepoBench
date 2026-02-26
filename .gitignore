@@ -18,3 +18,4 @@ inference_data/
 report_eval*
 report.json
 sample_metadata.json
+.env
